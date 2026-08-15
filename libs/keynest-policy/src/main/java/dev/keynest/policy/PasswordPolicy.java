@@ -1,9 +1,11 @@
 package dev.keynest.policy;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
- * Declarative password standards. Used by both {@code validate} and {@code generate}.
+ * Runtime password standards. Prefer loading from a policy document via
+ * {@link dev.keynest.policy.schema.PasswordPolicyLoader} so generate/update share one schema.
  */
 public final class PasswordPolicy {
 
@@ -19,6 +21,9 @@ public final class PasswordPolicy {
     private final int minCategories;
     private final boolean excludeAmbiguous;
     private final boolean forbidWhitespace;
+    private final boolean forbidUsernameSubstring;
+    private final Integer maxAgeDays;
+    private final List<String> bannedSubstrings;
 
     private PasswordPolicy(Builder builder) {
         this.id = builder.id;
@@ -31,21 +36,16 @@ public final class PasswordPolicy {
         this.minCategories = builder.minCategories;
         this.excludeAmbiguous = builder.excludeAmbiguous;
         this.forbidWhitespace = builder.forbidWhitespace;
+        this.forbidUsernameSubstring = builder.forbidUsernameSubstring;
+        this.maxAgeDays = builder.maxAgeDays;
+        this.bannedSubstrings = List.copyOf(builder.bannedSubstrings);
     }
 
+    /**
+     * Loads {@code keynest.default.v1} from the classpath policy document (schema-backed).
+     */
     public static PasswordPolicy defaultPolicy() {
-        return builder()
-                .id(DEFAULT_POLICY_ID)
-                .minLength(16)
-                .maxLength(128)
-                .requireUpper(true)
-                .requireLower(true)
-                .requireDigit(true)
-                .requireSymbol(true)
-                .minCategories(3)
-                .excludeAmbiguous(true)
-                .forbidWhitespace(true)
-                .build();
+        return dev.keynest.policy.schema.PasswordPolicyLoader.loadDefault().toRuntimePolicy();
     }
 
     public static Builder builder() {
@@ -92,6 +92,18 @@ public final class PasswordPolicy {
         return forbidWhitespace;
     }
 
+    public boolean forbidUsernameSubstring() {
+        return forbidUsernameSubstring;
+    }
+
+    public Integer maxAgeDays() {
+        return maxAgeDays;
+    }
+
+    public List<String> bannedSubstrings() {
+        return bannedSubstrings;
+    }
+
     public static final class Builder {
         private String id = DEFAULT_POLICY_ID;
         private int minLength = 16;
@@ -103,6 +115,9 @@ public final class PasswordPolicy {
         private int minCategories = 3;
         private boolean excludeAmbiguous = true;
         private boolean forbidWhitespace = true;
+        private boolean forbidUsernameSubstring = true;
+        private Integer maxAgeDays = 90;
+        private List<String> bannedSubstrings = List.of();
 
         public Builder id(String id) {
             this.id = Objects.requireNonNull(id, "id");
@@ -154,6 +169,21 @@ public final class PasswordPolicy {
             return this;
         }
 
+        public Builder forbidUsernameSubstring(boolean forbidUsernameSubstring) {
+            this.forbidUsernameSubstring = forbidUsernameSubstring;
+            return this;
+        }
+
+        public Builder maxAgeDays(Integer maxAgeDays) {
+            this.maxAgeDays = maxAgeDays;
+            return this;
+        }
+
+        public Builder bannedSubstrings(List<String> bannedSubstrings) {
+            this.bannedSubstrings = bannedSubstrings == null ? List.of() : List.copyOf(bannedSubstrings);
+            return this;
+        }
+
         public PasswordPolicy build() {
             if (minLength < 1) {
                 throw new IllegalArgumentException("minLength must be >= 1");
@@ -163,6 +193,9 @@ public final class PasswordPolicy {
             }
             if (minCategories < 0 || minCategories > 4) {
                 throw new IllegalArgumentException("minCategories must be between 0 and 4");
+            }
+            if (maxAgeDays != null && maxAgeDays < 1) {
+                throw new IllegalArgumentException("maxAgeDays must be >= 1 when set");
             }
             return new PasswordPolicy(this);
         }

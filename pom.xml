@@ -25,6 +25,8 @@
     <spring-boot.version>3.4.2</spring-boot.version>
     <junit.version>5.11.4</junit.version>
     <argon2.version>2.11</argon2.version>
+    <jackson.version>2.18.2</jackson.version>
+    <json-schema-validator.version>1.5.4</json-schema-validator.version>
   </properties>
 
   <dependencyManagement>
@@ -57,6 +59,16 @@
         <version>${argon2.version}</version>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.networknt</groupId>
+        <artifactId>json-schema-validator</artifactId>
+        <version>${json-schema-validator.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>
         <version>${junit.version}</version>
@@ -74,6 +86,7 @@
           <version>3.13.0</version>
           <configuration>
             <release>${maven.compiler.release}</release>
+            <parameters>true</parameters>
           </configuration>
         </plugin>
         <plugin>

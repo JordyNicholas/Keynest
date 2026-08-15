@@ -83,13 +83,21 @@ public final class PasswordValidator {
             violations.add("password.min_categories");
         }
 
-        if (usernameOrEmail != null && !usernameOrEmail.isBlank()) {
+        if (policy.forbidUsernameSubstring() && usernameOrEmail != null && !usernameOrEmail.isBlank()) {
             String local = usernameOrEmail.contains("@")
                     ? usernameOrEmail.substring(0, usernameOrEmail.indexOf('@'))
                     : usernameOrEmail;
             String needle = local.toLowerCase(Locale.ROOT);
             if (needle.length() >= 3 && password.toLowerCase(Locale.ROOT).contains(needle)) {
                 violations.add("password.contains_username");
+            }
+        }
+
+        String lowerPassword = password.toLowerCase(Locale.ROOT);
+        for (String banned : policy.bannedSubstrings()) {
+            if (banned != null && !banned.isBlank() && lowerPassword.contains(banned.toLowerCase(Locale.ROOT))) {
+                violations.add("password.banned_substring");
+                break;
             }
         }
 

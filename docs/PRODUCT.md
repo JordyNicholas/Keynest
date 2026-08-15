@@ -331,7 +331,7 @@ NotificationOutbox
 3. **Lib distribution** — GitHub Packages / Maven Central later vs path dependencies first. Recommend path/reactor modules until APIs stabilize.
 4. **Tools HTTP sidecar** — defer until a non-JVM consumer appears.
 5. **Master recovery** — recovery key download **or** reset-wipes-vault; must be explicit in Manager UX.
-6. **Policy defaults** — ship a system policy `keynest.default.v1` (e.g. length ≥ 16, 3+ character classes, no username substring).
+6. **Policy defaults** — ship system policy `keynest.default.v1` as a JSON document validated by `password-policy.schema.json` (landed; see ADR-0004).
 
 ---
 

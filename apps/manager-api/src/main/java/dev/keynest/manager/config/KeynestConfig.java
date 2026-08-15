@@ -2,6 +2,8 @@ package dev.keynest.manager.config;
 
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.policy.PasswordPolicy;
+import dev.keynest.policy.lifecycle.PasswordStandards;
+import dev.keynest.policy.schema.PolicyRegistry;
 import dev.keynest.seal.KeynestSeal;
 import dev.keynest.seal.PasswordHasher;
 import org.springframework.context.annotation.Bean;
@@ -13,8 +15,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class KeynestConfig {
 
     @Bean
-    PasswordPolicy defaultPasswordPolicy() {
-        return PasswordPolicy.defaultPolicy();
+    PolicyRegistry policyRegistry() {
+        return PolicyRegistry.withDefaults();
+    }
+
+    @Bean
+    PasswordStandards passwordStandards(PolicyRegistry policyRegistry) {
+        return new PasswordStandards(policyRegistry);
+    }
+
+    @Bean
+    PasswordPolicy defaultPasswordPolicy(PolicyRegistry policyRegistry) {
+        return policyRegistry.runtime(PasswordPolicy.DEFAULT_POLICY_ID);
     }
 
     @Bean

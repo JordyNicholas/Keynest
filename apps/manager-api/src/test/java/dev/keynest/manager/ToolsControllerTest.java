@@ -30,6 +30,15 @@ class ToolsControllerTest {
     }
 
     @Test
+    void policyEndpointReturnsSchemaBackedDocument() throws Exception {
+        mockMvc.perform(get("/api/v1/tools/policy"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is("keynest.default.v1")))
+                .andExpect(jsonPath("$.rules.minLength", is(16)))
+                .andExpect(jsonPath("$.appliesTo[0]").exists());
+    }
+
+    @Test
     void generateProducesValidPassword() throws Exception {
         mockMvc.perform(post("/api/v1/tools/generate"))
                 .andExpect(status().isOk())

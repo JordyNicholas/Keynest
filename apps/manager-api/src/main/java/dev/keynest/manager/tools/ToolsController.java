@@ -2,8 +2,10 @@ package dev.keynest.manager.tools;
 
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.policy.PasswordPolicy;
-import dev.keynest.policy.PasswordValidator;
+import dev.keynest.policy.PolicyOperation;
 import dev.keynest.policy.ValidationResult;
+import dev.keynest.policy.lifecycle.PasswordStandards;
+import dev.keynest.policy.schema.PasswordPolicyDocument;
 import dev.keynest.seal.KeynestSeal;
 import dev.keynest.seal.PasswordHasher;
 import dev.keynest.seal.SealEnvelope;
@@ -13,12 +15,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -29,20 +33,21 @@ import java.util.Map;
 public class ToolsController {
 
     private final PasswordPolicy defaultPolicy;
+    private final PasswordStandards passwordStandards;
     private final PasswordGenerator generator;
     private final KeynestSeal seal;
     private final PasswordHasher passwordHasher;
-
-    /** Dev-only demo key so seal/open works without a KMS yet. Replace before any real deploy. */
     private final byte[] demoKey;
 
     public ToolsController(
             PasswordPolicy defaultPolicy,
+            PasswordStandards passwordStandards,
             PasswordGenerator generator,
             KeynestSeal seal,
             PasswordHasher passwordHasher
     ) {
         this.defaultPolicy = defaultPolicy;
+        this.passwordStandards = passwordStandards;
         this.generator = generator;
         this.seal = seal;
         this.passwordHasher = passwordHasher;
@@ -61,28 +66,69 @@ public class ToolsController {
         );
     }
 
+    @GetMapping("/policy")
+    public Map<String, Object> policy(
+            @RequestParam(name = "policyId", defaultValue = PasswordPolicy.DEFAULT_POLICY_ID) String policyId
+    ) {
+        PasswordPolicyDocument document = passwordStandards.registry().require(policyId);
+        Map<String, Object> rules = new LinkedHashMap<>();
+        PasswordPolicy runtime = document.toRuntimePolicy();
+        rules.put("minLength", runtime.minLength());
+        rules.put("maxLength", runtime.maxLength());
+        rules.put("requireUpper", runtime.requireUpper());
+        rules.put("requireLower", runtime.requireLower());
+        rules.put("requireDigit", runtime.requireDigit());
+        rules.put("requireSymbol", runtime.requireSymbol());
+        rules.put("minCategories", runtime.minCategories());
+        rules.put("excludeAmbiguous", runtime.excludeAmbiguous());
+        rules.put("forbidWhitespace", runtime.forbidWhitespace());
+        rules.put("forbidUsernameSubstring", runtime.forbidUsernameSubstring());
+        rules.put("maxAgeDays", runtime.maxAgeDays());
+        rules.put("bannedSubstrings", runtime.bannedSubstrings());
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("id", document.id());
+        body.put("version", document.version());
+        body.put("description", document.description());
+        body.put("appliesTo", document.appliesTo());
+        body.put("rules", rules);
+        return body;
+    }
+
     @PostMapping("/validate")
-    public Map<String, Object> validate(@RequestBody ValidateRequest request) {
-        ValidationResult result = PasswordValidator.validate(
-                request.password(),
-                defaultPolicy,
-                request.usernameOrEmail()
-        );
+    public Map<String, Object> validate(
+            @RequestBody ValidateRequest request,
+            @RequestParam(name = "operation", defaultValue = "update") String operation
+    ) {
+        PolicyOperation op = PolicyOperation.fromWire(operation);
+        String policyId = request.policyId() == null || request.policyId().isBlank()
+                ? PasswordPolicy.DEFAULT_POLICY_ID
+                : request.policyId();
+        ValidationResult result = switch (op) {
+            case CREATE -> passwordStandards.validateForCreate(policyId, request.password(), request.usernameOrEmail());
+            case UPDATE -> passwordStandards.validateForUpdate(policyId, request.password(), request.usernameOrEmail());
+            case ROTATE -> passwordStandards.validateForRotate(policyId, request.password(), request.usernameOrEmail());
+            case GENERATE -> passwordStandards.validateForGenerateCheck(policyId, request.password());
+        };
         return Map.of(
                 "valid", result.valid(),
                 "violations", result.violations(),
-                "policyId", defaultPolicy.id()
+                "policyId", policyId,
+                "operation", op.wireValue()
         );
     }
 
     @PostMapping("/generate")
-    public Map<String, Object> generate() {
-        String password = generator.generate(defaultPolicy);
-        ValidationResult result = PasswordValidator.validate(password, defaultPolicy);
+    public Map<String, Object> generate(
+            @RequestParam(name = "policyId", defaultValue = PasswordPolicy.DEFAULT_POLICY_ID) String policyId
+    ) {
+        PasswordPolicy policy = passwordStandards.runtimePolicy(policyId, PolicyOperation.GENERATE);
+        String password = generator.generate(policy);
+        ValidationResult result = passwordStandards.validateForGenerateCheck(policyId, password);
         return Map.of(
                 "password", password,
                 "valid", result.valid(),
-                "policyId", defaultPolicy.id()
+                "policyId", policyId
         );
     }
 
@@ -126,7 +172,7 @@ public class ToolsController {
         return Map.of("valid", ok);
     }
 
-    public record ValidateRequest(@NotBlank String password, String usernameOrEmail) {
+    public record ValidateRequest(@NotBlank String password, String usernameOrEmail, String policyId) {
     }
 
     public record SealRequest(@NotBlank String plaintext) {
