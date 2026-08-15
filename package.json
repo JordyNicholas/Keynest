@@ -1,0 +1,12 @@
+{
+  "name": "keynest",
+  "private": true,
+  "description": "Keynest monorepo — Vercel builds Manager Web from apps/manager-web",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web",
+    "start": "npm --prefix apps/manager-web start"
+  }
+}

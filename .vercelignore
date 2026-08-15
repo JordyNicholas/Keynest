@@ -7,6 +7,4 @@ docs
 libs
 apps/manager-api
 **/target
-**/node_modules
 **/.angular
-**/dist

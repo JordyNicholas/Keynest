@@ -135,7 +135,7 @@ docker compose -f deploy/docker-compose.yml up --build
 
 ### Vercel (Manager Web)
 
-Preview/production deploys target **`apps/manager-web`** via root [`vercel.json`](./vercel.json) (`installCommand` / `buildCommand` / `outputDirectory`). SPA fallback rewrites are included. Optional dashboard Root Directory: `apps/manager-web` (uses [`apps/manager-web/vercel.json`](./apps/manager-web/vercel.json)).
+Root [`vercel.json`](./vercel.json) builds **`apps/manager-web`** via `@vercel/static-build` (`dist/manager-web/browser`). Prefer also setting Project Root Directory to `apps/manager-web` in the Vercel dashboard so framework presets stay aligned.
 
 ---
 
