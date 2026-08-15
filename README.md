@@ -4,35 +4,68 @@ Password **tools** you can embed — and a **Manager** vault that uses them.
 
 | Offering | Role |
 |---|---|
-| **Keynest Tools** | Java libraries: Seal (encrypt/decrypt), policy validate, generate |
-| **Keynest Manager** | Angular + Spring Boot product: vault CRUD, expiry, auth/MFA |
+| **Keynest Tools** | Java libs: `keynest-seal`, `keynest-policy`, `keynest-generate` |
+| **Keynest Manager** | Angular UI + Spring Boot API (dogfoods the libs) |
 
-Self-host or cloud. External services depend on the same libraries the Manager dogfoods.
+> North star: [docs/PRODUCT.md](./docs/PRODUCT.md)
 
-> Formerly `fep-password`. North-star grooming: [docs/PRODUCT.md](./docs/PRODUCT.md).
+## Repo layout
+
+```text
+libs/keynest-policy      password standards + validate
+libs/keynest-generate    CSPRNG generate under the same policy
+libs/keynest-seal        Seal envelope (AES-256-GCM) + Argon2id hash/verify
+apps/manager-api         Spring Boot façade over the libs
+apps/manager-web         Angular Manager shell
+deploy/                  Docker Compose + API Dockerfile
+archive/next-prototype   legacy Next.js app (do not extend)
+```
+
+## Prerequisites
+
+- JDK 21+, Maven 3.9+
+- Node 20+ (Angular Manager UI)
+
+## Build & test (libs + API)
+
+```bash
+mvn test
+```
+
+Run the API:
+
+```bash
+mvn -pl apps/manager-api spring-boot:run
+```
+
+Tools endpoints (dogfood):
+
+- `GET  /api/v1/tools/health`
+- `POST /api/v1/tools/generate`
+- `POST /api/v1/tools/validate` `{ "password": "...", "usernameOrEmail": "..." }`
+- `POST /api/v1/tools/seal` / `open`
+- `POST /api/v1/tools/hash-password` / `verify-password`
+
+## Manager UI
+
+```bash
+cd apps/manager-web
+npm install
+npm start
+```
+
+Open http://localhost:4200 (proxies calls to API on :8080).
+
+## Docker (API)
+
+```bash
+docker compose -f deploy/docker-compose.yml up --build
+```
 
 ## Security stance
 
-Uniqueness lives in the **Keynest Seal** envelope and APIs, not in a custom cipher. Vault secrets use authenticated encryption (AES-256-GCM); master passwords use Argon2id hash-and-compare; MFA is a separate step. Per-character hashing is rejected — see [ADR-0001](./docs/ADR-0001-crypto-model.md) and [ADR-0003](./docs/ADR-0003-keynest-seal.md).
+Uniqueness is the **Keynest Seal** envelope/API, not a custom cipher. See [ADR-0003](./docs/ADR-0003-keynest-seal.md).
 
-## Target stack
+## Rename
 
-- **Libs + API:** Java 21, Spring Boot 3, Maven multi-module  
-- **Manager UI:** Angular  
-- **DB:** PostgreSQL  
-- **Current tree:** legacy Next.js prototype (to be archived once Spring/Angular land)
-
-## Docs
-
-- [Product grooming](./docs/PRODUCT.md)
-- [ADR-0001 — Crypto model](./docs/ADR-0001-crypto-model.md)
-- [ADR-0002 — Platform & stack](./docs/ADR-0002-platform-and-stack.md)
-- [ADR-0003 — Keynest Seal](./docs/ADR-0003-keynest-seal.md)
-
-## Repo rename
-
-Target GitHub name: **`keynest`**. Rename under GitHub → Settings → General.
-
-## License / ownership
-
-Private portfolio / product work by Jordy Nicholas.
+Target GitHub name: **`keynest`** (Settings → General).

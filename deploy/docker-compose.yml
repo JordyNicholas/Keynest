@@ -1,0 +1,12 @@
+services:
+  manager-api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  # manager-web is typically `ng serve` in dev.
+  # Production image wiring lands with the vault UI milestone.

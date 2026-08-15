@@ -302,17 +302,14 @@ NotificationOutbox
 
 ## MVP slice (revised for platform + new stack)
 
-1. **Grooming docs** (done / this iteration) — platform split, stack, Seal concept.
-2. **Maven multi-module skeleton** — empty `seal` / `policy` / `generate` + Spring Boot hello + Angular shell.
-3. **`keynest-policy` + `keynest-generate`** — validate/generate with shared rules + tests.
-4. **`keynest-seal`** — envelope v1, seal/open, Argon2id hash/verify + tests.
-5. **Manager API vault + auth** — uses libs only; Postgres persistence.
-6. **Manager Web** — login, list/create items, generate button, basic expiry field.
-7. **Notify** — email on approaching expiry.
-8. **Compose deploy** — api + web + db; README for self-host and cloud notes.
-9. **Publish libs** (even privately) — prove an external sample module depends on them.
-
-Archive/remove Next.js after step 5–6 when Angular covers the prototype flows.
+1. **Grooming docs** — platform split, stack, Seal concept.  
+2. **Maven multi-module skeleton** — `seal` / `policy` / `generate` + Spring Boot tools API + Angular shell. **(landed)**  
+3. Harden libs (golden Seal vectors, richer policies, rewrap).  
+4. Manager API vault + auth persistence (Postgres).  
+5. Manager Web vault CRUD UI.  
+6. Notify — email on approaching expiry.  
+7. Compose full stack + cloud notes.  
+8. Publish libs / sample external consumer module.
 
 ---
 
@@ -351,7 +348,6 @@ Archive/remove Next.js after step 5–6 when Angular covers the prototype flows.
 ## Rename checklist
 
 - [x] Product/docs identity → Keynest  
-- [x] Package name on legacy app → `keynest`  
-- [ ] GitHub repository rename → `keynest` (manual)  
-- [ ] Introduce Maven artifact names under `dev.keynest`  
-- [ ] Retire Next.js prototype into `archive/` once Spring/Angular land  
+- [x] Introduce Maven artifact names under `dev.keynest`  
+- [x] Retire Next.js prototype into `archive/`  
+- [ ] GitHub repository rename → `keynest` (manual)

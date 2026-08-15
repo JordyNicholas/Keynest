@@ -1,0 +1,125 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.shell {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.brand {
+  margin-bottom: 2.5rem;
+}
+
+.mark {
+  margin: 0;
+  font-family: "Fraunces", "Times New Roman", serif;
+  font-size: clamp(2.5rem, 8vw, 3.75rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #e8f0ea;
+}
+
+.brand h1 {
+  margin: 0.35rem 0 0;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7a9e86;
+}
+
+.lede {
+  margin: 1rem 0 0;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: #b7c8bc;
+}
+
+.panel {
+  margin-top: 1.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(232, 240, 234, 0.12);
+}
+
+.panel h2 {
+  margin: 0 0 0.5rem;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9bb5a4;
+}
+
+.panel p {
+  margin: 0 0 1rem;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  color: #b7c8bc;
+  font-size: 0.95rem;
+}
+
+button {
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #0c1410;
+  background: #c6e2cf;
+  border: 0;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #d7eedc;
+}
+
+label {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-size: 0.9rem;
+  color: #b7c8bc;
+}
+
+input {
+  font: inherit;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid rgba(232, 240, 234, 0.2);
+  background: rgba(8, 14, 11, 0.55);
+  color: #e8f0ea;
+}
+
+.secret,
+pre {
+  display: block;
+  margin-top: 1rem;
+  padding: 0.85rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #d5e6db;
+  background: rgba(8, 14, 11, 0.55);
+  border: 1px solid rgba(232, 240, 234, 0.1);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.error {
+  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  color: #f0b7a8;
+  background: rgba(80, 24, 16, 0.35);
+  padding: 0.75rem 1rem;
+}
+
+code {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.9em;
+}
