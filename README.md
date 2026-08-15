@@ -135,9 +135,16 @@ docker compose -f deploy/docker-compose.yml up --build
 
 ### Vercel (Manager Web)
 
-Root [`vercel.json`](./vercel.json) runs `npm run build`, which builds **`apps/manager-web`** and emits Vercel Build Output under `.vercel/output/static` (see [`scripts/prepare-vercel-output.js`](./scripts/prepare-vercel-output.js)).
+The Manager UI is Angular under **`apps/manager-web`**. The linked Vercel project must **not** use the Next.js preset (that is what caused `No Next.js version detected`).
 
-Optional: set Project Root Directory to `apps/manager-web` in the Vercel dashboard for a direct Angular preset.
+**Dashboard (required once):**
+
+1. Vercel → Project **fep-password** → **Settings** → **General**
+2. **Root Directory** → `apps/manager-web`
+3. **Framework Preset** → **Angular** (turn off overrides that still run `next build`)
+4. Redeploy the latest PR commit
+
+Repo config: root [`vercel.json`](./vercel.json) and [`apps/manager-web/vercel.json`](./apps/manager-web/vercel.json) both declare `framework: "angular"` and the Angular `dist/manager-web/browser` output.
 
 ---
 
