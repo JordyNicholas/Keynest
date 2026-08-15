@@ -1,0 +1,12 @@
+# Keep Vercel deploys focused on Manager Web
+.github
+.idea
+archive
+deploy
+docs
+libs
+apps/manager-api
+**/target
+**/node_modules
+**/.angular
+**/dist

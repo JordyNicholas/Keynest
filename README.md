@@ -133,6 +133,10 @@ Open http://localhost:4200 (calls API on :8080).
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
+### Vercel (Manager Web)
+
+Preview/production deploys target **`apps/manager-web`** via root [`vercel.json`](./vercel.json) (`installCommand` / `buildCommand` / `outputDirectory`). SPA fallback rewrites are included. Optional dashboard Root Directory: `apps/manager-web` (uses [`apps/manager-web/vercel.json`](./apps/manager-web/vercel.json)).
+
 ---
 
 ## MVP status
