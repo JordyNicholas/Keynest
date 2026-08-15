@@ -1,7 +1,8 @@
 {
-  "name": "fep-password",
+  "name": "keynest",
   "version": "0.1.0",
   "private": true,
+  "description": "Self-hostable password vault with generator, expiry alerts, and MFA",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

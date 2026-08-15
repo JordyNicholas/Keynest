@@ -49,8 +49,8 @@ export default function PasswordGenerator(props: {className: string}){
     <div className="pw-Index">
 
         <div className="pw-Header">
-            <h1>Password Generator</h1>
-            <a>A project made by Jordy!</a>
+            <h1>Keynest Generator</h1>
+            <a>Generate strong passwords for your vault</a>
         </div>
 
         <div className="pw-Options">

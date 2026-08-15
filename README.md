@@ -1,47 +1,47 @@
- # Password Generator
+# Keynest
 
-This is a simple password generator app built with React. It allows users to generate a random password based on specified criteria such as length, character types (lowercase, uppercase, symbols, numbers), and copy the generated password to the clipboard.
+Self-hostable password vault with an optional cloud deploy path.
 
-## Step-by-Step Explanation
+Store login credentials, generate strong passwords, get notified before they expire, and unlock access with a master password plus optional MFA (email / SMS / TOTP).
 
-### 1. Importing Necessary Libraries
+> Formerly `fep-password` — a Next.js password-generator experiment. This repo is being reshaped into a real vault product. See [docs/PRODUCT.md](./docs/PRODUCT.md) for grooming, naming, and the security model.
 
-```typescriptreact
-import React from "react";
-import { useState } from "react";
+## What it will do
+
+| Capability | Status |
+|---|---|
+| Password generator (CSPRNG) | Prototype UI exists — needs crypto fix |
+| Credential vault (URL, username, password) | Stub |
+| Password expiry + notify / rotate | Planned |
+| Master-password auth (Argon2id) | Planned (`bcrypt` / `next-auth` present) |
+| MFA after unlock (email / SMS / TOTP) | Planned |
+| Docker self-host + cloud deploy | Planned |
+
+## Security stance (read this)
+
+Vault secrets are **encrypted** (AES-256-GCM) under a key derived from your master password.  
+The master password itself is stored only as an **Argon2id** hash of the *whole* string.
+
+We will **not** hash passwords character-by-character or “reverse engineer” hashes. That approach is trivially breakable and is not how password managers work. Details and the corrected flow live in [docs/PRODUCT.md](./docs/PRODUCT.md).
+
+## Stack (current)
+
+- Next.js 14, React 18, TypeScript
+- `bcrypt` / `next-auth` already in dependencies (to be evaluated vs Argon2id + session design)
+
+## Local dev
+
+```bash
+npm install
+npm run dev
 ```
 
-We import the React library and the `useState` hook from the React library. The `useState` hook allows us to manage state in functional components.
+Open [http://localhost:3000](http://localhost:3000).
 
-### 2. Defining the `PasswordIndex` Component
+## Repo rename
 
-```typescriptreact
-export default function PasswordIndex(props: {className: string}) {
-  const className = props.className;
-```
+Target GitHub name: **`keynest`**. Rename under GitHub → Settings → General. This package is already named `keynest`.
 
-We define the `PasswordIndex` component, which is the main component of our app. It takes a `className` prop, which is used to apply CSS classes to the component.
+## License / ownership
 
-### 3. Defining State Variables
-
-```typescriptreact
-  const [passwordData, setPasswordData] = useState(String);
-  const [passwordLength, setPasswordLength] = useState(Number);
-  const [useLowerCase, setUseLowerCase] = useState(Boolean);
-  const [useUpperCase, setUseUpperCase] = useState(Boolean);
-  const [useSymbols, setUseSymbols] = useState(Boolean);
-  const [useNumbers, setUseNumbers] = useState(Boolean);
-  const [sucessfulMessage, setSuccessfulMessage] = useState(String);
-```
-
-We define several state variables using the `useState` hook:
-
-- `passwordData`: This state variable stores the generated password.
-- `passwordLength`: This state variable stores the desired length of the password.
-- `useLowerCase`: This state variable determines whether to include lowercase letters in the password.
-- `useUpperCase`: This state variable determines whether to include uppercase letters in the password.
-- `useSymbols`: This state variable determines whether to include symbols in the password.
-- `useNumbers`: This state variable determines whether to include numbers in the password.
-- `sucessfulMessage`: This state variable stores a success message when the password is copied to the clipboard.
-
-### 4. Generating a Password
+Private portfolio / product work by Jordy Nicholas.

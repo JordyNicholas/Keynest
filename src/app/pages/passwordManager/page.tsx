@@ -6,7 +6,7 @@ import './styles.css';
 export default function PasswordManager(){
     return(
         <div className="pm-Index">
-            <h1>Password Manager</h1>
+            <h1>Keynest Vault</h1>
         
             <div className="pm-Form">
                 

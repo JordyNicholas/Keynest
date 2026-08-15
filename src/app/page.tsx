@@ -11,8 +11,8 @@ export default async function RootPage() {
       <div className="header-div">
       <DefaultHeader 
         img="https://avatars.githubusercontent.com/u/56373651?v=4"
-        firstMenu="Password Generator"
-        secMenu="Password Manager"
+        firstMenu="Generator"
+        secMenu="Vault"
         thirdMenu="About"/>
       </div>
 

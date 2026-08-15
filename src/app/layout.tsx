@@ -4,8 +4,8 @@ import { Inter } from 'next/font/google'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Password Generator',
-  description: 'Another project for my portfolio!',
+  title: 'Keynest',
+  description: 'Self-hostable password vault — generate, store, rotate, unlock.',
 }
 
 export default function RootLayout({
