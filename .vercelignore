@@ -1,4 +1,4 @@
-# Keep Vercel deploys focused on Manager Web source
+# Files not needed for the Manager Web deploy
 .github
 .idea
 archive
@@ -8,4 +8,3 @@ libs
 apps/manager-api
 **/target
 **/.angular
-apps/manager-web/dist

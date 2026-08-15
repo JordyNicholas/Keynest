@@ -1,4 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build"
+  "installCommand": "npm install --ignore-scripts",
+  "buildCommand": "npm run build",
+  "outputDirectory": "out",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
