@@ -1,0 +1,10 @@
+# Files not needed for the Manager Web deploy
+.github
+.idea
+archive
+deploy
+docs
+libs
+apps/manager-api
+**/target
+**/.angular

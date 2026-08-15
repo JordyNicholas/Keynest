@@ -1,0 +1,41 @@
+<main class="shell">
+  <header class="brand">
+    <p class="mark">Keynest</p>
+    <h1>Manager</h1>
+    <p class="lede">Vault product shell — dogfooding the same tools external services will use.</p>
+  </header>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+
+  <section class="panel" aria-labelledby="health-heading">
+    <h2 id="health-heading">API</h2>
+    <button type="button" (click)="refreshHealth()">Refresh health</button>
+    <pre>{{ health() | json }}</pre>
+  </section>
+
+  <section class="panel" aria-labelledby="gen-heading">
+    <h2 id="gen-heading">Generate</h2>
+    <p>Uses <code>keynest-generate</code> under <code>keynest.default.v1</code>.</p>
+    <button type="button" (click)="generate()">Generate password</button>
+    @if (generated()) {
+      <output class="secret">{{ generated() }}</output>
+    }
+  </section>
+
+  <section class="panel" aria-labelledby="val-heading">
+    <h2 id="val-heading">Validate</h2>
+    <label>
+      Candidate password
+      <input
+        type="text"
+        [ngModel]="validatePassword()"
+        (ngModelChange)="validatePassword.set($event)"
+        autocomplete="off"
+      />
+    </label>
+    <button type="button" (click)="validate()">Validate</button>
+    <pre>{{ validateResult() | json }}</pre>
+  </section>
+</main>

@@ -1,27 +1,12 @@
 {
-  "name": "fep-password",
-  "version": "0.1.0",
+  "name": "keynest",
   "private": true,
+  "description": "Keynest monorepo — Vercel should use Root Directory apps/manager-web (Angular)",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "bcrypt": "^5.1.1",
-    "next": "14.0.4",
-    "next-auth": "^4.24.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "styled-components": "^6.1.8"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.0.4",
-    "typescript": "^5"
+    "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web",
+    "start": "npm --prefix apps/manager-web start"
   }
 }
