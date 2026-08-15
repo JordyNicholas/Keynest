@@ -22,7 +22,8 @@ We need both:
 
 ## Consequences
 
-- Crypto is boring and standard — easier to audit and explain.
+- Crypto primitives stay standard — easier to audit and explain.
+- Product uniqueness moves to the **Keynest Seal** toolkit (envelope, API, key hierarchy, policy binding) — see ADR-0003 — not to a novel cipher.
 - Self-host MVP can decrypt server-side; ciphertext format should allow a later zero-knowledge client.
 - MFA delivery providers become adapters behind Notify/Auth, not part of the hash scheme.
-- Existing `bcrypt` dependency may be replaced or limited to transitional use; prefer Argon2id for new master-password hashing.
+- Exportable Java libraries (`keynest-seal`, etc.) share this model with Manager and external services (ADR-0002).

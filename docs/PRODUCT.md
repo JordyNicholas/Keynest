@@ -2,9 +2,15 @@
 
 **Working product name:** Keynest  
 **Repo rename target:** `fep-password` → `keynest`  
-**Tagline:** Self-hostable password vault with cloud option, expiry alerts, and strong generation.
+**Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-This document replaces the early “password generator portfolio app” framing with a clear product definition, security model, service split, and MVP scope.
+This document is the north star for product shape, stack, library boundaries, and MVP. It evolves the first grooming pass: Keynest is no longer “a Next.js vault app.” It is a **tools platform** plus a **manager product**.
+
+---
+
+## One-line vision
+
+**Ship reusable password safety libraries** (encrypt/decrypt, validate against policy, generate, rotate) that any external service can adopt — and build **Keynest Manager** on top of those same libraries as the first-party vault product (self-host or cloud).
 
 ---
 
@@ -12,256 +18,340 @@ This document replaces the early “password generator portfolio app” framing 
 
 | Current | Problem |
 |---|---|
-| `fep-password` | Opaque acronym; reads like a homework repo |
-| “Password Generator” title | Undersells the real product (vault + lifecycle + auth) |
+| `fep-password` | Opaque; reads like coursework |
+| “Password Generator” | Undersells vault + exportable tools |
 
-**Keynest** = a nest for your keys. Short, pronounceable, available as a package name, works for self-host *and* SaaS.
+**Keynest** = a nest for keys. Works for both the libraries (`keynest-*`) and the manager product.
 
-Alternatives if you dislike it: `coffer`, `lockhaven`, `passkeep`, `vaultforge`.
+> GitHub rename is manual: Settings → General → Repository name. Package/docs already use Keynest.
 
-> GitHub rename is a Settings → General → Repository name change on `JordyNicholas/fep-password`. This PR only renames the package and docs; you (or a maintainer) must rename the remote repo.
+---
+
+## Two offerings (same repo)
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│                     Keynest platform                         │
+│                                                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌───────────────────┐  │
+│  │ keynest-seal │  │ keynest-     │  │ keynest-policy    │  │
+│  │ encrypt /    │  │ generate     │  │ validate / rules  │  │
+│  │ decrypt /    │  │              │  │ strength / expiry │  │
+│  │ verify env.  │  └──────────────┘  └───────────────────┘  │
+│  └──────────────┘                                            │
+│                         ▲ used by                            │
+│         ┌───────────────┴────────────────┐                   │
+│         │     Keynest Manager (product)   │                  │
+│         │  Angular UI  +  Spring Boot API │                  │
+│         │  vault CRUD, auth, notify, UX   │                  │
+│         └────────────────────────────────┘                   │
+│                         ▲ also used by                       │
+│         ┌───────────────┴────────────────┐                   │
+│         │   External services (your APIs) │                  │
+│         │   Maven/npm clients of the libs │                  │
+│         └────────────────────────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Offering | What it is | Consumers |
+|---|---|---|
+| **Keynest Tools** | Versioned libraries + (optional later) HTTP sidecar | Any backend that needs password crypto/policy/generation |
+| **Keynest Manager** | Full vault product (UI + API) | End users / teams; also the reference implementation of the tools |
+
+The manager must call the **same** library APIs external services would. No private shortcuts. If Manager can do it, an integrator can do it.
 
 ---
 
 ## Problem we solve
 
-People need a place to:
+### For integrators (tools)
 
-1. **Store** site credentials (URL, username/email, secret).
-2. **Generate** strong passwords when creating or rotating credentials.
-3. **Know when to rotate** (expiry / policy), with notify + guided update.
-4. **Unlock the vault safely** (master credential + optional second factor).
-5. **Deploy either way** — Docker/self-host *or* a hosted cloud tier.
+1. **Seal** passwords/secrets for storage or transit with a clear, versioned envelope.
+2. **Validate** candidate passwords against enforceable standards (and the same rules used to generate).
+3. **Generate** passwords that always pass those standards.
+4. **Update / rotate** with policy-aware helpers (new secret → re-seal → invalidate old metadata).
+
+### For end users (Manager)
+
+1. Store login data (URL, username/email, password).
+2. Create / read / update / delete vault items.
+3. Manage expiry (notify + guided update).
+4. Unlock safely (master credential + optional MFA).
+5. Deploy self-hosted or cloud.
 
 ---
 
-## Critical correction: hashing vs encryption
+## “New and unique” encryption — what that means here
 
-The original idea (split password into symbols → hash each position → “reverse engineer” on login → then email/SMS challenge) must not ship. It fails for two different jobs at once.
+You want differentiation. That is good. The unique part should be the **Keynest Seal toolkit** (API, envelope, key hierarchy, policy binding) — **not** a home-grown cipher or per-character hash scheme.
 
-### Job A — Vault secrets (site passwords you must *read back*)
-
-You need **encryption**, not hashing.
-
-| Approach | Can recover password for autofill? | Safe? |
-|---|---|---|
-| Hash whole password | No | Wrong tool |
-| Hash each character + position | No (and trivial to crack) | **Dangerous** |
-| Encrypt with key derived from master password | Yes | Correct |
-
-Per-character hashing is ~95 guesses per symbol. An attacker recovers the full password in seconds. Position maps also leak length and structure.
-
-**Correct vault model (industry standard):**
-
-1. User enters **master password** (never stored in plaintext).
-2. Derive a vault key with a memory-hard KDF: **Argon2id** (or scrypt), with random salt.
-3. Encrypt each vault item with **AES-256-GCM** (or XChaCha20-Poly1305).
-4. Store ciphertext + nonce + salt + auth tag. Server (or DB) never sees plaintext site passwords when zero-knowledge is the goal.
-
-Optional later: client-side encryption so even a compromised server cannot read vault contents.
-
-### Job B — Account / master login verification
-
-You need a **one-way hash of the whole secret**, not per-symbol hashes, and you never “unhash.”
-
-1. On register: `hash = Argon2id(masterPassword, salt)` → store `hash`, `salt`, params.
-2. On login: recompute hash from input → **constant-time compare** to stored hash.
-3. If match → issue session / unlock vault key material.
-4. Optionally require **MFA** (TOTP app preferred; email/SMS OTP as fallback).
-
-“Reverse engineer the password” is not how hashing works. Validation is **hash-and-compare**, never decrypt of a hash.
-
-### Job C — Second factor (email / SMS / TOTP)
-
-This is **orthogonal** to hashing. After master password succeeds:
-
-1. Generate a short-lived random OTP (or use TOTP).
-2. Deliver via email/SMS (or authenticator app).
-3. User submits OTP → only then unlock vault / create session.
-
-Prefer **TOTP (authenticator app)** as primary MFA. SMS is weaker (SIM swap) but acceptable as optional channel.
-
-### What we keep from your idea
-
-| Your intent | Keep as |
+| Unique (yes — product IP) | Not unique / not safe |
 |---|---|
-| “Complex hashing” for safety | Argon2id on the **whole** master password |
-| Symbol/position mapping | Drop — leaks structure, weak crypto |
-| Random string after validate | MFA OTP step (email / SMS / TOTP) |
-| Feeling of a custom security service | A dedicated **Auth service** with clear boundaries |
+| Versioned **Seal envelope** format (header + ciphertext + tag + key id) | Inventing a new block cipher |
+| Opinionated **key hierarchy** (KEK/DEK, rotation, AAD bound to policy id) | Hashing each symbol + position |
+| Single API: `seal` / `open` / `rewrap` / `verifyIntegrity` | “Reverse engineering” hashes |
+| Same rules engine for **validate** and **generate** | Security through obscurity |
+| Java library + optional HTTP tool service for polyglot callers | Storing recoverable secrets via hashing |
+
+**Primitives stay standard and peer-reviewed:** Argon2id (KDF / password hashing), AES-256-GCM or XChaCha20-Poly1305 (authenticated encryption), CSPRNG for generation.
+
+Your original instinct (“complex handling + challenge after validate”) maps cleanly to:
+
+1. **Seal / Open** for vault secrets (encrypt/decrypt with integrity).
+2. **Hash-and-compare** (whole master password) for authentication.
+3. **MFA challenge** (email / SMS / TOTP) after auth succeeds.
+
+See [ADR-0001](./ADR-0001-crypto-model.md) and [ADR-0003](./ADR-0003-keynest-seal.md).
 
 ---
 
-## Product pillars (v1)
+## Tool surface (exportable)
 
-1. **Vault** — CRUD for credentials: label, URL, username/email, encrypted password, notes, tags.
-2. **Generator** — cryptographically secure random passwords (length, charset, exclude ambiguous chars); optional passphrase mode later.
-3. **Expiry & rotation** — per-item `expiresAt` / rotation policy; notify before expiry; one-click “generate + update.”
-4. **Auth + MFA** — register/login with master password; optional email/SMS/TOTP challenge.
-5. **Deploy modes** — same codebase: `docker compose` self-host *and* cloud deploy (e.g. Vercel/Fly + managed DB, or single VM).
+These are the first-class libraries. Manager is a consumer.
 
----
+### 1. `keynest-seal` — encrypt / decrypt / integrity
 
-## Non-goals (for now)
+| Operation | Purpose |
+|---|---|
+| `seal(plaintext, keyRef, aad?)` | Produce a Keynest envelope (ciphertext + metadata) |
+| `open(envelope, keyRef)` | Decrypt + verify auth tag / version |
+| `rewrap(envelope, oldKey, newKey)` | Key rotation without changing plaintext |
+| `fingerprint(envelope)` | Non-secret id for logs/audit |
+| `hashPassword(password)` / `verifyPassword(password, hash)` | Auth path (Argon2id); separate from seal |
 
-- Browser extension / autofill agent (phase 2).
-- Password sharing / organizations / RBAC (phase 2).
-- Breach monitoring / HaveIBeenPwned sync (phase 2).
-- Replacing Bitwarden feature-for-feature.
-- Custom “novel” crypto that isn’t peer-reviewed.
+External auth services use `hashPassword` / `verifyPassword`.  
+Vaults and secret stores use `seal` / `open`.
 
----
+### 2. `keynest-policy` — standards enforcement
 
-## Service architecture
-
-One product, three logical services (can start as modules in one monorepo; split processes when needed):
+Declarative policy, shared by validate + generate:
 
 ```text
-┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Web app    │────▶│  API gateway     │────▶│  Vault service  │
-│  (Next.js)  │     │  (authn/z, rate) │     │  encrypt/CRUD   │
-└─────────────┘     └────────┬─────────┘     └────────┬────────┘
-                             │                        │
-                             ▼                        ▼
-                    ┌──────────────────┐     ┌─────────────────┐
-                    │  Auth service    │     │  Notify service │
-                    │  Argon2id, MFA   │     │  email/SMS/cron │
-                    │  sessions/JWT    │     └─────────────────┘
-                    └──────────────────┘
+PasswordPolicy
+  minLength, maxLength
+  requireUpper, requireLower, requireDigit, requireSymbol
+  minCategories
+  forbidUsername / forbidEmailLocalPart
+  forbidWhitespace
+  excludeAmbiguous (0OIl1…)
+  bannedList / regex denylist
+  maxAgeDays (for rotation tooling)
 ```
 
-| Service | Responsibility |
+| Operation | Purpose |
 |---|---|
-| **Web** | UI: vault, generator, settings, expiry inbox |
-| **Auth** | Users, master-password verify, MFA, sessions |
-| **Vault** | Encrypted items, generator API, rotation metadata |
-| **Notify** | Expiry jobs, email/SMS delivery (provider adapters) |
+| `validate(password, policy, context?)` | Pass/fail + structured violations |
+| `explain(policy)` | Human-readable rules for UI |
+| `score(password)` optional | Strength hint (never a substitute for validate) |
 
-**Self-host:** single `docker-compose` (api + web + postgres + mailer stub).  
-**Cloud:** same images/config; managed Postgres + Resend/Twilio (or equivalents).
+### 3. `keynest-generate` — creation under the same rules
 
-### Suggested stack (aligned with current repo)
+| Operation | Purpose |
+|---|---|
+| `generate(policy)` | Random password that **must** satisfy `validate` |
+| `generateUntilValid(policy, maxAttempts)` | Internal retry with CSPRNG |
+| `suggestRotation(oldEnvelopeMeta, policy)` | Helper for update flows |
 
-| Layer | Choice | Notes |
-|---|---|---|
-| UI | Next.js (App Router) | Already present |
-| Auth session | Auth.js / custom JWT | `next-auth` already in deps — evaluate vs custom |
-| KDF | Argon2id | Prefer over bcrypt for new master-password hashing |
-| Vault crypto | AES-256-GCM | Web Crypto or libsodium |
-| DB | PostgreSQL | Credentials metadata + ciphertext |
-| Jobs | Cron worker / queue | Expiry scans |
-| Deploy | Docker Compose + one cloud target | Document both paths |
+**Invariant:** every generated password passes `keynest-policy` for the same policy id. No divergent “generator rules” vs “validator rules.”
 
-Keep **domain logic** free of framework/ORM types (ports at the edges). Auth and vault talk through interfaces, not each other’s tables.
+### 4. Lifecycle helpers (can live in `keynest-policy` or a thin `keynest-lifecycle`)
+
+| Operation | Purpose |
+|---|---|
+| `createSecret(policy)` | generate → (caller seals) |
+| `updateSecret(policy)` | generate or accept candidate → validate → (caller seals) |
+| `assertReadable / assertDeletable` | Authorization hooks left to Manager; libs stay pure |
+
+Deletion is a **Manager/persistence** concern; libs do not delete rows. They can wipe byte arrays / clear sensitive buffers where the language allows.
 
 ---
 
-## Domain model (MVP)
+## Manager product (first-party app)
+
+**Keynest Manager** = Angular SPA + Spring Boot API + Postgres (+ notify worker).
+
+Capabilities:
+
+| Area | Behavior |
+|---|---|
+| Vault CRUD | create / read / update / delete credentials (URL, username/email, sealed password) |
+| Tools UX | UI wrappers around generate + validate + seal (same libs) |
+| Expiry | `expiresAt`, notify before, guided rotate using `generate` + `seal` |
+| Auth | register/login via `hashPassword`/`verifyPassword`; optional MFA |
+| Deploy | Docker Compose self-host; cloud profile (managed DB + mail/SMS providers) |
+
+Manager API endpoints should be thin: validate input → call use case → use Keynest libs → map response. Domain logic does not depend on Spring Web types inside library modules.
+
+---
+
+## Target stack (decision)
+
+Moving away from the current Next.js prototype.
+
+| Layer | Choice | Rationale |
+|---|---|---|
+| Tools (libs) | **Java 21**, Maven multi-module | Export to JVM services; your preferred backend ecosystem |
+| Manager API | **Spring Boot 3** | First-class consumer of the libs; clear module boundaries |
+| Manager UI | **Angular** (current LTS) | Distinct UX surface; fits “Manager is a product” |
+| DB | **PostgreSQL** | Vault metadata + envelopes |
+| Jobs | Spring scheduler or queue worker | Expiry notifications |
+| Crypto | JDK + proven libs (e.g. Bouncy Castle only if needed) | Argon2id + AES-GCM |
+| Packing | Multi-module monorepo | `libs/*` + `apps/manager-api` + `apps/manager-web` |
+| Deploy | Docker Compose + cloud compose/k8s profile | Same artifacts both ways |
+
+### What happens to the existing Next.js code?
+
+Treat it as a **prototype / archive**:
+
+- Keep until Angular + Spring skeletons exist, then remove or move to `archive/next-prototype`.
+- Do not invest further features in Next.js.
+- Port generator UX ideas into Angular; replace `Math.random` with CSPRNG in the Java generator lib.
+
+Optional later: TypeScript thin client that talks to a **Keynest Tools HTTP sidecar** for non-JVM stacks — still backed by the Java implementation so crypto stays one place.
+
+---
+
+## Repo layout (target)
+
+```text
+keynest/
+  docs/                    PRODUCT, ADRs, threat model
+  libs/
+    keynest-seal/          encrypt, decrypt, password hash/verify
+    keynest-policy/        standards + validate
+    keynest-generate/      CSPRNG generation under policy
+  apps/
+    manager-api/           Spring Boot
+    manager-web/           Angular
+  deploy/
+    docker-compose.yml
+  archive/                 optional: old Next.js app
+```
+
+Publishing: Maven coordinates e.g. `dev.keynest:keynest-seal`, `keynest-policy`, `keynest-generate`.
+
+---
+
+## Service / module architecture
+
+```text
+ Angular (Manager Web)
+        │  HTTPS
+        ▼
+ Spring Boot (Manager API)
+   auth │ vault │ notify   ──▶  PostgreSQL
+        │
+        ├── keynest-seal
+        ├── keynest-policy
+        └── keynest-generate
+
+ External Service (e.g. your other API)
+        │
+        └── same Maven deps (seal / policy / generate)
+```
+
+Logical services inside Manager API (packages, not necessarily separate deployables day one):
+
+| Module | Responsibility |
+|---|---|
+| `auth` | Users, sessions/JWT, MFA orchestration |
+| `vault` | Item CRUD, stores Seal envelopes |
+| `notify` | Expiry scan, email/SMS adapters |
+| `tools` | Optional HTTP façade exposing validate/generate/seal for trusted internal use |
+
+**Day-one recommendation:** modular Spring Boot monolith depending on the three libs. Split Tools into a standalone HTTP service only when non-JVM or multi-language consumers need it.
+
+---
+
+## Domain model (Manager MVP)
 
 ```text
 User
-  id, email, kdfSalt, kdfParams, passwordHash, mfaEnabled, createdAt
+  id, email, passwordHash, kdfParams, mfaEnabled, createdAt
 
 VaultItem
   id, userId, label, url, username,
-  ciphertext, nonce, authTag,   // encrypted password (+ optional notes blob)
+  envelope (Keynest Seal blob),   // sealed password
+  policyId,                       // which standard applied
   expiresAt, lastRotatedAt, notifyBeforeDays,
   createdAt, updatedAt
 
+PasswordPolicyEntity          // optional persisted policies
+  id, ownerId|system, name, rulesJson, version
+
 MfaChallenge
-  id, userId, channel (email|sms|totp), codeHash, expiresAt, consumedAt
+  id, userId, channel, codeHash, expiresAt, consumedAt
 
 NotificationOutbox
   id, userId, vaultItemId, channel, payload, status, scheduledAt
 ```
 
-Generator does not need persistence unless you save “generator presets.”
-
----
-
-## User flows
-
-### Unlock
-
-1. Enter email + master password.  
-2. Auth verifies Argon2id hash.  
-3. If MFA on → send/ask OTP → verify.  
-4. Derive/unlock vault key → list items (decrypt on client or in trusted API for self-host simple mode).
-
-### Add credential
-
-1. Open “New item” → optional Generate.  
-2. Save → encrypt password field → store ciphertext + expiry.
-
-### Expiry
-
-1. Nightly job finds items with `expiresAt` within `notifyBeforeDays`.  
-2. Notify via email (SMS optional).  
-3. User opens item → Generate new → Update → reset `lastRotatedAt` / `expiresAt`.
-
 ---
 
 ## Security requirements (non-negotiable)
 
-- Never store vault passwords in plaintext.
-- Never log master passwords, OTPs, or decrypted secrets.
-- Constant-time compare for hashes and OTP checks.
-- Rate-limit login and MFA endpoints.
-- HTTPS only in cloud; document TLS for self-host.
-- CSRF protection on cookie sessions; short-lived OTP (5–10 min).
-- Secrets via env / secret manager, not committed.
-- Threat model doc before public launch (`docs/THREAT_MODEL.md` — follow-up).
+- No plaintext vault secrets at rest.
+- No novel ciphers; uniqueness is envelope + API + policy engine.
+- Constant-time compares for hashes and OTPs.
+- Rate-limit auth and MFA.
+- Libs avoid logging secrets; APIs never log envelopes’ plaintext.
+- Clear sensitive `char[]`/`byte[]` where practical.
+- Threat model before public release (`docs/THREAT_MODEL.md`).
 
 ---
 
-## MVP slice (ship this first)
+## MVP slice (revised for platform + new stack)
 
-Ordered delivery so each step is usable:
+1. **Grooming docs** (done / this iteration) — platform split, stack, Seal concept.
+2. **Maven multi-module skeleton** — empty `seal` / `policy` / `generate` + Spring Boot hello + Angular shell.
+3. **`keynest-policy` + `keynest-generate`** — validate/generate with shared rules + tests.
+4. **`keynest-seal`** — envelope v1, seal/open, Argon2id hash/verify + tests.
+5. **Manager API vault + auth** — uses libs only; Postgres persistence.
+6. **Manager Web** — login, list/create items, generate button, basic expiry field.
+7. **Notify** — email on approaching expiry.
+8. **Compose deploy** — api + web + db; README for self-host and cloud notes.
+9. **Publish libs** (even privately) — prove an external sample module depends on them.
 
-1. **Rename + docs** (this PR) — product identity and crypto rules.
-2. **Auth skeleton** — register/login with Argon2id; session cookie.
-3. **Vault CRUD** — encrypt/decrypt password field; list/detail/create/edit/delete.
-4. **Generator** — move current UI onto `crypto.getRandomValues` (fix `Math.random`).
-5. **Expiry fields + email notify** — cron + one email provider adapter.
-6. **MFA (email OTP)** — after password OK, require code.
-7. **Docker Compose** self-host path + short cloud deploy notes.
-
-SMS MFA and TOTP can follow immediately after email OTP.
+Archive/remove Next.js after step 5–6 when Angular covers the prototype flows.
 
 ---
 
-## Open decisions (decide before heavy coding)
+## Non-goals (for now)
 
-1. **Zero-knowledge vs server-side decrypt**  
-   - ZK: decrypt only in browser; server stores ciphertext only (harder UX, stronger cloud story).  
-   - Server-side: simpler self-host MVP; trust the server.  
-   **Recommendation:** server-side for MVP self-host; design ciphertext format so ZK can be added without rewriting storage.
+- Browser extension / autofill.
+- Org sharing / RBAC.
+- Breach monitoring.
+- Replacing Bitwarden feature-for-feature.
+- Custom cryptographic primitives.
+- SMS as the only MFA factor (optional channel only).
 
-2. **Monolith vs microservices day one**  
-   **Recommendation:** modular monolith (Next.js API routes or small Nest/Fastify API) with clear packages: `auth`, `vault`, `notify`. Split only when deploy needs differ.
+---
 
-3. **MFA default**  
-   **Recommendation:** email OTP in MVP; TOTP next; SMS optional behind Twilio-like adapter.
+## Open decisions
 
-4. **Master password recovery**  
-   No recovery without escrow = data loss. Options: recovery key downloaded once, or account reset that **wipes vault**. Document clearly in UI.
+1. **Envelope details (Seal v1)** — byte layout, version byte, KID, AAD fields. Draft in ADR-0003; finalize before coding seal.
+2. **Zero-knowledge vs server-side open** — still recommend server-side `open` for Manager MVP; envelope designed so a future Angular ZK mode can open client-side with WebCrypto or WASM.
+3. **Lib distribution** — GitHub Packages / Maven Central later vs path dependencies first. Recommend path/reactor modules until APIs stabilize.
+4. **Tools HTTP sidecar** — defer until a non-JVM consumer appears.
+5. **Master recovery** — recovery key download **or** reset-wipes-vault; must be explicit in Manager UX.
+6. **Policy defaults** — ship a system policy `keynest.default.v1` (e.g. length ≥ 16, 3+ character classes, no username substring).
 
 ---
 
 ## Success criteria
 
-- User can self-host with Compose and create ≥1 encrypted credential.
-- Generator produces ≥16-char passwords from a CSPRNG with chosen charsets.
-- Expiring item triggers at least one email notification in a test env.
-- Login requires master password; with MFA enabled, also a one-time code.
-- README explains Keynest, crypto stance, and both deploy modes in under 5 minutes of reading.
+- External sample service depends on `keynest-seal` + `keynest-policy` + `keynest-generate` and can seal/validate/generate without Manager.
+- Manager create/read/update/delete vault items using those libs only for crypto/policy/generation.
+- Generated passwords always validate against the same policy.
+- Self-host Compose path documented and runnable.
+- README states platform + manager clearly in a short read.
 
 ---
 
 ## Rename checklist
 
-- [x] Package name → `keynest`
-- [x] README rewritten for product vision
-- [ ] GitHub repository rename to `keynest` (manual)
-- [ ] Update Vercel/hosting project name if linked
-- [ ] Update local clones: `git remote set-url ...`
+- [x] Product/docs identity → Keynest  
+- [x] Package name on legacy app → `keynest`  
+- [ ] GitHub repository rename → `keynest` (manual)  
+- [ ] Introduce Maven artifact names under `dev.keynest`  
+- [ ] Retire Next.js prototype into `archive/` once Spring/Angular land  

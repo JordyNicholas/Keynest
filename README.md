@@ -1,46 +1,37 @@
 # Keynest
 
-Self-hostable password vault with an optional cloud deploy path.
+Password **tools** you can embed — and a **Manager** vault that uses them.
 
-Store login credentials, generate strong passwords, get notified before they expire, and unlock access with a master password plus optional MFA (email / SMS / TOTP).
-
-> Formerly `fep-password` — a Next.js password-generator experiment. This repo is being reshaped into a real vault product. See [docs/PRODUCT.md](./docs/PRODUCT.md) for grooming, naming, and the security model.
-
-## What it will do
-
-| Capability | Status |
+| Offering | Role |
 |---|---|
-| Password generator (CSPRNG) | Prototype UI exists — needs crypto fix |
-| Credential vault (URL, username, password) | Stub |
-| Password expiry + notify / rotate | Planned |
-| Master-password auth (Argon2id) | Planned (`bcrypt` / `next-auth` present) |
-| MFA after unlock (email / SMS / TOTP) | Planned |
-| Docker self-host + cloud deploy | Planned |
+| **Keynest Tools** | Java libraries: Seal (encrypt/decrypt), policy validate, generate |
+| **Keynest Manager** | Angular + Spring Boot product: vault CRUD, expiry, auth/MFA |
 
-## Security stance (read this)
+Self-host or cloud. External services depend on the same libraries the Manager dogfoods.
 
-Vault secrets are **encrypted** (AES-256-GCM) under a key derived from your master password.  
-The master password itself is stored only as an **Argon2id** hash of the *whole* string.
+> Formerly `fep-password`. North-star grooming: [docs/PRODUCT.md](./docs/PRODUCT.md).
 
-We will **not** hash passwords character-by-character or “reverse engineer” hashes. That approach is trivially breakable and is not how password managers work. Details and the corrected flow live in [docs/PRODUCT.md](./docs/PRODUCT.md).
+## Security stance
 
-## Stack (current)
+Uniqueness lives in the **Keynest Seal** envelope and APIs, not in a custom cipher. Vault secrets use authenticated encryption (AES-256-GCM); master passwords use Argon2id hash-and-compare; MFA is a separate step. Per-character hashing is rejected — see [ADR-0001](./docs/ADR-0001-crypto-model.md) and [ADR-0003](./docs/ADR-0003-keynest-seal.md).
 
-- Next.js 14, React 18, TypeScript
-- `bcrypt` / `next-auth` already in dependencies (to be evaluated vs Argon2id + session design)
+## Target stack
 
-## Local dev
+- **Libs + API:** Java 21, Spring Boot 3, Maven multi-module  
+- **Manager UI:** Angular  
+- **DB:** PostgreSQL  
+- **Current tree:** legacy Next.js prototype (to be archived once Spring/Angular land)
 
-```bash
-npm install
-npm run dev
-```
+## Docs
 
-Open [http://localhost:3000](http://localhost:3000).
+- [Product grooming](./docs/PRODUCT.md)
+- [ADR-0001 — Crypto model](./docs/ADR-0001-crypto-model.md)
+- [ADR-0002 — Platform & stack](./docs/ADR-0002-platform-and-stack.md)
+- [ADR-0003 — Keynest Seal](./docs/ADR-0003-keynest-seal.md)
 
 ## Repo rename
 
-Target GitHub name: **`keynest`**. Rename under GitHub → Settings → General. This package is already named `keynest`.
+Target GitHub name: **`keynest`**. Rename under GitHub → Settings → General.
 
 ## License / ownership
 
