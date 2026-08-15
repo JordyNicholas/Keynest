@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install --ignore-scripts",
-  "buildCommand": "npm run build",
-  "outputDirectory": "out",
+  "framework": "angular",
+  "installCommand": "npm ci --prefix apps/manager-web",
+  "buildCommand": "npm run build --prefix apps/manager-web",
+  "outputDirectory": "apps/manager-web/dist/manager-web/browser",
   "rewrites": [
     {
       "source": "/(.*)",
