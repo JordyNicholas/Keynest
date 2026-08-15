@@ -135,7 +135,9 @@ docker compose -f deploy/docker-compose.yml up --build
 
 ### Vercel (Manager Web)
 
-Root [`vercel.json`](./vercel.json) builds **`apps/manager-web`** via `@vercel/static-build` (`dist/manager-web/browser`). Prefer also setting Project Root Directory to `apps/manager-web` in the Vercel dashboard so framework presets stay aligned.
+Root [`vercel.json`](./vercel.json) runs `npm run build`, which builds **`apps/manager-web`** and emits Vercel Build Output under `.vercel/output/static` (see [`scripts/prepare-vercel-output.js`](./scripts/prepare-vercel-output.js)).
+
+Optional: set Project Root Directory to `apps/manager-web` in the Vercel dashboard for a direct Angular preset.
 
 ---
 

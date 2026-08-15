@@ -6,7 +6,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web",
+    "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web && node scripts/prepare-vercel-output.js",
+    "vercel-build": "npm run build",
     "start": "npm --prefix apps/manager-web start"
   }
 }

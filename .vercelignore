@@ -1,4 +1,4 @@
-# Keep Vercel deploys focused on Manager Web
+# Keep Vercel deploys focused on Manager Web source
 .github
 .idea
 archive
@@ -8,3 +8,4 @@ libs
 apps/manager-api
 **/target
 **/.angular
+apps/manager-web/dist
