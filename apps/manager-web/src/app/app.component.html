@@ -2,7 +2,7 @@
   <header class="brand">
     <p class="mark">Keynest</p>
     <h1>Manager</h1>
-    <p class="lede">Vault product shell — dogfooding the same tools external services will use.</p>
+    <p class="lede">Vault product shell — dogfooding seal, policy, and generate.</p>
   </header>
 
   @if (error()) {
@@ -15,27 +15,74 @@
     <pre>{{ health() | json }}</pre>
   </section>
 
+  <section class="panel" aria-labelledby="auth-heading">
+    <h2 id="auth-heading">Account</h2>
+    @if (signedIn()) {
+      <p>Signed in as <strong>{{ authEmail() }}</strong></p>
+      <button type="button" (click)="logout()">Sign out</button>
+    } @else {
+      <label>
+        Email
+        <input type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+      </label>
+      <label>
+        Master password
+        <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
+      </label>
+      <div class="row">
+        <button type="button" (click)="register()">Register</button>
+        <button type="button" (click)="login()">Sign in</button>
+      </div>
+    }
+  </section>
+
+  @if (signedIn()) {
+    <section class="panel" aria-labelledby="vault-heading">
+      <h2 id="vault-heading">Vault</h2>
+      <label>
+        Label
+        <input type="text" [ngModel]="newLabel()" (ngModelChange)="newLabel.set($event)" />
+      </label>
+      <label>
+        URL
+        <input type="url" [ngModel]="newUrl()" (ngModelChange)="newUrl.set($event)" />
+      </label>
+      <label>
+        Username
+        <input type="text" [ngModel]="newUsername()" (ngModelChange)="newUsername.set($event)" />
+      </label>
+      <div class="row">
+        <button type="button" (click)="createGeneratedItem()">Create with generated password</button>
+        <button type="button" (click)="refreshVault()">Refresh</button>
+      </div>
+
+      <ul class="vault-list">
+        @for (item of items(); track item.id) {
+          <li>
+            <div>
+              <strong>{{ item.label }}</strong>
+              <span>{{ item.username }} · {{ item.url }}</span>
+              @if (revealed()[item.id]; as secret) {
+                <output class="secret">{{ secret }}</output>
+              }
+            </div>
+            <div class="row">
+              <button type="button" (click)="reveal(item.id)">Reveal</button>
+              <button type="button" class="danger" (click)="remove(item.id)">Delete</button>
+            </div>
+          </li>
+        } @empty {
+          <li class="empty">No vault items yet.</li>
+        }
+      </ul>
+    </section>
+  }
+
   <section class="panel" aria-labelledby="gen-heading">
-    <h2 id="gen-heading">Generate</h2>
-    <p>Uses <code>keynest-generate</code> under <code>keynest.default.v1</code>.</p>
+    <h2 id="gen-heading">Generate tool</h2>
     <button type="button" (click)="generate()">Generate password</button>
     @if (generated()) {
       <output class="secret">{{ generated() }}</output>
     }
-  </section>
-
-  <section class="panel" aria-labelledby="val-heading">
-    <h2 id="val-heading">Validate</h2>
-    <label>
-      Candidate password
-      <input
-        type="text"
-        [ngModel]="validatePassword()"
-        (ngModelChange)="validatePassword.set($event)"
-        autocomplete="off"
-      />
-    </label>
-    <button type="button" (click)="validate()">Validate</button>
-    <pre>{{ validateResult() | json }}</pre>
   </section>
 </main>

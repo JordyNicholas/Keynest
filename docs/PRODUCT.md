@@ -302,11 +302,11 @@ NotificationOutbox
 
 ## MVP slice (revised for platform + new stack)
 
-1. **Grooming docs** — platform split, stack, Seal concept.  
+1. **Grooming docs** — platform split, stack, Seal concept. **(landed)**  
 2. **Maven multi-module skeleton** — `seal` / `policy` / `generate` + Spring Boot tools API + Angular shell. **(landed)**  
-3. Harden libs (golden Seal vectors, richer policies, rewrap).  
-4. Manager API vault + auth persistence (Postgres).  
-5. Manager Web vault CRUD UI.  
+3. Harden libs (golden Seal vectors, richer policies, rewrap). **(golden vectors landed)**  
+4. Manager API vault + auth persistence (Postgres). **(landed — H2 local, Postgres via Compose)**  
+5. Manager Web vault CRUD UI. **(landed — register/login + create/reveal/delete)**  
 6. Notify — email on approaching expiry.  
 7. Compose full stack + cloud notes.  
 8. Publish libs / sample external consumer module.
