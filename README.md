@@ -152,8 +152,34 @@ Repo config: root [`vercel.json`](./vercel.json) and [`apps/manager-web/vercel.j
 
 1. Grooming docs + stack decision — done  
 2. Maven libs + Spring/Angular skeleton — done  
-3. **Password policy JSON Schema + loader skeleton** — done  
-4. Next: Postgres vault + auth, Seal golden vectors, expiry notify, external sample consumer  
+3. Password policy JSON Schema + loader skeleton — done  
+4. **Manager auth + sealed vault CRUD (H2 local / Postgres via Compose)** — done  
+5. Seal golden vector tests — done  
+6. Next: expiry notify, external sample consumer, cloud deploy notes  
+
+## Run Manager API (vault)
+
+```bash
+mvn -pl apps/manager-api spring-boot:run
+```
+
+Auth / vault endpoints:
+
+| Method | Path | Notes |
+|---|---|---|
+| `POST` | `/api/v1/auth/register` | Argon2id master hash |
+| `POST` | `/api/v1/auth/login` | Returns bearer token |
+| `POST` | `/api/v1/auth/logout` | |
+| `POST` | `/api/v1/auth/me` | |
+| `GET/POST` | `/api/v1/vault/items` | List / create (optional `generate:true`) |
+| `GET` | `/api/v1/vault/items/{id}?reveal=true` | Open sealed password |
+| `PUT/DELETE` | `/api/v1/vault/items/{id}` | Update / delete |
+
+Postgres stack:
+
+```bash
+docker compose -f deploy/docker-compose.yml up --build
+```
 
 ## Rename
 

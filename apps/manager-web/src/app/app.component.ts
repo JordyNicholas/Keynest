@@ -1,9 +1,19 @@
-import { Component, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { Component, computed, signal } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 
-const API = 'http://localhost:8080/api/v1/tools';
+const API = 'http://localhost:8080/api/v1';
+
+type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
+type VaultItem = {
+  id: string;
+  label: string;
+  url?: string;
+  username?: string;
+  policyId: string;
+  expiresAt?: string;
+};
 
 @Component({
   selector: 'app-root',
@@ -12,18 +22,34 @@ const API = 'http://localhost:8080/api/v1/tools';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  readonly token = signal(localStorage.getItem('keynest.token') ?? '');
+  readonly email = signal('demo@keynest.dev');
+  readonly password = signal('DemoPassphrase!42');
+  readonly authEmail = signal('');
+  readonly items = signal<VaultItem[]>([]);
+  readonly revealed = signal<Record<string, string>>({});
+  readonly newLabel = signal('Example site');
+  readonly newUsername = signal('demo');
+  readonly newUrl = signal('https://example.com');
   readonly health = signal<unknown>(null);
-  readonly generated = signal<string>('');
-  readonly validatePassword = signal('');
-  readonly validateResult = signal<unknown>(null);
-  readonly error = signal<string>('');
+  readonly generated = signal('');
+  readonly error = signal('');
+  readonly signedIn = computed(() => this.token().length > 0);
 
   constructor(private readonly http: HttpClient) {
     this.refreshHealth();
+    if (this.signedIn()) {
+      this.authEmail.set('session');
+      this.refreshVault();
+    }
+  }
+
+  private authHeaders(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${this.token()}` });
   }
 
   refreshHealth(): void {
-    this.http.get(`${API}/health`).subscribe({
+    this.http.get(`${API}/tools/health`).subscribe({
       next: (body) => {
         this.health.set(body);
         this.error.set('');
@@ -32,8 +58,99 @@ export class AppComponent {
     });
   }
 
+  register(): void {
+    this.http
+      .post<AuthResponse>(`${API}/auth/register`, {
+        email: this.email(),
+        password: this.password(),
+      })
+      .subscribe({
+        next: (body) => this.onAuth(body),
+        error: (err) => this.error.set(err?.error?.message ?? 'Register failed'),
+      });
+  }
+
+  login(): void {
+    this.http
+      .post<AuthResponse>(`${API}/auth/login`, {
+        email: this.email(),
+        password: this.password(),
+      })
+      .subscribe({
+        next: (body) => this.onAuth(body),
+        error: (err) => this.error.set(err?.error?.message ?? 'Login failed'),
+      });
+  }
+
+  logout(): void {
+    this.http.post(`${API}/auth/logout`, {}, { headers: this.authHeaders() }).subscribe({
+      next: () => this.clearAuth(),
+      error: () => this.clearAuth(),
+    });
+  }
+
+  refreshVault(): void {
+    this.http.get<VaultItem[]>(`${API}/vault/items`, { headers: this.authHeaders() }).subscribe({
+      next: (body) => {
+        this.items.set(body);
+        this.error.set('');
+      },
+      error: () => this.error.set('Vault list failed — sign in again'),
+    });
+  }
+
+  createGeneratedItem(): void {
+    this.http
+      .post<VaultItem>(
+        `${API}/vault/items`,
+        {
+          label: this.newLabel(),
+          url: this.newUrl(),
+          username: this.newUsername(),
+          generate: true,
+          expiresInDays: 90,
+        },
+        { headers: this.authHeaders() }
+      )
+      .subscribe({
+        next: () => {
+          this.refreshVault();
+          this.error.set('');
+        },
+        error: (err) => this.error.set(err?.error?.message ?? 'Create failed'),
+      });
+  }
+
+  reveal(id: string): void {
+    this.http
+      .get<{ item: VaultItem; password: string }>(`${API}/vault/items/${id}`, {
+        headers: this.authHeaders(),
+        params: { reveal: true },
+      })
+      .subscribe({
+        next: (body) => {
+          this.revealed.update((current) => ({ ...current, [id]: body.password }));
+        },
+        error: () => this.error.set('Reveal failed'),
+      });
+  }
+
+  remove(id: string): void {
+    this.http.delete(`${API}/vault/items/${id}`, { headers: this.authHeaders() }).subscribe({
+      next: () => {
+        this.revealed.update((current) => {
+          const next = { ...current };
+          delete next[id];
+          return next;
+        });
+        this.refreshVault();
+      },
+      error: () => this.error.set('Delete failed'),
+    });
+  }
+
   generate(): void {
-    this.http.post<{ password: string }>(`${API}/generate`, {}).subscribe({
+    this.http.post<{ password: string }>(`${API}/tools/generate`, {}).subscribe({
       next: (body) => {
         this.generated.set(body.password);
         this.error.set('');
@@ -42,15 +159,19 @@ export class AppComponent {
     });
   }
 
-  validate(): void {
-    this.http
-      .post(`${API}/validate`, { password: this.validatePassword() })
-      .subscribe({
-        next: (body) => {
-          this.validateResult.set(body);
-          this.error.set('');
-        },
-        error: () => this.error.set('Validate failed'),
-      });
+  private onAuth(body: AuthResponse): void {
+    this.token.set(body.token);
+    this.authEmail.set(body.email);
+    localStorage.setItem('keynest.token', body.token);
+    this.error.set('');
+    this.refreshVault();
+  }
+
+  private clearAuth(): void {
+    this.token.set('');
+    this.authEmail.set('');
+    this.items.set([]);
+    this.revealed.set({});
+    localStorage.removeItem('keynest.token');
   }
 }

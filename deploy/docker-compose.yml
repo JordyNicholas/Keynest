@@ -1,4 +1,20 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: keynest
+      POSTGRES_USER: keynest
+      POSTGRES_PASSWORD: keynest
+    ports:
+      - "5432:5432"
+    volumes:
+      - keynest_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keynest -d keynest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   manager-api:
     build:
       context: ..
@@ -7,6 +23,16 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      KEYNEST_DB_HOST: postgres
+      KEYNEST_DB_PORT: 5432
+      KEYNEST_DB_NAME: keynest
+      KEYNEST_DB_USER: keynest
+      KEYNEST_DB_PASSWORD: keynest
+      KEYNEST_VAULT_KEY_HEX: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      KEYNEST_VAULT_KEY_ID: vault-v1
+    depends_on:
+      postgres:
+        condition: service_healthy
 
-  # manager-web is typically `ng serve` in dev.
-  # Production image wiring lands with the vault UI milestone.
+volumes:
+  keynest_pg:
