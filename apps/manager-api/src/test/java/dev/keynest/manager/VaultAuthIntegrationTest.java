@@ -1,10 +1,9 @@
 package dev.keynest.manager;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,9 +25,6 @@ class VaultAuthIntegrationTest {
     @Autowired
     MockMvc mockMvc;
 
-    @Autowired
-    ObjectMapper objectMapper;
-
     @Test
     void registerCreateRevealAndDeleteVaultItem() throws Exception {
         String email = "vault-user@example.com";
@@ -43,7 +39,7 @@ class VaultAuthIntegrationTest {
                 .andExpect(jsonPath("$.token", notNullValue()))
                 .andReturn();
 
-        String token = objectMapper.readTree(register.getResponse().getContentAsString()).get("token").asText();
+        String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
 
         MvcResult created = mockMvc.perform(post("/api/v1/vault/items")
                         .header("Authorization", "Bearer " + token)
@@ -62,8 +58,7 @@ class VaultAuthIntegrationTest {
                 .andExpect(jsonPath("$.policyId", is("keynest.default.v1")))
                 .andReturn();
 
-        JsonNode item = objectMapper.readTree(created.getResponse().getContentAsString());
-        String id = item.get("id").asText();
+        String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
 
         mockMvc.perform(get("/api/v1/vault/items")
                         .header("Authorization", "Bearer " + token))
