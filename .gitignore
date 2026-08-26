@@ -33,3 +33,4 @@ yarn-error.log*
 
 # Vercel local / build output (produced on CI)
 .vercel
+.tokenforge/
