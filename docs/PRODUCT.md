@@ -190,9 +190,9 @@ Moving away from the current Next.js prototype.
 
 | Layer | Choice | Rationale |
 |---|---|---|
-| Tools (libs) | **Java 21**, Maven multi-module | Export to JVM services; your preferred backend ecosystem |
-| Manager API | **Spring Boot 3** | First-class consumer of the libs; clear module boundaries |
-| Manager UI | **Angular** (current LTS) | Distinct UX surface; fits “Manager is a product” |
+| Tools (libs) | **Java 21 LTS**, Maven multi-module | Export to JVM services; your preferred backend ecosystem |
+| Manager API | **Spring Boot 4** | First-class consumer of the libs; clear module boundaries |
+| Manager UI | **Angular 21 LTS** | Distinct UX surface; fits “Manager is a product” |
 | DB | **PostgreSQL** | Vault metadata + envelopes |
 | Jobs | Spring scheduler or queue worker | Expiry notifications |
 | Crypto | JDK + proven libs (e.g. Bouncy Castle only if needed) | Argon2id + AES-GCM |

@@ -67,10 +67,12 @@ Password standards are **JSON documents** validated by a JSON Schema (Java’s p
 
 | Layer | Choice |
 |---|---|
-| Tools + Manager API | Java 21, Spring Boot 3, Maven multi-module |
-| Manager UI | Angular |
+| Tools + Manager API | Java 21 LTS (`--release 21`), Spring Boot 4, Maven multi-module |
+| Manager UI | Angular 21 LTS |
 | DB (next) | PostgreSQL |
 | Deploy | Docker Compose + cloud profile |
+
+Toolchain policy: [ADR-0005](./docs/ADR-0005-java-and-toolchain-policy.md).
 
 ---
 
@@ -91,8 +93,11 @@ archive/next-prototype   legacy Next.js app (do not extend)
 
 ## Prerequisites
 
-- JDK 21+, Maven 3.9+
+- **JDK 21 LTS** (primary runtime; CI also tests on JDK 25 with bytecode `--release 21`)
+- Maven 3.9+
 - Node 20+ (Angular Manager UI)
+
+See [ADR-0005](./docs/ADR-0005-java-and-toolchain-policy.md) for version policy.
 
 ## Build & test
 

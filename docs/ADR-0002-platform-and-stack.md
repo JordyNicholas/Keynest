@@ -15,8 +15,8 @@ Keynest started as a Next.js password-generator prototype. The product intent is
 ## Decision
 
 1. Structure the repo as a **platform** (`keynest-seal`, `keynest-policy`, `keynest-generate`) plus **apps** (`manager-api`, `manager-web`).
-2. Implement libraries and Manager API in **Java 21 + Spring Boot 3**.
-3. Implement Manager UI in **Angular** (current LTS).
+2. Implement libraries and Manager API in **Java 21 LTS + Spring Boot 4** (see [ADR-0005](./ADR-0005-java-and-toolchain-policy.md)).
+3. Implement Manager UI in **Angular 21 LTS** (see ADR-0005).
 4. Treat the existing Next.js app as a disposable prototype; do not extend it.
 5. Manager must depend on the public library APIs only (dogfood the tools).
 

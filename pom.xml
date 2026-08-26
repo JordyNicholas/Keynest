@@ -22,7 +22,7 @@
     <java.version>21</java.version>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot.version>3.4.2</spring-boot.version>
+    <spring-boot.version>4.0.8</spring-boot.version>
     <junit.version>5.11.4</junit.version>
     <argon2.version>2.11</argon2.version>
     <jackson.version>2.18.2</jackson.version>
