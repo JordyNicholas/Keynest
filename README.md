@@ -4,7 +4,7 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · ADRs in [`docs/`](./docs/)
+> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · ADRs in [`docs/`](./docs/)
 
 ---
 
@@ -155,7 +155,7 @@ Repo config: root [`vercel.json`](./vercel.json) and [`apps/manager-web/vercel.j
 3. Password policy JSON Schema + loader skeleton — done  
 4. **Manager auth + sealed vault CRUD (H2 local / Postgres via Compose)** — done  
 5. Seal golden vector tests — done  
-6. Next: expiry notify, external sample consumer, cloud deploy notes  
+6. Next — see phased roadmap in [docs/ROADMAP.md](./docs/ROADMAP.md) (Material shell, notify, sample consumer, ship path)
 
 ## Run Manager API (vault)
 

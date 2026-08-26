@@ -302,6 +302,8 @@ NotificationOutbox
 
 ## MVP slice (revised for platform + new stack)
 
+Ordered execution (foundation → Seal → Material shell → vault API → vault UI → notify → ship) lives in **[ROADMAP.md](./ROADMAP.md)**. Summary:
+
 1. **Grooming docs** — platform split, stack, Seal concept. **(landed)**  
 2. **Maven multi-module skeleton** — `seal` / `policy` / `generate` + Spring Boot tools API + Angular shell. **(landed)**  
 3. Harden libs (golden Seal vectors, richer policies, rewrap). **(golden vectors landed)**  
