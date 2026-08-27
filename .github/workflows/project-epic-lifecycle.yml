@@ -1,0 +1,272 @@
+# Epic board lifecycle (TokenForge / Flux model).
+#
+# 1) When the last child story of an `[Epic]` closes, close the epic.
+#    Reopening a child reopens a closed parent epic.
+# 2) Closed `[Epic]` issues go to Status = "Epics Finished" (not Done).
+#    Built-in Project workflows set closed items → Done; this Action
+#    overrides that (with a short re-assert to win the race).
+#
+# Detection: issue title starts with "[Epic]".
+# Child linkage: GitHub native sub-issues (seed script links Parent).
+# Board Status writes require repo secret PROJECT_TOKEN (Projects:write).
+# Auto-close/reopen of the GitHub issue uses GITHUB_TOKEN.
+
+name: Project ↔ Epic lifecycle
+
+on:
+  issues:
+    types:
+      - closed
+      - reopened
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  # Serialize sibling story closes so only one job closes the parent epic.
+  group: project-epic-lifecycle
+  cancel-in-progress: false
+
+env:
+  # Placeholder IDs — replaced when scripts/setup-github-project.sh runs with PROJECT_TOKEN
+  PROJECT_NUMBER: '0'
+  PROJECT_ID: REPLACE_WITH_PROJECT_ID
+  STATUS_FIELD_ID: REPLACE_WITH_STATUS_FIELD_ID
+  STATUS_TODO: REPLACE_WITH_STATUS_TODO
+  STATUS_EPICS_FINISHED: REPLACE_WITH_STATUS_EPICS_FINISHED
+
+jobs:
+  close-parent-epic:
+    name: Close epic when all stories are done
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close or reopen parent [Epic] from child stories
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ github.event.issue.title }}
+          ACTION: ${{ github.event.action }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$TITLE" =~ ^\[Epic\] ]]; then
+            echo "Closed/reopened issue is itself an [Epic] — skip parent lookup."
+            exit 0
+          fi
+
+          PARENT_JSON=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) {
+                  parent { number title state }
+                }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE")
+
+          PARENT=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.number // empty')
+          PARENT_TITLE=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.title // empty')
+          PARENT_STATE=$(echo "$PARENT_JSON" | jq -r '.data.repository.issue.parent.state // empty')
+
+          if [[ -z "$PARENT" ]]; then
+            echo "Issue #$ISSUE has no parent — skip."
+            exit 0
+          fi
+          if [[ ! "$PARENT_TITLE" =~ ^\[Epic\] ]]; then
+            echo "Parent #$PARENT is not an [Epic] — skip."
+            exit 0
+          fi
+
+          if [[ "$ACTION" == "reopened" ]]; then
+            if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+              gh issue reopen "$PARENT" --repo "$REPO" \
+                --comment "Child #$ISSUE was reopened. Reopening this epic so it leaves **Epics Finished**."
+              echo "Reopened parent epic #$PARENT"
+            else
+              echo "Parent epic #$PARENT is already open."
+            fi
+            exit 0
+          fi
+
+          OPEN_COUNT=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) {
+                  subIssues(first:50) {
+                    nodes { number state }
+                  }
+                }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '[.data.repository.issue.subIssues.nodes[] | select(.state=="OPEN")] | length')
+
+          echo "Epic #$PARENT has $OPEN_COUNT open child stories"
+
+          if [[ "$OPEN_COUNT" != "0" ]]; then
+            echo "Epic still has open stories — leave it open."
+            exit 0
+          fi
+
+          # Re-read parent state (siblings may close in parallel).
+          PARENT_STATE=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) { state }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '.data.repository.issue.state // empty')
+
+          if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+            echo "Parent epic #$PARENT is already closed."
+            exit 0
+          fi
+
+          if gh issue close "$PARENT" --repo "$REPO" \
+            --comment "All child stories are closed. Closing this epic so the board moves it to **Epics Finished**."; then
+            echo "Closed parent epic #$PARENT"
+            exit 0
+          fi
+
+          # Race: another sibling job closed it between the check and close.
+          PARENT_STATE=$(gh api graphql -f query='
+            query($owner:String!, $name:String!, $number:Int!) {
+              repository(owner:$owner, name:$name) {
+                issue(number:$number) { state }
+              }
+            }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$PARENT" \
+            --jq '.data.repository.issue.state // empty')
+          if [[ "$PARENT_STATE" == "CLOSED" ]]; then
+            echo "Parent epic #$PARENT already closed by a concurrent job — OK."
+            exit 0
+          fi
+          echo "::error::Failed to close parent epic #$PARENT (state=$PARENT_STATE)"
+          exit 1
+
+  sync-epic-status:
+    name: Sync Epic board Status
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require PROJECT_TOKEN
+        id: token
+        env:
+          PROJECT_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          if [[ -z "${PROJECT_TOKEN:-}" ]]; then
+            echo "::warning::PROJECT_TOKEN secret is missing — epic Status sync skipped."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "present=true" >> "$GITHUB_OUTPUT"
+
+      - name: Detect Epic and resolve target Status
+        id: epic
+        if: steps.token.outputs.present == 'true'
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TITLE" =~ ^\[Epic\] ]]; then
+            echo "Issue title is not an [Epic] — skipping."
+            echo "is_epic=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "is_epic=true" >> "$GITHUB_OUTPUT"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            echo "target=Epics Finished" >> "$GITHUB_OUTPUT"
+            echo "option=$STATUS_EPICS_FINISHED" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=To-Do" >> "$GITHUB_OUTPUT"
+            echo "option=$STATUS_TODO" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "Epic #$TITLE → ${ACTION}"
+
+      - name: Set Project Status for Epic
+        if: steps.token.outputs.present == 'true' && steps.epic.outputs.is_epic == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ISSUE: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          OPTION_ID: ${{ steps.epic.outputs.option }}
+          TARGET: ${{ steps.epic.outputs.target }}
+          ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+
+          set_status() {
+            local label="$1"
+
+            ISSUE_ID=$(gh api graphql -f query='
+              query($owner:String!, $name:String!, $number:Int!) {
+                repository(owner:$owner, name:$name) {
+                  issue(number:$number) { id }
+                }
+              }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+              --jq '.data.repository.issue.id // empty')
+
+            if [[ -z "$ISSUE_ID" ]]; then
+              echo "::warning::Could not resolve node id for #$ISSUE"
+              return 1
+            fi
+
+            ITEM_ID=$(gh api graphql -f query='
+              mutation($projectId:ID!, $contentId:ID!) {
+                addProjectV2ItemById(input:{projectId:$projectId, contentId:$contentId}) {
+                  item { id }
+                }
+              }' -f projectId="$PROJECT_ID" -f contentId="$ISSUE_ID" \
+              --jq '.data.addProjectV2ItemById.item.id // empty' 2>/dev/null || true)
+
+            if [[ -z "$ITEM_ID" ]]; then
+              ITEM_ID=$(gh api graphql -f query='
+                query($owner:String!, $name:String!, $number:Int!) {
+                  repository(owner:$owner, name:$name) {
+                    issue(number:$number) {
+                      projectItems(first:20) {
+                        nodes {
+                          id
+                          project { id }
+                        }
+                      }
+                    }
+                  }
+                }' -f owner="${REPO%/*}" -f name="${REPO#*/}" -F number="$ISSUE" \
+                --jq ".data.repository.issue.projectItems.nodes[] | select(.project.id==\"$PROJECT_ID\") | .id" \
+                | head -1)
+            fi
+
+            if [[ -z "$ITEM_ID" ]]; then
+              echo "::warning::Issue #$ISSUE is not on project $PROJECT_NUMBER and could not be added."
+              return 1
+            fi
+
+            gh api graphql -f query='
+              mutation($projectId:ID!, $itemId:ID!, $fieldId:ID!, $optionId:String!) {
+                updateProjectV2ItemFieldValue(input:{
+                  projectId:$projectId
+                  itemId:$itemId
+                  fieldId:$fieldId
+                  value:{ singleSelectOptionId:$optionId }
+                }) {
+                  projectV2Item { id }
+                }
+              }' \
+              -f projectId="$PROJECT_ID" \
+              -f itemId="$ITEM_ID" \
+              -f fieldId="$STATUS_FIELD_ID" \
+              -f optionId="$OPTION_ID" \
+              --silent
+
+            echo "[$label] Issue #$ISSUE Status set to $TARGET"
+          }
+
+          set_status "immediate"
+
+          if [[ "$ACTION" == "closed" ]]; then
+            sleep 20
+            set_status "re-assert"
+          fi

@@ -4,7 +4,7 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · ADRs in [`docs/`](./docs/)
+> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · ADRs in [`docs/`](./docs/)
 
 ---
 
