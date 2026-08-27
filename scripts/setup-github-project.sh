@@ -76,42 +76,8 @@ FIELD_JSON=$(gh api graphql -f query='
 STATUS_FIELD_ID=$(echo "$FIELD_JSON" | jq -r '.data.user.projectV2.field.id')
 echo "Status field: $STATUS_FIELD_ID"
 
-ensure_option() {
-  local name="$1"
-  local existing
-  existing=$(echo "$FIELD_JSON" | jq -r --arg n "$name" '.data.user.projectV2.field.options[] | select(.name==$n) | .id' | head -1)
-  if [[ -n "$existing" && "$existing" != "null" ]]; then
-    echo "$existing"
-    return
-  fi
-  echo "Adding Status option: $name" >&2
-  gh api graphql -f query='
-    mutation($fieldId:ID!, $name:String!) {
-      createProjectV2FieldOption(input:{
-        fieldId:$fieldId
-        name:$name
-        dataType:SINGLE_SELECT
-      }) {
-        projectV2SingleSelectFieldOption { id name }
-      }
-    }' -f fieldId="$STATUS_FIELD_ID" -f name="$name" \
-    --jq '.data.createProjectV2FieldOption.projectV2SingleSelectFieldOption.id' 2>/dev/null \
-    || gh api graphql -f query='
-      mutation($fieldId:ID!, $option:ProjectV2SingleSelectFieldOptionInput!) {
-        updateProjectV2Field(input:{
-          fieldId:$fieldId
-          singleSelectOptions:[$option]
-        }) {
-          projectV2Field {
-            ... on ProjectV2SingleSelectField { options { id name } }
-          }
-        }
-      }' -f fieldId="$STATUS_FIELD_ID" -f option="$(jq -n --arg n "$name" '{name:$n,color:GRAY,description:\"\"}')" \
-      --jq ".data.updateProjectV2Field.projectV2Field.options[] | select(.name==\"$name\") | .id"
-}
-
-# Refresh options after potential creates via updateProjectV2Field singleSelectOptions replace is risky.
-# Prefer reading options; create missing ones with updateProjectV2Field by merging.
+# Read the Status field options; any missing ones are created below in one
+# updateProjectV2Field call (the singleSelectOptions input replaces the set).
 OPTIONS_JSON=$(gh api graphql -f query='
   query($owner:String!, $number:Int!) {
     user(login:$owner) {
@@ -145,33 +111,50 @@ done
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo "Missing Status options: ${missing[*]}"
   echo "Building merged option list…"
-  # Build full options array for update — must include ALL existing + new
-  MERGED=$(echo "$OPTIONS_JSON" | jq -c --argjson add "$(printf '%s\n' "${missing[@]}" | jq -R . | jq -s .)" '
-    (.data.user.projectV2.field.options // []) as $cur
-    | ($cur + ($add | map({name:., description:"", color:"GRAY"})))
-  ')
-  # Actually updateProjectV2Field replaces options and needs name+color+description for each;
-  # existing ones need their id preserved when possible.
-  PAYLOAD=$(echo "$OPTIONS_JSON" | jq -c --argjson add "$(printf '%s\n' "${missing[@]}" | jq -R . | jq -s .)" '
-    def opt: {name:.name, description:(.description//""), color:(.color//"GRAY")};
-    (.data.user.projectV2.field.options // [] | map(opt))
-    + ($add | map({name:., description:"", color:"GRAY"}))
-  ')
-  gh api graphql -f query='
-    mutation($fieldId:ID!, $options:[ProjectV2SingleSelectFieldOptionInput!]!) {
-      updateProjectV2Field(input:{
-        fieldId:$fieldId
-        singleSelectOptions:$options
-      }) {
-        projectV2Field {
-          ... on ProjectV2SingleSelectField {
-            id
-            options { id name }
-          }
-        }
+  # updateProjectV2Field.singleSelectOptions REPLACES the whole option set and
+  # its input type (ProjectV2SingleSelectFieldOptionInput) has no id field, so we
+  # must resend every option (existing + missing). New IDs are assigned; this is
+  # safe only on a fresh/empty board, which is why this runs before --link-issues.
+  #
+  # gh's -f only binds String variables, so a [ProjectV2SingleSelectFieldOptionInput!]!
+  # variable must be sent as real JSON. Post the mutation to the GraphQL endpoint
+  # directly with a jq-built {query, variables} body.
+  color_for() {
+    case "$1" in
+      "In Progress") echo "BLUE" ;;
+      "Ready for Review") echo "PURPLE" ;;
+      "Done") echo "GREEN" ;;
+      "Epics Finished") echo "PINK" ;;
+      *) echo "GRAY" ;;
+    esac
+  }
+  OPTIONS_INPUT=$(echo "$OPTIONS_JSON" | jq -c '[.data.user.projectV2.field.options[]?.name]')
+  for n in "${missing[@]}"; do
+    OPTIONS_INPUT=$(echo "$OPTIONS_INPUT" | jq -c --arg n "$n" '. + [$n]')
+  done
+  # Turn the ordered name list into full option objects with a stable color map.
+  PAYLOAD='[]'
+  while IFS= read -r n; do
+    [[ -z "$n" ]] && continue
+    PAYLOAD=$(echo "$PAYLOAD" | jq -c --arg n "$n" --arg c "$(color_for "$n")" \
+      '. + [{name:$n, color:$c, description:""}]')
+  done < <(echo "$OPTIONS_INPUT" | jq -r '.[]')
+
+  VARS=$(jq -cn --arg fieldId "$STATUS_FIELD_ID" --argjson options "$PAYLOAD" \
+    '{fieldId:$fieldId, options:$options}')
+  BODY=$(jq -cn --arg q 'mutation($fieldId:ID!, $options:[ProjectV2SingleSelectFieldOptionInput!]!) {
+      updateProjectV2Field(input:{fieldId:$fieldId, singleSelectOptions:$options}) {
+        projectV2Field { ... on ProjectV2SingleSelectField { id options { id name } } }
       }
-    }' -f fieldId="$STATUS_FIELD_ID" -f options="$PAYLOAD" >/tmp/keynest-status-update.json
-  OPTIONS_JSON=$(cat /tmp/keynest-status-update.json | jq '{data:{user:{projectV2:{field:.data.updateProjectV2Field.projectV2Field}}}}')
+    }' --argjson v "$VARS" '{query:$q, variables:$v}')
+  RESP=$(curl -sS -H "Authorization: Bearer ${GH_TOKEN}" -H "Content-Type: application/json" \
+    -d "$BODY" https://api.github.com/graphql)
+  if echo "$RESP" | jq -e '.errors' >/dev/null 2>&1; then
+    echo "ERROR: failed to set Status options:" >&2
+    echo "$RESP" | jq -r '.errors' >&2
+    exit 1
+  fi
+  OPTIONS_JSON=$(echo "$RESP" | jq '{data:{user:{projectV2:{field:.data.updateProjectV2Field.projectV2Field}}}}')
 fi
 
 opt_id() {

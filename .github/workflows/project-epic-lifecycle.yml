@@ -29,12 +29,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Placeholder IDs — replaced when scripts/setup-github-project.sh runs with PROJECT_TOKEN
-  PROJECT_NUMBER: '0'
-  PROJECT_ID: REPLACE_WITH_PROJECT_ID
-  STATUS_FIELD_ID: REPLACE_WITH_STATUS_FIELD_ID
-  STATUS_TODO: REPLACE_WITH_STATUS_TODO
-  STATUS_EPICS_FINISHED: REPLACE_WITH_STATUS_EPICS_FINISHED
+  # IDs from scripts/setup-github-project.sh (project "Keynest — MVP Board", #4)
+  PROJECT_NUMBER: '4'
+  PROJECT_ID: PVT_kwHOA1wxk84BhpjY
+  STATUS_FIELD_ID: PVTSSF_lAHOA1wxk84BhpjYzhgkhTw
+  STATUS_TODO: e8641ad2
+  STATUS_EPICS_FINISHED: ef48b07c
 
 jobs:
   close-parent-epic:

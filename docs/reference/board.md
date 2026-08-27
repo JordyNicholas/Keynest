@@ -5,7 +5,7 @@ Issue writing follows **Lume**: every story has **Description**, **Approach**, a
 
 Companion: [PROJECT_PR_WORKFLOW.md](../PROJECT_PR_WORKFLOW.md), [ROADMAP.md](../ROADMAP.md), [PRODUCT.md](../PRODUCT.md).
 
-Project board: create with `scripts/setup-github-project.sh` once `PROJECT_TOKEN` is available (title **Keynest — MVP Board**).
+Project board: **[Keynest — MVP Board](https://github.com/users/JordyNicholas/projects/4)** (created and seeded via `scripts/setup-github-project.sh`). Re-run that script with `--link-issues` to add newly created issues and set their Status. The `PROJECT_*` / `STATUS_*` IDs are wired into the lifecycle workflows under [`.github/workflows/`](../../.github/workflows/).
 
 ## Labels
 
