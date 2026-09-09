@@ -2,8 +2,9 @@ import { Component, computed, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
+import { environment } from '../environments/dev';
 
-const API = 'http://localhost:8080/api/v1';
+const API = environment.apiBaseUrl;
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 type VaultItem = {
