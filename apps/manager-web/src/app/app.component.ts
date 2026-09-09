@@ -2,10 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
-import { environment } from '../environments/dev';
 import { API_BASE_URL } from './injectionTokens';
-
-const API = inject(API_BASE_URL);
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 type VaultItem = {
@@ -24,6 +21,9 @@ type VaultItem = {
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly http = inject(HttpClient);
+
   readonly token = signal(localStorage.getItem('keynest.token') ?? '');
   readonly email = signal('demo@keynest.dev');
   readonly password = signal('DemoPassphrase!42');
@@ -38,7 +38,7 @@ export class AppComponent {
   readonly error = signal('');
   readonly signedIn = computed(() => this.token().length > 0);
 
-  constructor(private readonly http: HttpClient) {
+  constructor() {
     this.refreshHealth();
     if (this.signedIn()) {
       this.authEmail.set('session');
@@ -51,7 +51,7 @@ export class AppComponent {
   }
 
   refreshHealth(): void {
-    this.http.get(`${API}/tools/health`).subscribe({
+    this.http.get(`${this.apiBaseUrl}/tools/health`).subscribe({
       next: (body) => {
         this.health.set(body);
         this.error.set('');
@@ -62,7 +62,7 @@ export class AppComponent {
 
   register(): void {
     this.http
-      .post<AuthResponse>(`${API}/auth/register`, {
+      .post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, {
         email: this.email(),
         password: this.password(),
       })
@@ -74,7 +74,7 @@ export class AppComponent {
 
   login(): void {
     this.http
-      .post<AuthResponse>(`${API}/auth/login`, {
+      .post<AuthResponse>(`${this.apiBaseUrl}/auth/login`, {
         email: this.email(),
         password: this.password(),
       })
@@ -85,14 +85,14 @@ export class AppComponent {
   }
 
   logout(): void {
-    this.http.post(`${API}/auth/logout`, {}, { headers: this.authHeaders() }).subscribe({
+    this.http.post(`${this.apiBaseUrl}/auth/logout`, {}, { headers: this.authHeaders() }).subscribe({
       next: () => this.clearAuth(),
       error: () => this.clearAuth(),
     });
   }
 
   refreshVault(): void {
-    this.http.get<VaultItem[]>(`${API}/vault/items`, { headers: this.authHeaders() }).subscribe({
+    this.http.get<VaultItem[]>(`${this.apiBaseUrl}/vault/items`, { headers: this.authHeaders() }).subscribe({
       next: (body) => {
         this.items.set(body);
         this.error.set('');
@@ -104,7 +104,7 @@ export class AppComponent {
   createGeneratedItem(): void {
     this.http
       .post<VaultItem>(
-        `${API}/vault/items`,
+        `${this.apiBaseUrl}/vault/items`,
         {
           label: this.newLabel(),
           url: this.newUrl(),
@@ -125,7 +125,7 @@ export class AppComponent {
 
   reveal(id: string): void {
     this.http
-      .get<{ item: VaultItem; password: string }>(`${API}/vault/items/${id}`, {
+      .get<{ item: VaultItem; password: string }>(`${this.apiBaseUrl}/vault/items/${id}`, {
         headers: this.authHeaders(),
         params: { reveal: true },
       })
@@ -138,7 +138,7 @@ export class AppComponent {
   }
 
   remove(id: string): void {
-    this.http.delete(`${API}/vault/items/${id}`, { headers: this.authHeaders() }).subscribe({
+    this.http.delete(`${this.apiBaseUrl}/vault/items/${id}`, { headers: this.authHeaders() }).subscribe({
       next: () => {
         this.revealed.update((current) => {
           const next = { ...current };
@@ -152,7 +152,7 @@ export class AppComponent {
   }
 
   generate(): void {
-    this.http.post<{ password: string }>(`${API}/tools/generate`, {}).subscribe({
+    this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {}).subscribe({
       next: (body) => {
         this.generated.set(body.password);
         this.error.set('');

@@ -130,7 +130,7 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200 (calls API on :8080).
+Open http://localhost:4200. The UI calls the Manager API using `environment.apiBaseUrl` (dev default `http://localhost:8080/api/v1`). Production builds swap in `src/environments/prod.ts` via Angular `fileReplacements`. See [docs/VERCEL.md](./docs/VERCEL.md) for local / Compose / Vercel values.
 
 ### Docker (API)
 
