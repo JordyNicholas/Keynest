@@ -64,7 +64,7 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
 1. **CI** — `.github/workflows/ci.yml`:
    - `mvn -B test` (libs + manager-api)
    - `npm ci && npm run build` in `apps/manager-web`
-2. **Threat model stub** — [`docs/THREAT_MODEL.md`](./THREAT_MODEL.md): assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), abuse cases (brute force, demo-key leakage, log scraping). Expand before public release.
+2. **Threat model stub** — [`THREAT_MODEL.md`](./THREAT_MODEL.md) **(landed — #15)**: assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), abuse cases (brute force, demo-key leakage, log scraping). Expand before public release (#43).
 3. **Tools API security baseline**:
    - Remove hardcoded demo key from [`ToolsController`](../apps/manager-api/src/main/java/dev/keynest/manager/tools/ToolsController.java) for any path that seals/opens; gate seal/open behind config that is off by default in production, or require auth once P3 lands.
    - Rate-limit `/api/v1/tools/validate` and future auth endpoints (Spring bucket4j or filter).
@@ -73,7 +73,7 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
 ### Exit criteria
 
 - CI green on main.
-- Threat model file exists and lists seal/open and auth as in-scope.
+- Threat model file exists and lists seal/open and auth as in-scope. **(done — stub)**
 - No production profile ships a fixed hex DEK.
 
 ---

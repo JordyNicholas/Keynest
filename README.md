@@ -48,7 +48,7 @@ The Manager must call the **same** public library APIs external services would. 
 | Schema-backed **password policies** shared by generate & update | Per-character hashing |
 | Argon2id hash/verify for auth; AES-256-GCM for vault secrets | “Reverse engineering” hashes |
 
-Primitives stay standard: Argon2id, AES-256-GCM, CSPRNG. See [ADR-0001](./docs/ADR-0001-crypto-model.md), [ADR-0003](./docs/ADR-0003-keynest-seal.md).
+Primitives stay standard: Argon2id, AES-256-GCM, CSPRNG. See [ADR-0001](./docs/ADR-0001-crypto-model.md), [ADR-0003](./docs/ADR-0003-keynest-seal.md), and the living threat-model stub [THREAT_MODEL.md](./docs/THREAT_MODEL.md).
 
 ### Password policy schemas (Zod-like contract)
 
