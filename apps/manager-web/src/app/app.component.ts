@@ -1,10 +1,11 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { environment } from '../environments/dev';
+import { API_BASE_URL } from './injectionTokens';
 
-const API = environment.apiBaseUrl;
+const API = inject(API_BASE_URL);
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 type VaultItem = {
