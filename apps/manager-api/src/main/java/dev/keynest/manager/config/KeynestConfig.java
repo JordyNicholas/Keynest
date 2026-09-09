@@ -13,7 +13,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableConfigurationProperties(VaultKeyProperties.class)
+@EnableConfigurationProperties({VaultKeyProperties.class, CorsProperties.class})
 public class KeynestConfig {
 
     @Bean
@@ -47,12 +47,13 @@ public class KeynestConfig {
     }
 
     @Bean
-    WebMvcConfigurer corsConfigurer() {
+    WebMvcConfigurer corsConfigurer(CorsProperties corsProperties) {
+        String[] origins = corsProperties.getAllowedOrigins().toArray(String[]::new);
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:4200")
+                        .allowedOrigins(origins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
             }

@@ -29,6 +29,7 @@ yarn-error.log*
 # Env / secrets
 .env
 .env*.local
+deploy/oracle.env
 *.pem
 
 # Vercel local / build output (produced on CI)

@@ -134,9 +134,13 @@ Open http://localhost:4200 (calls API on :8080).
 
 ### Docker (API)
 
+Local:
+
 ```bash
 docker compose -f deploy/docker-compose.yml up --build
 ```
+
+**Production API host (recommended free path):** Oracle Cloud Always Free VM running the same Compose stack. Step-by-step: [docs/ORACLE_ALWAYS_FREE.md](./docs/ORACLE_ALWAYS_FREE.md). UI stays on Vercel ([docs/VERCEL.md](./docs/VERCEL.md)).
 
 ### Vercel (Manager Web)
 

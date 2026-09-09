@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -27,6 +28,14 @@ class ToolsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("ok")))
                 .andExpect(jsonPath("$.policyId", is("keynest.default.v1")));
+    }
+
+    @Test
+    void corsAllowsLocalAngularOrigin() throws Exception {
+        mockMvc.perform(get("/api/v1/tools/health")
+                        .header("Origin", "http://localhost:4200"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:4200"));
     }
 
     @Test
