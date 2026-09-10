@@ -11,5 +11,5 @@ WORKDIR /app
 COPY --from=build /src/apps/manager-api/target/manager-api-0.1.0-SNAPSHOT.jar app.jar
 ENV PORT=8080
 EXPOSE 8080
-# Cloud Run injects PORT; Spring binds via server.port=${PORT:8080}
+# Container platforms may inject PORT; Spring binds via server.port=${PORT:8080}
 ENTRYPOINT ["java", "-jar", "app.jar"]

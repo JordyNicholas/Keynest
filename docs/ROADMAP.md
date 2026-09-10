@@ -16,7 +16,8 @@ This roadmap locks sequencing and design choices so work does not thrash between
 | Libs | `keynest-seal`, `keynest-policy`, `keynest-generate` with unit tests; Seal golden vectors landed |
 | Manager API | Tools + auth + vault CRUD; Spring Boot 4 on Java 21 |
 | Manager Web | Angular 21 LTS; register/login + vault UI; custom dark forest theme |
-| Deploy | API on Cloud Run + Neon Postgres; Angular on Vercel |
+| Deploy | API Docker + Compose with Postgres; Vercel for Angular |
+
 
 | CI | GitHub Actions: Maven on JDK 21/25, Angular build |
 

@@ -134,14 +134,11 @@ Open http://localhost:4200 (calls API on :8080).
 
 ### Docker (API)
 
-Local:
-
 ```bash
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
-**Production API host (recommended free path):** Google **Cloud Run** + **Neon** Postgres. UI stays on Vercel.  
-Step-by-step: [docs/CLOUD_RUN_NEON.md](./docs/CLOUD_RUN_NEON.md) · Vercel notes: [docs/VERCEL.md](./docs/VERCEL.md).
+Manager Web on Vercel: [docs/VERCEL.md](./docs/VERCEL.md).
 
 ### Vercel (Manager Web)
 
