@@ -29,12 +29,24 @@ The Angular app does **not** hardcode the API host in components. It reads `envi
 | Target | File / config | `apiBaseUrl` value |
 | --- | --- | --- |
 | Local `ng serve` | `src/environments/dev.ts` | `http://localhost:8080/api/v1` |
-| Production / Vercel build | `src/environments/prod.ts` (swapped in via `angular.json` `fileReplacements`) | `https://keynest.dev/api/v1` (update if your API host differs) |
-| Compose (browser on host) | usually same as local | `http://localhost:8080/api/v1` when the API is published on host port 8080; otherwise `http://<compose-host>:8080/api/v1` |
+| Compose (browser on host) | same as local | `http://localhost:8080/api/v1` when API is on host port 8080 |
+| Production / Vercel | `src/environments/prod.ts` (via `angular.json` `fileReplacements`) | Your Railway HTTPS API + `/api/v1` (replace the placeholder before deploy) |
 
-`ng serve` uses the **development** build (no file replacement) → `dev.ts`.  
-`npm run build` / Vercel use the **production** build → `prod.ts`.
+`ng serve` → development build → `dev.ts`.  
+`npm run build` / Vercel → production build → `prod.ts`.
+
+Intended production layout:
+
+- **UI:** Vercel  
+- **API + Postgres:** Railway (public API URL goes into `prod.ts`)
 
 ### CORS
 
-When the SPA runs on a Vercel origin and the API on another host, the Manager API must allow that origin. Local `localhost:4200` → `localhost:8080` is the default dev path.
+When the SPA is on Vercel and the API on Railway, run the API with Spring profile `docker` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin (comma-separated if needed). Local default remains `http://localhost:4200` → `http://localhost:8080`.
+
+### Local smoke test (#18)
+
+1. `mvn -pl apps/manager-api spring-boot:run` → H2, port 8080  
+2. `cd apps/manager-web && npm start` → `dev.ts` → `http://localhost:8080/api/v1`  
+3. Open http://localhost:4200 and hit health / register / vault  
+4. Production check: `npm run build` then confirm the bundle uses `prod.ts` (no `localhost:8080` in the API base URL)

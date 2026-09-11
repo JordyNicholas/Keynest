@@ -138,6 +138,8 @@ Open http://localhost:4200. The UI calls the Manager API using `environment.apiB
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
+Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`.
+
 ### Vercel (Manager Web)
 
 The Manager UI is Angular under **`apps/manager-web`**. The linked Vercel project must **not** use the Next.js preset (that is what caused `No Next.js version detected`).
