@@ -130,13 +130,15 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200 (calls API on :8080).
+Open http://localhost:4200. The UI calls the Manager API using `environment.apiBaseUrl` (dev default `http://localhost:8080/api/v1`). Production builds swap in `src/environments/prod.ts` via Angular `fileReplacements`. See [docs/VERCEL.md](./docs/VERCEL.md) for local / Compose / Vercel values.
 
 ### Docker (API)
 
 ```bash
 docker compose -f deploy/docker-compose.yml up --build
 ```
+
+Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`.
 
 ### Vercel (Manager Web)
 

@@ -76,7 +76,7 @@ KEYNEST#<issue-number>
 - #15 Threat model stub *(closed — shipped)*
 - #16 Gate tools seal/open demo key for production
 - #17 Rate-limit tools validate and auth endpoints
-- #18 Angular `API_BASE_URL` via environments
+- #18 Angular `API_BASE_URL` via environments *(closed — shipped)*
 
 ### E1 — Seal & policy (#7)
 

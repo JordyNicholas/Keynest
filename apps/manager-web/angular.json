@@ -70,7 +70,13 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/dev.ts",
+                  "with": "src/environments/prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,

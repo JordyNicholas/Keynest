@@ -68,7 +68,7 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
 3. **Tools API security baseline**:
    - Remove hardcoded demo key from [`ToolsController`](../apps/manager-api/src/main/java/dev/keynest/manager/tools/ToolsController.java) for any path that seals/opens; gate seal/open behind config that is off by default in production, or require auth once P3 lands.
    - Rate-limit `/api/v1/tools/validate` and future auth endpoints (Spring bucket4j or filter).
-4. **Environment config** — replace Angular hardcoded `http://localhost:8080` in [`app.component.ts`](../apps/manager-web/src/app/app.component.ts) with `environments` / inject `API_BASE_URL`.
+4. **Environment config** — Angular `environments` + `API_BASE_URL` token **(landed — #18)**; see [`VERCEL.md`](./VERCEL.md). Dev default remains `http://localhost:8080/api/v1`; production builds use `src/environments/prod.ts`.
 
 ### Exit criteria
 
