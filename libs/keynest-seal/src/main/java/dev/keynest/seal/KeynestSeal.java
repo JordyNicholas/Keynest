@@ -14,6 +14,10 @@ import java.util.Objects;
 
 /**
  * Keynest Seal toolkit: seal/open envelopes and Argon2id password hash/verify.
+ *
+ * <p>Intermediate {@code byte[]} buffers created inside seal/open/rewrap/fingerprint are
+ * zeroed when practical. Caller-owned inputs (keys, plaintext) and returned plaintext are
+ * not cleared — see ADR-0003 buffer-hygiene note for JVM limits.
  */
 public final class KeynestSeal {
 
@@ -43,6 +47,10 @@ public final class KeynestSeal {
 
         byte[] nonce = new byte[NONCE_LEN];
         random.nextBytes(nonce);
+        byte[] keyIdBytes = keyId.getBytes(StandardCharsets.UTF_8);
+        byte[] sealed = null;
+        byte[] ciphertext = null;
+        byte[] tag = null;
 
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -51,21 +59,24 @@ public final class KeynestSeal {
             if (aad != null && aad.length > 0) {
                 cipher.updateAAD(aad);
             }
-            byte[] sealed = cipher.doFinal(plaintext);
+            sealed = cipher.doFinal(plaintext);
             // Java returns ciphertext || tag
             int ctLen = sealed.length - 16;
-            byte[] ciphertext = Arrays.copyOfRange(sealed, 0, ctLen);
-            byte[] tag = Arrays.copyOfRange(sealed, ctLen, sealed.length);
+            ciphertext = Arrays.copyOfRange(sealed, 0, ctLen);
+            tag = Arrays.copyOfRange(sealed, ctLen, sealed.length);
             return new SealEnvelope(
                     SealEnvelope.VERSION_V1,
                     SealEnvelope.ALG_AES_256_GCM,
-                    keyId.getBytes(StandardCharsets.UTF_8),
+                    keyIdBytes,
                     nonce,
                     ciphertext,
                     tag
             );
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("seal failed", e);
+        } finally {
+            // Envelope stores defensive copies; local intermediates can be wiped.
+            SensitiveBuffers.clear(sealed, ciphertext, tag, nonce, keyIdBytes);
         }
     }
 
@@ -85,9 +96,11 @@ public final class KeynestSeal {
             throw new IllegalArgumentException("unsupported algorithm: " + envelope.algorithmId());
         }
 
-        byte[] sealed = new byte[envelope.ciphertext().length + envelope.tag().length];
-        System.arraycopy(envelope.ciphertext(), 0, sealed, 0, envelope.ciphertext().length);
-        System.arraycopy(envelope.tag(), 0, sealed, envelope.ciphertext().length, envelope.tag().length);
+        byte[] ciphertext = envelope.ciphertext();
+        byte[] tag = envelope.tag();
+        byte[] sealed = new byte[ciphertext.length + tag.length];
+        System.arraycopy(ciphertext, 0, sealed, 0, ciphertext.length);
+        System.arraycopy(tag, 0, sealed, ciphertext.length, tag.length);
 
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -99,6 +112,8 @@ public final class KeynestSeal {
             return cipher.doFinal(sealed);
         } catch (GeneralSecurityException e) {
             throw new IllegalArgumentException("open failed: integrity check or key mismatch", e);
+        } finally {
+            SensitiveBuffers.clear(ciphertext, tag, sealed);
         }
     }
 
@@ -117,17 +132,24 @@ public final class KeynestSeal {
         try {
             return seal(plaintext, newKey, newKeyId, aad);
         } finally {
-            Arrays.fill(plaintext, (byte) 0);
+            SensitiveBuffers.clear(plaintext);
         }
     }
 
     public String fingerprint(SealEnvelope envelope) {
+        byte[] raw = null;
+        byte[] hash = null;
+        byte[] truncated = null;
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(envelope.toBytes());
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(Arrays.copyOf(hash, 16));
+            raw = envelope.toBytes();
+            hash = digest.digest(raw);
+            truncated = Arrays.copyOf(hash, 16);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(truncated);
         } catch (GeneralSecurityException e) {
             throw new IllegalStateException("fingerprint failed", e);
+        } finally {
+            SensitiveBuffers.clear(raw, hash, truncated);
         }
     }
 

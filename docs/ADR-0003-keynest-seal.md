@@ -56,3 +56,15 @@ Define **Keynest Seal** as a versioned envelope + API:
 2. `seal(plaintext, newKey, newKeyId, aad)` — new nonce; same Seal v1 layout; caller supplies the new key id.
 
 `policyId` (and any other binding context) lives in **AAD**, not in the envelope header. Rewrap uses the **same** AAD for open and seal; it does not migrate or clear AAD. Callers that sealed with `policy:<id>` must rewrap with that same AAD.
+
+## Appendix — Sensitive buffer hygiene
+
+`keynest-seal` clears intermediate `byte[]` / `char[]` where practical:
+
+- After `seal`: local nonce, keyId bytes, `ciphertext||tag` scratch, and split ciphertext/tag arrays (envelope keeps its own copies).
+- After `open`: local ciphertext/tag copies and the combined sealed buffer (returned plaintext is caller-owned and not cleared).
+- After `rewrap`: recovered plaintext wiped after reseal.
+- After `fingerprint`: raw envelope bytes and hash scratch wiped after encoding.
+- `PasswordHasher` already wipes password `char[]` via Argon2 `wipeArray`.
+
+**JVM limits:** `Arrays.fill` / `wipeArray` do not guarantee absence from heap dumps, GC survivors, `SecretKeySpec` internal copies, or JIT/stack copies. Hygiene reduces casual exposure; it is not a formal confidentiality boundary. Do not break public APIs for stronger theatre.
