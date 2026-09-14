@@ -1,6 +1,7 @@
 package dev.keynest.manager.tools;
 
 import dev.keynest.generate.PasswordGenerator;
+import dev.keynest.manager.config.ToolsDemoProperties;
 import dev.keynest.policy.PasswordPolicy;
 import dev.keynest.policy.PolicyOperation;
 import dev.keynest.policy.ValidationResult;
@@ -10,6 +11,8 @@ import dev.keynest.seal.KeynestSeal;
 import dev.keynest.seal.PasswordHasher;
 import dev.keynest.seal.SealEnvelope;
 import jakarta.validation.constraints.NotBlank;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -38,23 +42,23 @@ public class ToolsController {
     private final KeynestSeal seal;
     private final PasswordHasher passwordHasher;
     private final byte[] demoKey;
+    private final ToolsDemoProperties demoProperties;
 
     public ToolsController(
             PasswordPolicy defaultPolicy,
             PasswordStandards passwordStandards,
             PasswordGenerator generator,
             KeynestSeal seal,
-            PasswordHasher passwordHasher
+            PasswordHasher passwordHasher,
+            ToolsDemoProperties demoProperties
     ) {
         this.defaultPolicy = defaultPolicy;
         this.passwordStandards = passwordStandards;
         this.generator = generator;
         this.seal = seal;
         this.passwordHasher = passwordHasher;
-        this.demoKey = Arrays.copyOf(
-                HexFormat.of().parseHex("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"),
-                32
-        );
+        this.demoProperties = demoProperties;
+        this.demoKey = Arrays.copyOf(HexFormat.of().parseHex(demoProperties.getKeyHex()), 32);
     }
 
     @GetMapping("/health")
@@ -134,6 +138,7 @@ public class ToolsController {
 
     @PostMapping("/seal")
     public Map<String, Object> seal(@RequestBody SealRequest request) {
+        requireDemoEnabled();
         byte[] aad = defaultPolicy.id().getBytes(StandardCharsets.UTF_8);
         SealEnvelope envelope = seal.seal(
                 request.plaintext().getBytes(StandardCharsets.UTF_8),
@@ -150,6 +155,7 @@ public class ToolsController {
 
     @PostMapping("/open")
     public Map<String, Object> open(@RequestBody OpenRequest request) {
+        requireDemoEnabled();
         byte[] raw = Base64.getUrlDecoder().decode(request.envelopeBase64());
         SealEnvelope envelope = SealEnvelope.fromBytes(raw);
         byte[] aad = defaultPolicy.id().getBytes(StandardCharsets.UTF_8);
@@ -185,5 +191,13 @@ public class ToolsController {
     }
 
     public record VerifyRequest(@NotBlank String password, @NotBlank String hash) {
+    }
+
+    private void requireDemoEnabled() {
+        if (!demoProperties.getEnabled()){
+            throw new ResponseStatusException(
+                HttpStatus.FORBIDDEN,
+                "Tools demo seal/open is disabled.");
+        }
     }
 }
