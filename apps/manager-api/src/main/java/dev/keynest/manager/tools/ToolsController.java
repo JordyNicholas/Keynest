@@ -1,6 +1,7 @@
 package dev.keynest.manager.tools;
 
 import dev.keynest.generate.PasswordGenerator;
+import dev.keynest.manager.api.ApiPaths;
 import dev.keynest.manager.config.ToolsDemoProperties;
 import dev.keynest.policy.PasswordPolicy;
 import dev.keynest.policy.PolicyOperation;
@@ -32,7 +33,7 @@ import java.util.Map;
 * Thin HTTP façade over Keynest libs — Manager dogfoods the same tools external services will use.
 */
 @RestController
-@RequestMapping(path = "/api/v1/tools", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = ApiPaths.TOOLS, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ToolsController {
   
   private final PasswordPolicy defaultPolicy;

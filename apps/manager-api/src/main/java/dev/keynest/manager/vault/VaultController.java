@@ -1,5 +1,6 @@
 package dev.keynest.manager.vault;
 
+import dev.keynest.manager.api.ApiPaths;
 import dev.keynest.manager.auth.AuthService;
 import dev.keynest.manager.auth.UserAccount;
 import jakarta.validation.Valid;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping(path = "/api/v1/vault/items", produces = MediaType.APPLICATION_JSON_VALUE)
+@RequestMapping(path = ApiPaths.VAULT_ITEMS, produces = MediaType.APPLICATION_JSON_VALUE)
 public class VaultController {
 
     private final AuthService authService;

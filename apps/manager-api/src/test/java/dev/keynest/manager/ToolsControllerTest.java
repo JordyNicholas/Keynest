@@ -1,5 +1,6 @@
 package dev.keynest.manager;
 
+import dev.keynest.manager.api.ApiPaths;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +28,7 @@ class ToolsControllerTest {
 
   @Test
   void health() throws Exception {
-    mockMvc.perform(get("/api/v1/tools/health"))
+    mockMvc.perform(get(ApiPaths.TOOLS_HEALTH))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.status", is("ok")))
       .andExpect(jsonPath("$.policyId", is("keynest.default.v1")));
@@ -35,7 +36,7 @@ class ToolsControllerTest {
 
   @Test
   void policyEndpointReturnsSchemaBackedDocument() throws Exception {
-    mockMvc.perform(get("/api/v1/tools/policy"))
+    mockMvc.perform(get(ApiPaths.TOOLS_POLICY))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.id", is("keynest.default.v1")))
       .andExpect(jsonPath("$.rules.minLength", is(16)))
@@ -44,7 +45,7 @@ class ToolsControllerTest {
 
   @Test
   void generateProducesValidPassword() throws Exception {
-    mockMvc.perform(post("/api/v1/tools/generate"))
+    mockMvc.perform(post(ApiPaths.TOOLS_GENERATE))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.valid", is(true)))
       .andExpect(jsonPath("$.password").isString());
@@ -52,7 +53,7 @@ class ToolsControllerTest {
 
   @Test
   void sealOpenRoundTrip() throws Exception {
-    MvcResult sealed = mockMvc.perform(post("/api/v1/tools/seal")
+    MvcResult sealed = mockMvc.perform(post(ApiPaths.TOOLS_SEAL)
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"plaintext\":\"vault-secret-value\"}"))
       .andExpect(status().isOk())
@@ -62,7 +63,7 @@ class ToolsControllerTest {
     String body = sealed.getResponse().getContentAsString();
     String envelope = body.replaceAll("(?s).*\"envelopeBase64\"\\s*:\\s*\"([^\"]+)\".*", "$1");
 
-    mockMvc.perform(post("/api/v1/tools/open")
+    mockMvc.perform(post(ApiPaths.TOOLS_OPEN)
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"envelopeBase64\":\"" + envelope + "\"}"))
       .andExpect(status().isOk())

@@ -1,5 +1,6 @@
 package dev.keynest.manager;
 
+import dev.keynest.manager.api.ApiPaths;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +26,7 @@ class ToolsDemoGateTest {
 
   @Test
   void sealRejectedWhenDisabled() throws Exception {
-    mockMvc.perform(post("/api/v1/tools/seal")
+    mockMvc.perform(post(ApiPaths.TOOLS_SEAL)
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"plaintext\":\"x\"}"))
       .andExpect(status().isForbidden());
@@ -33,7 +34,7 @@ class ToolsDemoGateTest {
 
   @Test
   void openRejectedWhenDisabled() throws Exception {
-    mockMvc.perform(post("/api/v1/tools/open")
+    mockMvc.perform(post(ApiPaths.TOOLS_OPEN)
         .contentType(MediaType.APPLICATION_JSON)
         .content("{\"envelopeBase64\":\"x\"}"))
       .andExpect(status().isForbidden());
@@ -41,7 +42,7 @@ class ToolsDemoGateTest {
 
   @Test
   void generateStillWorksWhenDemoDisabled() throws Exception {
-    mockMvc.perform(post("/api/v1/tools/generate"))
+    mockMvc.perform(post(ApiPaths.TOOLS_GENERATE))
       .andExpect(status().isOk());
   }
 }

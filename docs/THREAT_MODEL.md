@@ -66,7 +66,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 
 | ID | Abuse | Impact | Current / planned control |
 | --- | --- | --- | --- |
-| A1 | Brute-force login or `/tools/validate` | Account takeover; password oracle | Rate limits (#17); Argon2id cost; lockout/MFA later |
+| A1 | Brute-force login or `/tools/validate` | Account takeover; password oracle | In-memory rate limits on validate/register/login (#17); Argon2id cost; lockout/MFA later |
 | A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Tools demo seal/open gated off in `docker` / no demo hex (#16); vault env DEK/KEK still #30 |
 | A3 | Log scraping (request bodies, exceptions, fingerprints misused) | Plaintext or near-secret leakage | Never log passwords, envelopes’ plaintext, or raw keys; review in #43 |
 | A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Demo seal/open disabled by default on `docker` profile (#16); generate/validate remain available |
@@ -91,7 +91,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | --- | --- |
 | Threat model stub (this file) | #15 *(landed)* |
 | Gate tools demo key | #16 *(landed — config gate; local demo documented in README)* |
-| Rate-limit validate + auth | #17 |
+| Rate-limit validate + auth | #17 *(landed — filter + `ApiPaths.RATE_LIMITED_POSTS`; self-host knobs in README)* |
 | `rewrap` for key rotation | #20 |
 | Buffer hygiene | #22 |
 | Prod vault key from env | #30 |
