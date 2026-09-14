@@ -67,7 +67,7 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
 2. **Threat model stub** — [`THREAT_MODEL.md`](./THREAT_MODEL.md) **(landed — #15)**: assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), abuse cases (brute force, demo-key leakage, log scraping). Expand before public release (#43).
 3. **Tools API security baseline**:
    - Gate tools seal/open behind `keynest.tools.demo.enabled` **(landed — #16)**; `docker` profile defaults off and ships no demo hex. Local demo path documented in README.
-   - Rate-limit `/api/v1/tools/validate` and future auth endpoints (Spring bucket4j or filter) — still #17.
+   - Rate-limit `/api/v1/tools/validate` and auth register/login **(landed — #17)** via `RateLimitFilter` + `ApiPaths.RATE_LIMITED_POSTS`; defaults and env overrides documented in README.
 4. **Environment config** — Angular `environments` + `API_BASE_URL` token **(landed — #18)**; see [`VERCEL.md`](./VERCEL.md). Dev default remains `http://localhost:8080/api/v1`; production builds use `src/environments/prod.ts`.
 
 ### Exit criteria

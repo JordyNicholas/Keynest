@@ -126,6 +126,8 @@ Tools endpoints:
 
 **Tools demo seal/open (#16):** Local `application.properties` sets `keynest.tools.demo.enabled=true` with a fixed hex DEK for dogfooding. The `docker` profile sets `enabled=false` by default and does **not** ship a demo key — seal/open return **403**. Override only for intentional non-prod demos: `KEYNEST_TOOLS_DEMO_ENABLED=true` plus `keynest.tools.demo.key-hex` / `key-id`. Real vault envelopes use vault APIs and `keynest.vault.*` (env DEK still #30).
 
+**Rate limits (#17):** `POST /api/v1/tools/validate`, `/api/v1/auth/register`, and `/api/v1/auth/login` share an in-memory fixed window (default **30 req / 60 s** per client IP + path). Over limit → **429** + `Retry-After`. Configure via `keynest.rate-limit.enabled` / `limit` / `window-seconds`, or env `KEYNEST_RATE_LIMIT_LIMIT` and `KEYNEST_RATE_LIMIT_WINDOW_SECONDS`. Limits are **per JVM instance** (not shared across replicas). Paths live in `ApiPaths.RATE_LIMITED_POSTS`.
+
 ### Run Manager UI
 
 ```bash
@@ -142,7 +144,7 @@ Open http://localhost:4200. The UI calls the Manager API using `environment.apiB
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
-Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`.
+Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`. Rate limits stay **on** by default; tighten or raise with `KEYNEST_RATE_LIMIT_*`.
 
 ### Vercel (Manager Web)
 
