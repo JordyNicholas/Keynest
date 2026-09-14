@@ -91,6 +91,7 @@ public final class PasswordPolicyDocument {
                 .forbidUsernameSubstring(rules.forbidUsernameSubstring)
                 .maxAgeDays(rules.maxAgeDays)
                 .bannedSubstrings(rules.bannedSubstrings == null ? List.of() : rules.bannedSubstrings)
+                .bannedRegexes(rules.bannedRegexes == null ? List.of() : rules.bannedRegexes)
                 .build();
     }
 
@@ -108,5 +109,6 @@ public final class PasswordPolicyDocument {
         public boolean forbidUsernameSubstring;
         public Integer maxAgeDays;
         public List<String> bannedSubstrings;
+        public List<String> bannedRegexes;
     }
 }

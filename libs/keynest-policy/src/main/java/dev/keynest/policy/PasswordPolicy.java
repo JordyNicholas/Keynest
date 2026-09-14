@@ -1,7 +1,10 @@
 package dev.keynest.policy;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Runtime password standards. Prefer loading from a policy document via
@@ -24,6 +27,8 @@ public final class PasswordPolicy {
     private final boolean forbidUsernameSubstring;
     private final Integer maxAgeDays;
     private final List<String> bannedSubstrings;
+    private final List<String> bannedRegexes;
+    private final List<Pattern> bannedPatterns;
 
     private PasswordPolicy(Builder builder) {
         this.id = builder.id;
@@ -39,6 +44,8 @@ public final class PasswordPolicy {
         this.forbidUsernameSubstring = builder.forbidUsernameSubstring;
         this.maxAgeDays = builder.maxAgeDays;
         this.bannedSubstrings = List.copyOf(builder.bannedSubstrings);
+        this.bannedRegexes = List.copyOf(builder.bannedRegexes);
+        this.bannedPatterns = List.copyOf(builder.bannedPatterns);
     }
 
     /**
@@ -104,6 +111,15 @@ public final class PasswordPolicy {
         return bannedSubstrings;
     }
 
+    public List<String> bannedRegexes() {
+        return bannedRegexes;
+    }
+
+    /** Compiled forms of {@link #bannedRegexes()} for validation (same order). */
+    public List<Pattern> bannedPatterns() {
+        return bannedPatterns;
+    }
+
     public static final class Builder {
         private String id = DEFAULT_POLICY_ID;
         private int minLength = 16;
@@ -118,6 +134,8 @@ public final class PasswordPolicy {
         private boolean forbidUsernameSubstring = true;
         private Integer maxAgeDays = 90;
         private List<String> bannedSubstrings = List.of();
+        private List<String> bannedRegexes = List.of();
+        private List<Pattern> bannedPatterns = List.of();
 
         public Builder id(String id) {
             this.id = Objects.requireNonNull(id, "id");
@@ -181,6 +199,30 @@ public final class PasswordPolicy {
 
         public Builder bannedSubstrings(List<String> bannedSubstrings) {
             this.bannedSubstrings = bannedSubstrings == null ? List.of() : List.copyOf(bannedSubstrings);
+            return this;
+        }
+
+        public Builder bannedRegexes(List<String> bannedRegexes) {
+            if (bannedRegexes == null || bannedRegexes.isEmpty()) {
+                this.bannedRegexes = List.of();
+                this.bannedPatterns = List.of();
+                return this;
+            }
+            List<String> patterns = new ArrayList<>(bannedRegexes.size());
+            List<Pattern> compiled = new ArrayList<>(bannedRegexes.size());
+            for (String regex : bannedRegexes) {
+                if (regex == null || regex.isBlank()) {
+                    throw new IllegalArgumentException("bannedRegexes entries must be non-blank");
+                }
+                try {
+                    compiled.add(Pattern.compile(regex));
+                } catch (PatternSyntaxException e) {
+                    throw new IllegalArgumentException("invalid bannedRegex: " + regex, e);
+                }
+                patterns.add(regex);
+            }
+            this.bannedRegexes = List.copyOf(patterns);
+            this.bannedPatterns = List.copyOf(compiled);
             return this;
         }
 

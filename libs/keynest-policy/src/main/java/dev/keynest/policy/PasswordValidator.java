@@ -101,6 +101,13 @@ public final class PasswordValidator {
             }
         }
 
+        for (var pattern : policy.bannedPatterns()) {
+            if (pattern.matcher(password).find()) {
+                violations.add("password.banned_regex");
+                break;
+            }
+        }
+
         return violations.isEmpty() ? ValidationResult.ok() : ValidationResult.failed(violations);
     }
 
