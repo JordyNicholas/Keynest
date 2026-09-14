@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
@@ -41,8 +40,8 @@ public class ToolsController {
     private final PasswordGenerator generator;
     private final KeynestSeal seal;
     private final PasswordHasher passwordHasher;
-    private final byte[] demoKey;
     private final ToolsDemoProperties demoProperties;
+    private final byte[] demoKey;
 
     public ToolsController(
             PasswordPolicy defaultPolicy,
@@ -58,7 +57,16 @@ public class ToolsController {
         this.seal = seal;
         this.passwordHasher = passwordHasher;
         this.demoProperties = demoProperties;
-        this.demoKey = Arrays.copyOf(HexFormat.of().parseHex(demoProperties.getKeyHex()), 32);
+        // Parse demo DEK only when the gate is on — docker/prod leave enabled=false with no key.
+        if (demoProperties.isEnabled()) {
+            byte[] key = HexFormat.of().parseHex(demoProperties.getKeyHex());
+            if (key.length != 32) {
+                throw new IllegalStateException("keynest.tools.demo.key-hex must decode to 32 bytes");
+            }
+            this.demoKey = key;
+        } else {
+            this.demoKey = new byte[0];
+        }
     }
 
     @GetMapping("/health")
@@ -143,7 +151,7 @@ public class ToolsController {
         SealEnvelope envelope = seal.seal(
                 request.plaintext().getBytes(StandardCharsets.UTF_8),
                 demoKey,
-                "demo-kid",
+                demoProperties.getKeyId(),
                 aad
         );
         return Map.of(
@@ -194,10 +202,11 @@ public class ToolsController {
     }
 
     private void requireDemoEnabled() {
-        if (!demoProperties.getEnabled()){
+        if (!demoProperties.isEnabled()) {
             throw new ResponseStatusException(
-                HttpStatus.FORBIDDEN,
-                "Tools demo seal/open is disabled.");
+                    HttpStatus.FORBIDDEN,
+                    "tools demo seal/open is disabled"
+            );
         }
     }
 }
