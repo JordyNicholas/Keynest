@@ -47,3 +47,12 @@ Define **Keynest Seal** as a versioned envelope + API:
 - External services get a stable Maven artifact and clearer compliance story.
 - Future algorithm agility via `version` / `algorithmId` without breaking the API names.
 - First envelope layout (`Seal v1`) must be locked with tests and golden vectors before Manager stores production data.
+
+## Appendix — `rewrap` and AAD / `policyId` binding
+
+`rewrap(envelope, oldKey, newKey, newKeyId, aad?)` rotates the wrapping key without changing plaintext:
+
+1. `open(envelope, oldKey, aad)` — fails on wrong key or AAD mismatch (same as normal open).
+2. `seal(plaintext, newKey, newKeyId, aad)` — new nonce; same Seal v1 layout; caller supplies the new key id.
+
+`policyId` (and any other binding context) lives in **AAD**, not in the envelope header. Rewrap uses the **same** AAD for open and seal; it does not migrate or clear AAD. Callers that sealed with `policy:<id>` must rewrap with that same AAD.

@@ -102,6 +102,25 @@ public final class KeynestSeal {
         }
     }
 
+    /**
+     * Re-encrypts an envelope under a new key without changing the plaintext.
+     * Uses the same AAD binding on open and seal; produces a new nonce and {@code newKeyId}.
+     */
+    public SealEnvelope rewrap(SealEnvelope envelope, byte[] oldKey, byte[] newKey, String newKeyId) {
+        return rewrap(envelope, oldKey, newKey, newKeyId, null);
+    }
+
+    public SealEnvelope rewrap(
+            SealEnvelope envelope, byte[] oldKey, byte[] newKey, String newKeyId, byte[] aad) {
+        Objects.requireNonNull(newKeyId, "newKeyId");
+        byte[] plaintext = open(envelope, oldKey, aad);
+        try {
+            return seal(plaintext, newKey, newKeyId, aad);
+        } finally {
+            Arrays.fill(plaintext, (byte) 0);
+        }
+    }
+
     public String fingerprint(SealEnvelope envelope) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
