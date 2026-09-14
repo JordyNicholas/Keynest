@@ -98,6 +98,14 @@ public final class SealEnvelope {
         byte[] ciphertext = Arrays.copyOfRange(raw, i, i + ctLen);
         i += ctLen;
         byte[] tag = Arrays.copyOfRange(raw, i, i + 16);
-        return new SealEnvelope(version, algorithmId, keyId, nonce, ciphertext, tag);
+        try {
+            return new SealEnvelope(version, algorithmId, keyId, nonce, ciphertext, tag);
+        } finally {
+            // Constructor copies fields; wipe parse temporaries.
+            Arrays.fill(keyId, (byte) 0);
+            Arrays.fill(nonce, (byte) 0);
+            Arrays.fill(ciphertext, (byte) 0);
+            Arrays.fill(tag, (byte) 0);
+        }
     }
 }

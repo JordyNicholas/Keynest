@@ -8,6 +8,9 @@ import java.util.Objects;
 /**
  * Argon2id hash/verify for master passwords and similar auth secrets.
  * Never used for recoverable vault secrets — use {@link KeynestSeal#seal} for those.
+ *
+ * <p>Password {@code char[]} inputs are wiped after hash/verify. That does not remove
+ * JVM/GC copies; callers should still prefer short-lived buffers.
  */
 public final class PasswordHasher {
 

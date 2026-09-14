@@ -27,3 +27,4 @@ We need both:
 - Self-host MVP can decrypt server-side; ciphertext format should allow a later zero-knowledge client.
 - MFA delivery providers become adapters behind Notify/Auth, not part of the hash scheme.
 - Exportable Java libraries (`keynest-seal`, etc.) share this model with Manager and external services (ADR-0002).
+- Sensitive intermediates in Seal/hash paths are wiped best-effort; see ADR-0003 buffer-hygiene appendix for JVM limits.
