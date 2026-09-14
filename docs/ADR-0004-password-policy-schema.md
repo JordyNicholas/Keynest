@@ -27,4 +27,6 @@ Generate and update must share one password standard. We want a declarative, ver
 - Policy docs are portable and reviewable as JSON.
 - Invalid policy files fail at load time, not at first user request.
 - Angular / non-JVM clients can read the same JSON Schema later (HTTP export or copied artifact).
-- `bannedSubstrings` and `maxAgeDays` are part of the skeleton contract; notify/rotate enforcement follows in Manager.
+- `bannedSubstrings` (case-insensitive) and `bannedRegexes` (Java `Pattern`, `Matcher.find`) are enforced by `PasswordValidator`. Invalid regexes fail at policy build/load.
+- `PolicyExplainer.explain(policy)` produces UI copy aligned with validation rule codes.
+- `maxAgeDays` remains a suggested rotation window; notify/rotate enforcement follows in Manager.

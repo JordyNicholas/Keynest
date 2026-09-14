@@ -15,6 +15,7 @@
     "forbidWhitespace": true,
     "forbidUsernameSubstring": true,
     "maxAgeDays": 90,
-    "bannedSubstrings": []
+    "bannedSubstrings": ["password", "qwerty", "123456", "admin"],
+    "bannedRegexes": ["(.)\\1{3,}"]
   }
 }
