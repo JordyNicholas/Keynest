@@ -121,8 +121,10 @@ Tools endpoints:
 | `GET` | `/api/v1/tools/policy` | Schema-backed policy document (`?policyId=`) |
 | `POST` | `/api/v1/tools/generate` | `?policyId=` (must allow `generate`) |
 | `POST` | `/api/v1/tools/validate` | body + `?operation=create\|update\|rotate\|generate` |
-| `POST` | `/api/v1/tools/seal` / `open` | Seal demo (dev key only) |
+| `POST` | `/api/v1/tools/seal` / `open` | **Local demo only** — gated (see below) |
 | `POST` | `/api/v1/tools/hash-password` / `verify-password` | Argon2id |
+
+**Tools demo seal/open (#16):** Local `application.properties` sets `keynest.tools.demo.enabled=true` with a fixed hex DEK for dogfooding. The `docker` profile sets `enabled=false` by default and does **not** ship a demo key — seal/open return **403**. Override only for intentional non-prod demos: `KEYNEST_TOOLS_DEMO_ENABLED=true` plus `keynest.tools.demo.key-hex` / `key-id`. Real vault envelopes use vault APIs and `keynest.vault.*` (env DEK still #30).
 
 ### Run Manager UI
 
@@ -140,7 +142,7 @@ Open http://localhost:4200. The UI calls the Manager API using `environment.apiB
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
-Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`.
+Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`.
 
 ### Vercel (Manager Web)
 

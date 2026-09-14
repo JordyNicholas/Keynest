@@ -66,15 +66,15 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
    - `npm ci && npm run build` in `apps/manager-web`
 2. **Threat model stub** — [`THREAT_MODEL.md`](./THREAT_MODEL.md) **(landed — #15)**: assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), abuse cases (brute force, demo-key leakage, log scraping). Expand before public release (#43).
 3. **Tools API security baseline**:
-   - Remove hardcoded demo key from [`ToolsController`](../apps/manager-api/src/main/java/dev/keynest/manager/tools/ToolsController.java) for any path that seals/opens; gate seal/open behind config that is off by default in production, or require auth once P3 lands.
-   - Rate-limit `/api/v1/tools/validate` and future auth endpoints (Spring bucket4j or filter).
+   - Gate tools seal/open behind `keynest.tools.demo.enabled` **(landed — #16)**; `docker` profile defaults off and ships no demo hex. Local demo path documented in README.
+   - Rate-limit `/api/v1/tools/validate` and future auth endpoints (Spring bucket4j or filter) — still #17.
 4. **Environment config** — Angular `environments` + `API_BASE_URL` token **(landed — #18)**; see [`VERCEL.md`](./VERCEL.md). Dev default remains `http://localhost:8080/api/v1`; production builds use `src/environments/prod.ts`.
 
 ### Exit criteria
 
 - CI green on main.
 - Threat model file exists and lists seal/open and auth as in-scope. **(done — stub)**
-- No production profile ships a fixed hex DEK.
+- No production/`docker` profile ships a fixed **tools demo** hex DEK. **(done — #16)**; vault DEK still tracked as #30.
 
 ---
 

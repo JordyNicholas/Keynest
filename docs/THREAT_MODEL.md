@@ -67,9 +67,9 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | ID | Abuse | Impact | Current / planned control |
 | --- | --- | --- | --- |
 | A1 | Brute-force login or `/tools/validate` | Account takeover; password oracle | Rate limits (#17); Argon2id cost; lockout/MFA later |
-| A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Gate demo seal/open (#16); env DEK/KEK (#30) |
+| A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Tools demo seal/open gated off in `docker` / no demo hex (#16); vault env DEK/KEK still #30 |
 | A3 | Log scraping (request bodies, exceptions, fingerprints misused) | Plaintext or near-secret leakage | Never log passwords, envelopes’ plaintext, or raw keys; review in #43 |
-| A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Disable or require auth in production profile (#16) |
+| A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Demo seal/open disabled by default on `docker` profile (#16); generate/validate remain available |
 | A5 | Stolen DB dump | Offline attack on envelopes | AES-GCM envelopes; key not in DB; rotate via `rewrap` (#20) |
 | A6 | XSS / malicious script in Manager Web | Session + reveal API abuse | CSP/hardening later; treat reveal responses as highly sensitive |
 | A7 | Confused deputy: vault open without authz | Cross-user secret read | Authn + user-scoped vault queries (landed with #27/#28); keep tests green |
@@ -89,8 +89,8 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 
 | Gap | Issue |
 | --- | --- |
-| Threat model stub (this file) | #15 |
-| Gate tools demo key | #16 |
+| Threat model stub (this file) | #15 *(landed)* |
+| Gate tools demo key | #16 *(landed — config gate; local demo documented in README)* |
 | Rate-limit validate + auth | #17 |
 | `rewrap` for key rotation | #20 |
 | Buffer hygiene | #22 |

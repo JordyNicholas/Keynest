@@ -13,7 +13,11 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableConfigurationProperties({VaultKeyProperties.class, CorsProperties.class})
+@EnableConfigurationProperties({
+        VaultKeyProperties.class,
+        CorsProperties.class,
+        ToolsDemoProperties.class
+})
 public class KeynestConfig {
 
     @Bean
