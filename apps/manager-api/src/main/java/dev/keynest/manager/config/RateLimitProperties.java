@@ -1,31 +1,35 @@
 package dev.keynest.manager.config;
 
-public class RateLimitProperties {
-  private Boolean enabled = true;
-  private Integer limit = 60;
-  private Integer windowSeconds = 60;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-  public Boolean getEnabled() {
+@ConfigurationProperties(prefix = "keynest.rate-limit")
+public class RateLimitProperties {
+
+  private boolean enabled = true;
+  private int limit = 60;
+  private int windowSeconds = 60;
+
+  public boolean isEnabled() {
     return enabled;
   }
 
-  public void setEnabled(Boolean enabled) {
+  public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
 
-  public Integer getLimit() {
+  public int getLimit() {
     return limit;
   }
 
-  public void setLimit(Integer limit) {
+  public void setLimit(int limit) {
     this.limit = limit;
   }
 
-  public Integer getWindowSeconds() {
+  public int getWindowSeconds() {
     return windowSeconds;
   }
 
-  public void setWindowSeconds(Integer windowSeconds) {
+  public void setWindowSeconds(int windowSeconds) {
     this.windowSeconds = windowSeconds;
   }
 }

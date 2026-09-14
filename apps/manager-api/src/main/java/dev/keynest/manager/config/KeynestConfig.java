@@ -1,6 +1,7 @@
 package dev.keynest.manager.config;
 
 import dev.keynest.generate.PasswordGenerator;
+import dev.keynest.manager.api.ApiPaths;
 import dev.keynest.policy.PasswordPolicy;
 import dev.keynest.policy.lifecycle.PasswordStandards;
 import dev.keynest.policy.schema.PolicyRegistry;
@@ -14,9 +15,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableConfigurationProperties({
-        VaultKeyProperties.class,
-        CorsProperties.class,
-        ToolsDemoProperties.class
+  VaultKeyProperties.class,
+  CorsProperties.class,
+  ToolsDemoProperties.class,
+  RateLimitProperties.class
 })
 public class KeynestConfig {
 
@@ -56,10 +58,10 @@ public class KeynestConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**")
-                        .allowedOrigins(origins)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                        .allowedHeaders("*");
+                registry.addMapping(ApiPaths.API_PATTERN)
+                  .allowedOrigins(origins)
+                  .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                  .allowedHeaders("*");
             }
         };
     }
