@@ -4,7 +4,7 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · ADRs in [`docs/`](./docs/)
+> Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · Coding standards: [docs/CODING_STANDARDS.md](./docs/CODING_STANDARDS.md) · ADRs in [`docs/`](./docs/)
 
 ---
 
@@ -85,9 +85,11 @@ libs/keynest-seal        Seal envelope (AES-256-GCM) + Argon2id
 apps/manager-api         Spring Boot façade (dogfoods libs)
 apps/manager-web         Angular Manager shell
 deploy/                  Docker Compose + API Dockerfile
-docs/                    PRODUCT, ADRs, published schema copies
+docs/                    PRODUCT, ADRs, coding standards, published schema copies
 archive/next-prototype   legacy Next.js app (do not extend)
 ```
+
+Indentation and formatting: root [`.editorconfig`](./.editorconfig) — **2 spaces** (see [docs/CODING_STANDARDS.md](./docs/CODING_STANDARDS.md)).
 
 ---
 
