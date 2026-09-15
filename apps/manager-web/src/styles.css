@@ -1,9 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 
-:root {
-  color-scheme: dark;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -15,10 +11,15 @@ body {
 }
 
 body {
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   background:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(90, 140, 110, 0.28), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 0%, rgba(40, 70, 90, 0.35), transparent 50%),
-    linear-gradient(165deg, #0c1410 0%, #152019 45%, #0a100d 100%);
-  color: #e8f0ea;
+    radial-gradient(ellipse 80% 50% at 10% -10%, var(--kn-gradient-glow-a), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 0%, var(--kn-gradient-glow-b), transparent 50%),
+    linear-gradient(
+      165deg,
+      var(--kn-color-canvas) 0%,
+      var(--kn-color-canvas-mid) 45%,
+      var(--kn-color-canvas-deep) 100%
+    );
+  color: var(--kn-color-ink);
 }

@@ -52,6 +52,8 @@
               }
             ],
             "styles": [
+              "src/styles/keynest-tokens.css",
+              "src/styles/keynest-material-theme.scss",
               "src/styles.css"
             ],
             "scripts": []
@@ -116,6 +118,8 @@
               }
             ],
             "styles": [
+              "src/styles/keynest-tokens.css",
+              "src/styles/keynest-material-theme.scss",
               "src/styles.css"
             ],
             "scripts": []

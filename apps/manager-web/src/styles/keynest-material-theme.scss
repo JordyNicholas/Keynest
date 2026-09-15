@@ -1,0 +1,61 @@
+// Keynest Material 3 theme — forest/nest palette, not indigo/azure defaults.
+// Brand atmosphere (gradient body) stays in styles.css; Material only owns
+// interaction chrome tokens (--mat-sys-*).
+
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: mat.$spring-green-palette,
+        tertiary: mat.$green-palette,
+      ),
+      typography: (
+        plain-family: (
+          'IBM Plex Sans',
+          'Helvetica Neue',
+          sans-serif,
+        ),
+        brand-family: (
+          'Fraunces',
+          'Times New Roman',
+          serif,
+        ),
+      ),
+      density: 0,
+    )
+  );
+}
+
+// Pin Material system colors to Keynest tokens so components stay on-brand
+// when light mode is enabled later (same --kn-* names, different values).
+:root,
+[data-theme='dark'],
+[data-theme='light'] {
+  --mat-sys-primary: var(--kn-color-accent);
+  --mat-sys-on-primary: var(--kn-color-accent-ink);
+  --mat-sys-primary-container: var(--kn-color-canvas-mid);
+  --mat-sys-on-primary-container: var(--kn-color-ink);
+
+  --mat-sys-secondary: var(--kn-color-subtle);
+  --mat-sys-on-secondary: var(--kn-color-accent-ink);
+  --mat-sys-secondary-container: var(--kn-color-canvas-mid);
+  --mat-sys-on-secondary-container: var(--kn-color-muted);
+
+  --mat-sys-surface: var(--kn-color-canvas);
+  --mat-sys-on-surface: var(--kn-color-ink);
+  --mat-sys-surface-container: var(--kn-color-canvas-mid);
+  --mat-sys-surface-container-low: var(--kn-color-canvas-deep);
+  --mat-sys-surface-container-high: var(--kn-color-canvas-mid);
+  --mat-sys-on-surface-variant: var(--kn-color-muted);
+
+  --mat-sys-outline: var(--kn-color-outline-strong);
+  --mat-sys-outline-variant: var(--kn-color-outline);
+
+  --mat-sys-error: var(--kn-color-danger);
+  --mat-sys-on-error: var(--kn-color-accent-ink);
+  --mat-sys-error-container: var(--kn-color-danger-surface);
+  --mat-sys-on-error-container: var(--kn-color-danger);
+}

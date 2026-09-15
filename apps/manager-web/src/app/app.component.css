@@ -15,85 +15,85 @@
 
 .mark {
   margin: 0;
-  font-family: "Fraunces", "Times New Roman", serif;
+  font-family: var(--kn-font-display);
   font-size: clamp(2.5rem, 8vw, 3.75rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1;
-  color: #e8f0ea;
+  color: var(--kn-color-ink);
 }
 
 .brand h1 {
   margin: 0.35rem 0 0;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   font-size: 1rem;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #7a9e86;
+  color: var(--kn-color-label);
 }
 
 .lede {
   margin: 1rem 0 0;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   font-size: 1.05rem;
   line-height: 1.5;
-  color: #b7c8bc;
+  color: var(--kn-color-muted);
 }
 
 .panel {
   margin-top: 1.75rem;
   padding-top: 1.5rem;
-  border-top: 1px solid rgba(232, 240, 234, 0.12);
+  border-top: 1px solid var(--kn-color-outline);
 }
 
 .panel h2 {
   margin: 0 0 0.5rem;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9bb5a4;
+  color: var(--kn-color-subtle);
 }
 
 .panel p {
   margin: 0 0 1rem;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
-  color: #b7c8bc;
+  font-family: var(--kn-font-body);
+  color: var(--kn-color-muted);
   font-size: 0.95rem;
 }
 
 button {
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   font-size: 0.95rem;
   font-weight: 500;
-  color: #0c1410;
-  background: #c6e2cf;
+  color: var(--kn-color-accent-ink);
+  background: var(--kn-color-accent);
   border: 0;
   padding: 0.65rem 1rem;
   cursor: pointer;
 }
 
 button:hover {
-  background: #d7eedc;
+  background: var(--kn-color-accent-hover);
 }
 
 label {
   display: grid;
   gap: 0.4rem;
   margin-bottom: 0.75rem;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
   font-size: 0.9rem;
-  color: #b7c8bc;
+  color: var(--kn-color-muted);
 }
 
 input {
   font: inherit;
   padding: 0.6rem 0.7rem;
-  border: 1px solid rgba(232, 240, 234, 0.2);
-  background: rgba(8, 14, 11, 0.55);
-  color: #e8f0ea;
+  border: 1px solid var(--kn-color-outline-strong);
+  background: var(--kn-color-surface);
+  color: var(--kn-color-ink);
 }
 
 .secret,
@@ -101,26 +101,26 @@ pre {
   display: block;
   margin-top: 1rem;
   padding: 0.85rem;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--kn-font-mono);
   font-size: 0.85rem;
   line-height: 1.45;
-  color: #d5e6db;
-  background: rgba(8, 14, 11, 0.55);
-  border: 1px solid rgba(232, 240, 234, 0.1);
+  color: var(--kn-color-mono-ink);
+  background: var(--kn-color-surface);
+  border: 1px solid var(--kn-color-outline);
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-all;
 }
 
 .error {
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
-  color: #f0b7a8;
-  background: rgba(80, 24, 16, 0.35);
+  font-family: var(--kn-font-body);
+  color: var(--kn-color-danger);
+  background: var(--kn-color-danger-surface);
   padding: 0.75rem 1rem;
 }
 
 code {
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-family: var(--kn-font-mono);
   font-size: 0.9em;
 }
 
@@ -143,33 +143,33 @@ code {
   display: grid;
   gap: 0.65rem;
   padding: 0.85rem;
-  border: 1px solid rgba(232, 240, 234, 0.12);
-  background: rgba(8, 14, 11, 0.35);
+  border: 1px solid var(--kn-color-outline);
+  background: var(--kn-color-surface-raised);
 }
 
 .vault-list strong {
   display: block;
-  color: #e8f0ea;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  color: var(--kn-color-ink);
+  font-family: var(--kn-font-body);
 }
 
 .vault-list span {
   display: block;
   margin-top: 0.25rem;
-  color: #9bb5a4;
+  color: var(--kn-color-subtle);
   font-size: 0.9rem;
-  font-family: "IBM Plex Sans", "Helvetica Neue", sans-serif;
+  font-family: var(--kn-font-body);
 }
 
 .vault-list .empty {
-  color: #9bb5a4;
+  color: var(--kn-color-subtle);
   border-style: dashed;
 }
 
 button.danger {
-  background: #e2c6c6;
+  background: var(--kn-color-danger-accent);
 }
 
 button.danger:hover {
-  background: #f0d7d7;
+  background: var(--kn-color-danger-accent-hover);
 }
