@@ -64,7 +64,8 @@
   font-size: 0.95rem;
 }
 
-button {
+/* Native buttons only — do not override Material (mat-*) chrome. */
+button:not(.mat-mdc-button) {
   font-family: var(--kn-font-body);
   font-size: 0.95rem;
   font-weight: 500;
@@ -75,7 +76,7 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+button:not(.mat-mdc-button):hover {
   background: var(--kn-color-accent-hover);
 }
 
@@ -166,10 +167,10 @@ code {
   border-style: dashed;
 }
 
-button.danger {
+button.danger:not(.mat-mdc-button) {
   background: var(--kn-color-danger-accent);
 }
 
-button.danger:hover {
+button.danger:not(.mat-mdc-button):hover {
   background: var(--kn-color-danger-accent-hover);
 }

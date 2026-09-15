@@ -1,6 +1,7 @@
 // Keynest Material 3 theme — forest/nest palette, not indigo/azure defaults.
 // Brand atmosphere (gradient body) stays in styles.css; Material only owns
 // interaction chrome tokens (--mat-sys-*).
+// Motion classes live in keynest-motion.css.
 
 @use '@angular/material' as mat;
 
@@ -59,9 +60,3 @@ html {
   --mat-sys-error-container: var(--kn-color-danger-surface);
   --mat-sys-on-error-container: var(--kn-color-danger);
 }
-
-@keyframes kn-fade-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes kn-fade-out { from { opacity: 1; } to { opacity: 0; } }
-
-.kn-enter { animation: kn-fade-in 0.3s ease-out; }
-.kn-leave { animation: kn-fade-out 0.3s ease-in; }

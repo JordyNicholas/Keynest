@@ -153,6 +153,8 @@ export class AppComponent {
   }
 
   generate(): void {
+    // Clear first so @if destroys the output and kn-leave can run; then enter on success.
+    this.generated.set('');
     this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {}).subscribe({
       next: (body) => {
         this.generated.set(body.password);
@@ -160,6 +162,10 @@ export class AppComponent {
       },
       error: () => this.error.set('Generate failed'),
     });
+  }
+
+  clearGenerated(): void {
+    this.generated.set('');
   }
 
   private onAuth(body: AuthResponse): void {
@@ -175,6 +181,7 @@ export class AppComponent {
     this.authEmail.set('');
     this.items.set([]);
     this.revealed.set({});
+    this.generated.set('');
     localStorage.removeItem('keynest.token');
   }
 }

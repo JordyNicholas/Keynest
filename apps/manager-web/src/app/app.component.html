@@ -80,7 +80,12 @@
 
   <section class="panel" aria-labelledby="gen-heading">
     <h2 id="gen-heading">Generate tool</h2>
-    <button type="button" (click)="generate()">Generate password</button>
+    <div class="row">
+      <button type="button" (click)="generate()">Generate password</button>
+      @if (generated()) {
+        <button type="button" (click)="clearGenerated()">Clear</button>
+      }
+    </div>
     @if (generated()) {
       <output class="secret" animate.enter="kn-enter" animate.leave="kn-leave">
         {{ generated() }}
