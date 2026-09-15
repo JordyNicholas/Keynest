@@ -1,0 +1,54 @@
+:host { display: block; min-height: 100vh; }
+
+.shell {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.mark {
+  margin: 0;
+  font-family: var(--kn-font-display);
+  font-size: clamp(2.5rem, 8vw, 3.75rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--kn-color-ink);
+}
+
+.product {
+  margin: 0.35rem 0 0;
+  font-family: var(--kn-font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--kn-color-label);
+}
+
+.product {
+  margin: 0.35rem 0 0;
+  font-family: var(--kn-font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--kn-color-label);
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+  margin: 1.75rem 0 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--kn-color-outline);
+}
+
+.nav a {
+  font-family: var(--kn-font-body);
+  color: var(--kn-color-muted);
+  text-decoration: none;
+}
+
+.nav a.active {
+  color: var(--kn-color-accent);
+}
