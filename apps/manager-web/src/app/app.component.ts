@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { API_BASE_URL } from './injectionTokens';
+import { MatButtonModule } from '@angular/material/button';
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 type VaultItem = {
@@ -16,7 +17,7 @@ type VaultItem = {
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, JsonPipe],
+  imports: [FormsModule, JsonPipe, MatButtonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
