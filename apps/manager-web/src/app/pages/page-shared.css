@@ -1,45 +1,4 @@
-:host {
-  display: block;
-  min-height: 100vh;
-}
-
-.shell {
-  max-width: 40rem;
-  margin: 0 auto;
-  padding: 3rem 1.25rem 4rem;
-}
-
-.brand {
-  margin-bottom: 2.5rem;
-}
-
-.mark {
-  margin: 0;
-  font-family: var(--kn-font-display);
-  font-size: clamp(2.5rem, 8vw, 3.75rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  color: var(--kn-color-ink);
-}
-
-.brand h1 {
-  margin: 0.35rem 0 0;
-  font-family: var(--kn-font-body);
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--kn-color-label);
-}
-
-.lede {
-  margin: 1rem 0 0;
-  font-family: var(--kn-font-body);
-  font-size: 1.05rem;
-  line-height: 1.5;
-  color: var(--kn-color-muted);
-}
+/* Shared styles for routed page panels (Tools / Vault / Account). */
 
 .panel {
   margin-top: 1.75rem;
@@ -47,7 +6,14 @@
   border-top: 1px solid var(--kn-color-outline);
 }
 
-.panel h2 {
+.panel:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.panel h2,
+.page-title {
   margin: 0 0 0.5rem;
   font-family: var(--kn-font-body);
   font-size: 0.85rem;
@@ -57,7 +23,8 @@
   color: var(--kn-color-subtle);
 }
 
-.panel p {
+.panel p,
+.page-lede {
   margin: 0 0 1rem;
   font-family: var(--kn-font-body);
   color: var(--kn-color-muted);
@@ -78,6 +45,14 @@ button:not(.mat-mdc-button) {
 
 button:not(.mat-mdc-button):hover {
   background: var(--kn-color-accent-hover);
+}
+
+button.danger:not(.mat-mdc-button) {
+  background: var(--kn-color-danger-accent);
+}
+
+button.danger:not(.mat-mdc-button):hover {
+  background: var(--kn-color-danger-accent-hover);
 }
 
 label {
@@ -120,11 +95,6 @@ pre {
   padding: 0.75rem 1rem;
 }
 
-code {
-  font-family: var(--kn-font-mono);
-  font-size: 0.9em;
-}
-
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -165,12 +135,4 @@ code {
 .vault-list .empty {
   color: var(--kn-color-subtle);
   border-style: dashed;
-}
-
-button.danger:not(.mat-mdc-button) {
-  background: var(--kn-color-danger-accent);
-}
-
-button.danger:not(.mat-mdc-button):hover {
-  background: var(--kn-color-danger-accent-hover);
 }

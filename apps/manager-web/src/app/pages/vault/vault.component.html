@@ -1,0 +1,46 @@
+<h1 class="page-title">Vault</h1>
+<p class="page-lede">Sealed credentials for the signed-in user. Full vault UX lands in E4.</p>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+<section class="panel" aria-labelledby="vault-heading">
+  <h2 id="vault-heading">Items</h2>
+  <label>
+    Label
+    <input type="text" [ngModel]="newLabel()" (ngModelChange)="newLabel.set($event)" />
+  </label>
+  <label>
+    URL
+    <input type="url" [ngModel]="newUrl()" (ngModelChange)="newUrl.set($event)" />
+  </label>
+  <label>
+    Username
+    <input type="text" [ngModel]="newUsername()" (ngModelChange)="newUsername.set($event)" />
+  </label>
+  <div class="row">
+    <button type="button" (click)="createGeneratedItem()">Create with generated password</button>
+    <button type="button" (click)="refreshVault()">Refresh</button>
+  </div>
+
+  <ul class="vault-list">
+    @for (item of items(); track item.id) {
+      <li>
+        <div>
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.username }} · {{ item.url }}</span>
+          @if (revealed()[item.id]; as secret) {
+            <output class="secret">{{ secret }}</output>
+          }
+        </div>
+        <div class="row">
+          <button type="button" (click)="reveal(item.id)">Reveal</button>
+          <button type="button" class="danger" (click)="remove(item.id)">Delete</button>
+        </div>
+      </li>
+    } @empty {
+      <li class="empty">No vault items yet.</li>
+    }
+  </ul>
+</section>
