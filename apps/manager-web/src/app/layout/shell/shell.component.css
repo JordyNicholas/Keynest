@@ -1,9 +1,16 @@
-:host { display: block; min-height: 100vh; }
+:host {
+  display: block;
+  min-height: 100vh;
+}
 
 .shell {
   max-width: 40rem;
   margin: 0 auto;
   padding: 3rem 1.25rem 4rem;
+}
+
+.brand {
+  margin-bottom: 0;
 }
 
 .mark {
@@ -12,17 +19,8 @@
   font-size: clamp(2.5rem, 8vw, 3.75rem);
   font-weight: 600;
   letter-spacing: -0.03em;
+  line-height: 1;
   color: var(--kn-color-ink);
-}
-
-.product {
-  margin: 0.35rem 0 0;
-  font-family: var(--kn-font-body);
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--kn-color-label);
 }
 
 .product {
@@ -51,4 +49,8 @@
 
 .nav a.active {
   color: var(--kn-color-accent);
+}
+
+.main {
+  margin-top: 1.5rem;
 }

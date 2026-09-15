@@ -1,9 +1,11 @@
-import { computed, Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   readonly token = signal(localStorage.getItem('keynest.token') ?? '');
-  readonly email = signal('demo@keynest.dev');
+  /** Signed-in display email (not the login form field). */
+  readonly email = signal(this.token() ? 'session' : '');
   readonly signedIn = computed(() => this.token().length > 0);
 
   setSession(token: string, email: string): void {
@@ -16,5 +18,9 @@ export class AuthService {
     this.token.set('');
     this.email.set('');
     localStorage.removeItem('keynest.token');
+  }
+
+  authHeaders(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${this.token()}` });
   }
 }

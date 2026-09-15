@@ -14,7 +14,7 @@ export const routes: Routes = [
       { path: 'tools', component: ToolsPageComponent },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'account', component: AccountPageComponent },
-    ]
+    ],
   },
-  { path: '**', redirectTo: 'tools' }
+  { path: '**', redirectTo: 'tools' },
 ];

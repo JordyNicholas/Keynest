@@ -1,2 +1,27 @@
 <h1 class="page-title">Tools</h1>
-<p class="page-lede">Placeholder - Tools UI lands in E4 in this Route.</p>
+<p class="page-lede">Password tools demo — Material polish lands in #25.</p>
+
+@if (error()) {
+  <p class="error" role="alert">{{ error() }}</p>
+}
+
+<section class="panel" aria-labelledby="health-heading">
+  <h2 id="health-heading">API</h2>
+  <button mat-flat-button type="button" (click)="refreshHealth()">Refresh health</button>
+  <pre>{{ health() | json }}</pre>
+</section>
+
+<section class="panel" aria-labelledby="gen-heading">
+  <h2 id="gen-heading">Generate tool</h2>
+  <div class="row">
+    <button type="button" (click)="generate()">Generate password</button>
+    @if (generated()) {
+      <button type="button" (click)="clearGenerated()">Clear</button>
+    }
+  </div>
+  @if (generated()) {
+    <output class="secret" animate.enter="kn-enter" animate.leave="kn-leave">
+      {{ generated() }}
+    </output>
+  }
+</section>
