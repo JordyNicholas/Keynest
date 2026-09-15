@@ -6,6 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './tools.component.html',
   styleUrl: './tools.component.css',
 })
-export class ToolsComponent {
+export class ToolsPageComponent {
 
 }

@@ -6,6 +6,6 @@ import { Component } from '@angular/core';
   templateUrl: './vault.component.html',
   styleUrl: './vault.component.css',
 })
-export class VaultComponent {
+export class VaultPageComponent {
 
 }
