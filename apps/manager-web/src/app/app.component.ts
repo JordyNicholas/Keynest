@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
 import { API_BASE_URL } from './injectionTokens';
+import { MatButtonModule } from '@angular/material/button';
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 type VaultItem = {
@@ -16,7 +17,7 @@ type VaultItem = {
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, JsonPipe],
+  imports: [FormsModule, JsonPipe, MatButtonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -152,6 +153,8 @@ export class AppComponent {
   }
 
   generate(): void {
+    // Clear first so @if destroys the output and kn-leave can run; then enter on success.
+    this.generated.set('');
     this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {}).subscribe({
       next: (body) => {
         this.generated.set(body.password);
@@ -159,6 +162,10 @@ export class AppComponent {
       },
       error: () => this.error.set('Generate failed'),
     });
+  }
+
+  clearGenerated(): void {
+    this.generated.set('');
   }
 
   private onAuth(body: AuthResponse): void {
@@ -174,6 +181,7 @@ export class AppComponent {
     this.authEmail.set('');
     this.items.set([]);
     this.revealed.set({});
+    this.generated.set('');
     localStorage.removeItem('keynest.token');
   }
 }

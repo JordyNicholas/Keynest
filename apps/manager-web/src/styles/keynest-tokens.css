@@ -1,0 +1,85 @@
+/**
+ * Keynest brand tokens — single source of truth for color/type.
+ * Dark (nest / forest) is the default. Light is scaffolded for a later toggle:
+ * set `data-theme="light"` on <html> without renaming these variables.
+ *
+ * Material maps onto these via keynest-material-theme.scss (--mat-sys-*).
+ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Surfaces — protected nest */
+  --kn-color-canvas: #0c1410;
+  --kn-color-canvas-mid: #152019;
+  --kn-color-canvas-deep: #0a100d;
+  --kn-color-surface: rgba(8, 14, 11, 0.55);
+  --kn-color-surface-raised: rgba(8, 14, 11, 0.35);
+
+  /* Ink */
+  --kn-color-ink: #e8f0ea;
+  --kn-color-muted: #b7c8bc;
+  --kn-color-subtle: #9bb5a4;
+  --kn-color-label: #7a9e86;
+
+  /* Accent — canopy mint (primary actions) */
+  --kn-color-accent: #c6e2cf;
+  --kn-color-accent-ink: #0c1410;
+  --kn-color-accent-hover: #d7eedc;
+
+  /* Danger */
+  --kn-color-danger: #f0b7a8;
+  --kn-color-danger-surface: rgba(80, 24, 16, 0.35);
+  --kn-color-danger-accent: #e2c6c6;
+  --kn-color-danger-accent-hover: #f0d7d7;
+
+  /* Chrome */
+  --kn-color-outline: rgba(232, 240, 234, 0.12);
+  --kn-color-outline-strong: rgba(232, 240, 234, 0.2);
+  --kn-color-mono-ink: #d5e6db;
+
+  /* Atmosphere (body gradient stops) */
+  --kn-gradient-glow-a: rgba(90, 140, 110, 0.28);
+  --kn-gradient-glow-b: rgba(40, 70, 90, 0.35);
+
+  /* Type */
+  --kn-font-display: 'Fraunces', 'Times New Roman', serif;
+  --kn-font-body: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  --kn-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+/**
+ * Light scheme stub — same accent family, inverted surfaces.
+ * Not wired to a toggle yet; safe to refine in a later story.
+ */
+[data-theme='light'] {
+  color-scheme: light;
+
+  --kn-color-canvas: #f2f7f3;
+  --kn-color-canvas-mid: #e4eee7;
+  --kn-color-canvas-deep: #d5e4da;
+  --kn-color-surface: rgba(255, 255, 255, 0.72);
+  --kn-color-surface-raised: rgba(255, 255, 255, 0.9);
+
+  --kn-color-ink: #0c1410;
+  --kn-color-muted: #4d6758;
+  --kn-color-subtle: #6b8575;
+  --kn-color-label: #3f5c4b;
+
+  --kn-color-accent: #1f6b45;
+  --kn-color-accent-ink: #f2f7f3;
+  --kn-color-accent-hover: #278555;
+
+  --kn-color-danger: #9b3a2e;
+  --kn-color-danger-surface: rgba(155, 58, 46, 0.12);
+  --kn-color-danger-accent: #c4786c;
+  --kn-color-danger-accent-hover: #d48f84;
+
+  --kn-color-outline: rgba(12, 20, 16, 0.12);
+  --kn-color-outline-strong: rgba(12, 20, 16, 0.2);
+  --kn-color-mono-ink: #1a2a20;
+
+  --kn-gradient-glow-a: rgba(90, 140, 110, 0.16);
+  --kn-gradient-glow-b: rgba(40, 70, 90, 0.1);
+}
