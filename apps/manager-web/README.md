@@ -41,18 +41,21 @@ This will compile your project and store the build artifacts in the `dist/` dire
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
 ```bash
-ng test
+npm test
 ```
+
+For a single headless run matching CI, install Chrome/Chromium and run:
+
+```bash
+npm ci
+npm run test:ci
+```
+
+Set `CHROME_BIN` to your browser executable when Chrome is not found automatically. CI runs the tests before the production build and fails on a test failure. Coverage includes tab-session storage, auth-guard redirects, authenticated vault-list rendering and failure/recovery, and timed/manual secret concealment. These browser unit/component tests use mocked HTTP; they do not replace the full-stack browser rehearsal against Manager API and PostgreSQL.
 
 ## Running end-to-end tests
 
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+No end-to-end test target is configured yet. The release plan still requires a full-stack browser rehearsal against Manager API and PostgreSQL.
 
 ## Additional Resources
 

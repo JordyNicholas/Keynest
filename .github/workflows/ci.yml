@@ -39,8 +39,9 @@ jobs:
           cache: npm
           cache-dependency-path: apps/manager-web/package-lock.json
 
-      - name: Install and build Manager Web
+      - name: Install, test and build Manager Web
         working-directory: apps/manager-web
         run: |
           npm ci
+          npm run test:ci
           npm run build
