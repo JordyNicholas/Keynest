@@ -21,6 +21,7 @@ dist/
 .next/
 out/
 coverage/
+__pycache__/
 *.tsbuildinfo
 next-env.d.ts
 npm-debug.log*
