@@ -31,11 +31,21 @@ class HealthEndpointIntegrationTest {
   DataSource dataSource;
 
   @ParameterizedTest
-  @ValueSource(strings = {"/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness"})
+  @ValueSource(strings = {"/actuator/health/liveness", "/actuator/health/readiness"})
   void healthyResponsesContainOnlyStatus(String path) throws Exception {
     mockMvc.perform(get(path))
       .andExpect(status().isOk())
       .andExpect(content().json("{\"status\":\"UP\"}", org.springframework.test.json.JsonCompareMode.STRICT));
+  }
+
+  @Test
+  void aggregateHealthExposesOnlyStatusAndPublicGroupNames() throws Exception {
+    mockMvc.perform(get("/actuator/health"))
+      .andExpect(status().isOk())
+      .andExpect(content().json(
+        "{\"status\":\"UP\",\"groups\":[\"liveness\",\"readiness\"]}",
+        org.springframework.test.json.JsonCompareMode.STRICT
+      ));
   }
 
   @Test
