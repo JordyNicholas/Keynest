@@ -30,7 +30,7 @@ Out of scope for this stub (tracked elsewhere): MFA (#45), recovery key (#46), Z
 | Vault item plaintext (site passwords) | Critical | Only after authenticated `open`; never stored plaintext |
 | Seal envelope (ciphertext + tag + metadata) | High | Safe at rest only if DEK/KEK stays secret |
 | DEK / KEK / tools demo key | Critical | Server-held for MVP; must come from env/config in prod — no fixed hex |
-| JWT / session token | High | Bearer of vault access |
+| Session bearer / stored digest | High | Raw bearer grants vault access; database stores only SHA-256 digest after #71 |
 | Policy id / AAD bindings | Medium | Integrity / binding; not secret by themselves |
 | Notify outbox payloads | Medium | Must not include plaintext passwords |
 
@@ -74,6 +74,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | A6 | XSS / malicious script in Manager Web | Session + reveal API abuse | CSP/hardening later; treat reveal responses as highly sensitive |
 | A7 | Confused deputy: vault open without authz | Cross-user secret read | Authn + user-scoped vault queries (landed with #27/#28); keep tests green |
 | A8 | Policy bypass (generate vs validate diverge) | Weak passwords accepted | Single policy engine; generate↔validate invariant (E1) |
+| A9 | Database or browser storage exposes session bearers | Account/vault access until expiry | Persist only token digests; browser uses tab-scoped sessionStorage and clears legacy localStorage (#71). XSS remains a bearer-theft risk |
 
 ---
 

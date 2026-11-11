@@ -18,8 +18,9 @@ public class AuthSession {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(nullable = false, unique = true, length = 64)
-    private String token;
+    // Keep the existing column name to avoid a destructive schema rename. Values are SHA-256 hex.
+    @Column(name = "token", nullable = false, unique = true, length = 64)
+    private String tokenDigest;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -30,10 +31,10 @@ public class AuthSession {
     protected AuthSession() {
     }
 
-    public AuthSession(UUID id, UUID userId, String token, Instant expiresAt, Instant createdAt) {
+    public AuthSession(UUID id, UUID userId, String tokenDigest, Instant expiresAt, Instant createdAt) {
         this.id = id;
         this.userId = userId;
-        this.token = token;
+        this.tokenDigest = tokenDigest;
         this.expiresAt = expiresAt;
         this.createdAt = createdAt;
     }
@@ -46,8 +47,8 @@ public class AuthSession {
         return userId;
     }
 
-    public String getToken() {
-        return token;
+    public String getTokenDigest() {
+        return tokenDigest;
     }
 
     public Instant getExpiresAt() {

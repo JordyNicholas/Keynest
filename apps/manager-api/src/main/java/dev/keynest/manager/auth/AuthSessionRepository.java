@@ -6,6 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AuthSessionRepository extends JpaRepository<AuthSession, UUID> {
-    Optional<AuthSession> findByToken(String token);
-    void deleteByToken(String token);
+    Optional<AuthSession> findByTokenDigest(String tokenDigest);
+    void deleteByTokenDigest(String tokenDigest);
 }
