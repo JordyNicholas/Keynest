@@ -31,10 +31,20 @@ ng generate --help
 To build the project run:
 
 ```bash
-ng build
+npm run build
 ```
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+Production uses `/api/v1` on the web origin. To target a separate API, supply its public URL when building:
+
+```bash
+KEYNEST_API_BASE_URL=https://api.example.com/api/v1 npm run build
+```
+
+This is public configuration compiled into JavaScript, never a credential. Changing it requires rebuilding. The build rejects credentials, query strings/fragments, protocol-relative URLs, malformed paths, and external plain HTTP. HTTP is permitted only for explicit loopback development. Use the npm build command rather than direct `ng build` when setting this variable. See [deployment configuration](../../docs/VERCEL.md).
+
+`npm run test:config` runs destination validation tests. `npm run test:build-config` builds a custom destination and the same-origin default and inspects both bundles; CI runs this after the browser tests.
 
 ## Running unit tests
 

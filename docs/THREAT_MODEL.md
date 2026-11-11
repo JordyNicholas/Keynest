@@ -106,6 +106,8 @@ Risk describes the remaining release concern after the listed implemented contro
 
 The health hardening in #82 opts in only read-only Actuator health access, hides components/details, disables discovery and JMX exposure, and separates process liveness from database readiness. Integration tests cover database failure/recovery and diagnostic endpoint denial. This limits HTTP diagnostic disclosure; operator-supplied configuration and telemetry still require deployment verification.
 
+Web deployment configuration in #85 replaces the cloud-host placeholder with a same-origin default and a validated public build variable. The destination receives bearer tokens and vault requests; operators must control its origin. Validation rejects credentials, query/fragment data, protocol-relative URLs and non-loopback HTTP, but cannot establish that an HTTPS host is trustworthy. Rebuild after changing destinations and verify routing/CORS before sign-in.
+
 The #43 Java source review found no `Logger`, `@Slf4j`, `System.out/err`, `printStackTrace`, application request/response logging, or code that deliberately records passwords, plaintext, envelopes, keys, authorization headers, or tokens. Manager Web retains Angular's generated bootstrap-failure `console.error`; it does not log HTTP payloads. Spring/Flyway/Hibernate startup logs still exist, and deployment infrastructure may add access logs or telemetry outside this repository.
 
 Never record:
