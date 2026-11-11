@@ -27,6 +27,7 @@
     <argon2.version>2.11</argon2.version>
     <jackson.version>2.18.2</jackson.version>
     <json-schema-validator.version>1.5.4</json-schema-validator.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
   </properties>
 
   <dependencyManagement>
