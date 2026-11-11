@@ -48,7 +48,10 @@ class LegacySchemaMigrationTest {
         .isEqualTo(1);
       assertThat(singleLong(connection, "SELECT COUNT(*) FROM vault_items WHERE id = '" + itemId + "'"))
         .isEqualTo(1);
-      assertThat(singleLong(connection, "SELECT COUNT(*) FROM flyway_schema_history WHERE success = TRUE"))
+      assertThat(singleLong(connection, """
+        SELECT COUNT(*) FROM flyway_schema_history
+        WHERE success = TRUE AND version IS NOT NULL
+        """))
         .isEqualTo(2);
 
       try (Statement statement = connection.createStatement()) {
