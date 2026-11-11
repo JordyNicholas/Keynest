@@ -203,6 +203,8 @@ docker compose -f deploy/docker-compose.yml up --build
 
 **Database migrations (#79):** Flyway owns schema creation and upgrades; Hibernate runs in validation-only mode. Fresh databases execute the versioned schema normally. A pre-Flyway non-empty database is baselined at V1 and then upgraded, including the `auth_sessions.token` → `token_digest` rename. This upgrade is not application-only reversible: stop writers and complete the backup, orphan-row preflight, single-instance migration and verification steps in [the database migration runbook](./docs/DATABASE_MIGRATIONS.md) before deploying. See [ADR-0008](./docs/ADR-0008-versioned-database-migrations.md).
 
+**Health probes (#82):** `/actuator/health/liveness` checks process availability; `/actuator/health/readiness` also checks the database. Responses expose only status, with HTTP 503 when unavailable. Diagnostic endpoints and discovery are disabled. See [probe operation and routing](./docs/OPERATIONS.md).
+
 ## Rename
 
 Target GitHub repository name: **`keynest`** (Settings → General).

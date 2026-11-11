@@ -1,6 +1,6 @@
 # Keynest threat model
 
-**Status:** Proposed release review for issue #43
+**Status:** Release review accepted in maintainer-approved PR #81; refresh against the final release commit
 
 **Snapshot:** `3e203bb` (November 11, 2026)
 
@@ -103,6 +103,8 @@ Risk describes the remaining release concern after the listed implemented contro
 | T17 | Future notifications copy plaintext into an outbox/provider | Notification runtime is not implemented | Outbox payload must contain references/minimal metadata only; adapters need redaction, retry, SSRF/egress, and provider-secret controls | Medium, gated |
 
 ## Logging and diagnostic-data policy
+
+The health hardening in #82 opts in only read-only Actuator health access, hides components/details, disables discovery and JMX exposure, and separates process liveness from database readiness. Integration tests cover database failure/recovery and diagnostic endpoint denial. This limits HTTP diagnostic disclosure; operator-supplied configuration and telemetry still require deployment verification.
 
 The #43 Java source review found no `Logger`, `@Slf4j`, `System.out/err`, `printStackTrace`, application request/response logging, or code that deliberately records passwords, plaintext, envelopes, keys, authorization headers, or tokens. Manager Web retains Angular's generated bootstrap-failure `console.error`; it does not log HTTP payloads. Spring/Flyway/Hibernate startup logs still exist, and deployment infrastructure may add access logs or telemetry outside this repository.
 
