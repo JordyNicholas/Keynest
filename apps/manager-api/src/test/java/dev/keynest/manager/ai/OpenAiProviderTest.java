@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -133,18 +134,50 @@ class OpenAiProviderTest {
 
   @Test
   void timesOutEvenWhenResponseHeadersHaveArrived() {
+    var headersSent = new AtomicBoolean();
     handler = exchange -> {
       byte[] bytes = valid("Policy explanation.");
       exchange.sendResponseHeaders(200, bytes.length);
       exchange.getResponseBody().write(bytes, 0, 1);
       exchange.getResponseBody().flush();
-      Thread.sleep(300);
+      headersSent.set(true);
+      Thread.sleep(1200);
       exchange.getResponseBody().write(bytes, 1, bytes.length - 1);
       exchange.close();
     };
-    try (var provider = provider(Duration.ofMillis(100)); var credential = new ProviderCredential(AiCoreTest.KEY)) {
+    try (var provider = provider(Duration.ofSeconds(1)); var credential = new ProviderCredential(AiCoreTest.KEY)) {
       assertThatThrownBy(() -> provider.explain(facts(), credential)).hasMessage("AI_TIMEOUT").hasNoCause();
+      assertThat(headersSent.get()).isTrue();
       assertThat(calls.get()).isLessThanOrEqualTo(1);
+    }
+  }
+
+  @Test
+  void concurrentInvocationsDoNotMixCredentials() throws Exception {
+    handler = exchange -> {
+      String key = exchange.getRequestHeaders().getFirst("Authorization");
+      respond(exchange, 200, valid(key.equals("Bearer first-synthetic-key") ? "first response" : "second response"));
+    };
+    try (var provider = provider(Duration.ofSeconds(2));
+      var first = new ProviderCredential("first-synthetic-key");
+      var second = new ProviderCredential("second-synthetic-key");
+      var executor = java.util.concurrent.Executors.newVirtualThreadPerTaskExecutor()) {
+      var one = executor.submit(() -> provider.explain(facts(), first));
+      var two = executor.submit(() -> provider.explain(facts(), second));
+      assertThat(one.get()).isEqualTo("first response");
+      assertThat(two.get()).isEqualTo("second response");
+      assertThat(calls.get()).isEqualTo(2);
+    }
+  }
+
+  @Test
+  void rejectsUnexpectedCompression() {
+    handler = exchange -> {
+      exchange.getResponseHeaders().set("Content-Encoding", "gzip");
+      respond(exchange, 200, valid("Policy explanation."));
+    };
+    try (var provider = provider(Duration.ofSeconds(2)); var credential = new ProviderCredential(AiCoreTest.KEY)) {
+      assertThatThrownBy(() -> provider.explain(facts(), credential)).hasMessage("AI_INVALID_OUTPUT");
     }
   }
 
