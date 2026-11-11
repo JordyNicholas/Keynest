@@ -24,10 +24,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RateLimitFilter extends OncePerRequestFilter {
 
   private final RateLimitProperties properties;
+  private final ClientIpResolver clientIpResolver;
   private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
+  private final Object windowLock = new Object();
 
-  public RateLimitFilter(RateLimitProperties properties) {
+  public RateLimitFilter(RateLimitProperties properties, ClientIpResolver clientIpResolver) {
+    if (properties.getLimit() < 1 || properties.getWindowSeconds() < 1 || properties.getMaxEntries() < 1) {
+      throw new IllegalStateException("rate-limit limit, window-seconds and max-entries must be positive");
+    }
     this.properties = properties;
+    this.clientIpResolver = clientIpResolver;
   }
 
   @Override
@@ -47,43 +53,51 @@ public class RateLimitFilter extends OncePerRequestFilter {
     HttpServletResponse response,
     FilterChain filterChain
   ) throws ServletException, IOException {
-    String key = clientIp(request) + "|" + request.getRequestURI();
+    String key = clientIpResolver.resolve(request) + "|" + request.getRequestURI();
     long nowMs = System.currentTimeMillis();
     long windowMs = properties.getWindowSeconds() * 1000L;
 
-    pruneExpired(nowMs, windowMs);
+    Window window = windowFor(key, nowMs, windowMs);
 
-    Window window = windows.compute(key, (k, existing) -> {
-      if (existing == null || nowMs - existing.startedAtMs >= windowMs) {
-        return new Window(nowMs);
-      }
-      return existing;
-    });
-
-    if (window.count.incrementAndGet() > properties.getLimit()) {
-      response.setStatus(429);
-      response.setHeader("Retry-After", String.valueOf(properties.getWindowSeconds()));
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-      response.getWriter().write("{\"error\":\"rate_limit_exceeded\"}");
+    if (window == null || window.count.incrementAndGet() > properties.getLimit()) {
+      reject(response);
       return;
     }
 
     filterChain.doFilter(request, response);
   }
 
-  private static String clientIp(HttpServletRequest request) {
-    String forwarded = request.getHeader("X-Forwarded-For");
-    if (forwarded != null && !forwarded.isBlank()) {
-      int comma = forwarded.indexOf(',');
-      return (comma < 0 ? forwarded : forwarded.substring(0, comma)).trim();
+  private Window windowFor(String key, long nowMs, long windowMs) {
+    Window existing = windows.get(key);
+    if (existing != null && nowMs - existing.startedAtMs < windowMs) {
+      return existing;
     }
-    return request.getRemoteAddr();
+
+    synchronized (windowLock) {
+      existing = windows.get(key);
+      if (existing != null && nowMs - existing.startedAtMs < windowMs) {
+        return existing;
+      }
+      if (windows.size() >= properties.getMaxEntries()) {
+        pruneExpired(nowMs, windowMs);
+      }
+      if (existing == null && windows.size() >= properties.getMaxEntries()) {
+        return null;
+      }
+      Window replacement = new Window(nowMs);
+      windows.put(key, replacement);
+      return replacement;
+    }
+  }
+
+  private void reject(HttpServletResponse response) throws IOException {
+    response.setStatus(429);
+    response.setHeader("Retry-After", String.valueOf(properties.getWindowSeconds()));
+    response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+    response.getWriter().write("{\"error\":\"rate_limit_exceeded\"}");
   }
 
   private void pruneExpired(long nowMs, long windowMs) {
-    if (windows.size() < 1_000) {
-      return;
-    }
     Iterator<Map.Entry<String, Window>> it = windows.entrySet().iterator();
     while (it.hasNext()) {
       Map.Entry<String, Window> entry = it.next();

@@ -66,7 +66,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 
 | ID | Abuse | Impact | Current / planned control |
 | --- | --- | --- | --- |
-| A1 | Brute-force login or `/tools/validate` | Account takeover; password oracle | In-memory rate limits on validate/register/login (#17); Argon2id cost; lockout/MFA later |
+| A1 | Brute-force login or `/tools/validate`; spoofed forwarding headers bypass per-client limits | Account takeover; password oracle | In-memory rate limits on validate/register/login (#17); direct peer by default, explicit trusted-proxy CIDRs and bounded identity map (#75); Argon2id cost. Counters remain per JVM; shared edge/distributed enforcement is required across replicas |
 | A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Tools demo seal/open gated off in `docker` / no demo hex (#16); #30 rejects missing/demo vault keys outside explicit local development |
 | A3 | Log scraping (request bodies, exceptions, fingerprints misused) | Plaintext or near-secret leakage | Never log passwords, envelopes’ plaintext, or raw keys; review in #43 |
 | A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Demo seal/open disabled by default on `docker` profile (#16); generate/validate remain available |

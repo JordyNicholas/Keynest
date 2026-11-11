@@ -44,6 +44,12 @@ Intended production layout:
 
 When the SPA is on Vercel and the API on Railway, run the API with Spring profiles `docker,prod` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin (comma-separated if needed). Supply a randomly generated 32-byte hex `KEYNEST_VAULT_KEY_HEX` and a stable `KEYNEST_VAULT_KEY_ID`; keep `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false. Local default remains `http://localhost:4200` → `http://localhost:8080`. Key requirements and recovery implications are documented in [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
 
+### Reverse proxies and rate-limit identity
+
+Keynest ignores `X-Forwarded-For` by default and rate-limits the direct peer. For a hosted API behind a reverse proxy, set `KEYNEST_RATE_LIMIT_TRUSTED_PROXIES` only to IP/CIDR ranges the hosting provider documents as the direct proxy network. Keynest validates those ranges at startup and walks multi-hop chains from right to left. Do not configure all-address ranges such as `0.0.0.0/0` or `::/0`: that would allow direct callers to select their own limiter identity.
+
+The built-in limiter is intentionally portable and per API process. Multiple replicas do not share counters; use a provider edge limiter or an external distributed adapter when globally consistent limits are required. No proxy setting is needed for direct local or Compose access.
+
 ### Local smoke test (#18)
 
 1. `mvn -pl apps/manager-api spring-boot:run` → H2, port 8080  
