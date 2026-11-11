@@ -34,6 +34,12 @@ Every task PR should:
 4. Map to **one existing Issue** (do not open orphan PRs).
 5. Be **green on CI** before merge.
 
+### Security-sensitive merges
+
+Security-sensitive changes require **JordyNicholas's explicit approval of the reviewed change before merge**. This covers crypto/envelopes, key custody, auth/sessions, authorization, reveal/export, AI credential handling/egress, agent permissions/approvals, and infrastructure changes that alter trust boundaries. A green build or general authorization to work on the project does not replace this approval. Do not enable auto-merge or bypass review rules for these changes.
+
+The PR must explain behavior, validation, data/config/API compatibility, and migration or rollback requirements. See the [current delivery plan](./DELIVERY_PLAN.md) for release gates and the [verified baseline](./ENGINEERING_BASELINE.md) for the starting state.
+
 ## Board Status automation
 
 Columns: **Todo → In Progress → Ready for Review → Done** (+ **Epics Finished** for epics).

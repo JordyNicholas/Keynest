@@ -1,5 +1,7 @@
 # Keynest — Phased Improvement Roadmap
 
+**November 11, 2026 update:** The [verified engineering baseline](./ENGINEERING_BASELINE.md) records the current code. The [November 28 delivery plan](./DELIVERY_PLAN.md) governs current sequencing and release gates, including optional BYOK AI and scoped agent workflows. The phases below retain the earlier task breakdown; their status descriptions require reconciliation against implementation evidence.
+
 **Status:** Planning  
 **Scope:** Ordered path from today’s skeleton to a shippable Manager + embeddable tools platform.  
 **Companion:** [PRODUCT.md](./PRODUCT.md) (north star), ADRs in this folder.

@@ -4,6 +4,8 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
+**Engineering delivery target: November 28, 2026.** Read the [verified repository baseline](./docs/ENGINEERING_BASELINE.md) and [current delivery plan](./docs/DELIVERY_PLAN.md) for implementation status, architecture direction, and release gates. The product direction is security-first, AI-native, BYOK-first, and infrastructure-agnostic; AI capabilities are planned, not implemented at the recorded baseline.
+
 > Detailed grooming: [docs/PRODUCT.md](./docs/PRODUCT.md) · Phased roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · Coding standards: [docs/CODING_STANDARDS.md](./docs/CODING_STANDARDS.md) · ADRs in [`docs/`](./docs/)
 
 ---
