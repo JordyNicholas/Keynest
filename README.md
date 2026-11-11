@@ -207,6 +207,8 @@ docker compose -f deploy/docker-compose.yml up --build
 
 **Health probes (#82):** `/actuator/health/liveness` checks process availability; `/actuator/health/readiness` also checks the database. Responses expose only status, with HTTP 503 when unavailable. Diagnostic endpoints and discovery are disabled. See [probe operation and routing](./docs/OPERATIONS.md).
 
+**Security events (#92):** Auth/vault HTTP outcomes use a fixed-field logger that omits request/response payloads and user/resource identifiers. This is best-effort operational visibility; durable/attributed auditing remains future work. See [event schema, privacy and operator controls](./docs/SECURITY_EVENTS.md) and proposed [ADR-0009](./docs/ADR-0009-sanitized-http-security-events.md).
+
 ## Rename
 
 Target GitHub repository name: **`keynest`** (Settings → General).
