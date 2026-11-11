@@ -2,6 +2,8 @@
 
 **Status:** Proposed design boundaries, not an implemented capability. See [Project Charter](PROJECT_CHARTER.md).
 
+The first concrete BYOK boundary is proposed in [ADR-0010 — ephemeral policy explanation](ADR-0010-ephemeral-byok-policy-explanation.md). It narrows the initial workflow to authenticated, explicitly invoked explanations of built-in policy scalars, with per-request credentials and no policy/vault mutation. The broader proposal/agent workflows below remain future designs; approval of the ADR does not claim a provider integration exists.
+
 ## Goals
 
 Enable useful AI-assisted security workflows with **user-owned provider credentials (BYOK)** and provider-neutral interfaces. No AI provider is mandatory for vault operation. The distinguishing opportunity is safe integration of agent workflows with deterministic policy and credential operations.
