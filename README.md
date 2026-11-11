@@ -189,7 +189,8 @@ Auth / vault endpoints:
 | `POST` | `/api/v1/auth/logout` | |
 | `POST` | `/api/v1/auth/me` | |
 | `GET/POST` | `/api/v1/vault/items` | List / create (optional `generate:true`) |
-| `GET` | `/api/v1/vault/items/{id}?reveal=true` | Open sealed password |
+| `GET` | `/api/v1/vault/items/{id}` | Read non-secret item metadata |
+| `POST` | `/api/v1/vault/items/{id}/reveal` | Open sealed password; response is `no-store` |
 | `PUT/DELETE` | `/api/v1/vault/items/{id}` | Update / delete |
 
 **Session security (#71):** Manager returns a 256-bit opaque bearer token, while the API stores only its SHA-256 digest in the existing `auth_sessions.token` column. Manager Web keeps the bearer in `sessionStorage`, clears legacy `localStorage`, and requires sign-in again after deployment because older raw-token database sessions are intentionally invalidated. This reduces database and browser-persistence exposure; it does not make JavaScript-held bearers immune to XSS. See [ADR-0007](./docs/ADR-0007-session-token-storage-and-browser-transport.md).

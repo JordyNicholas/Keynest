@@ -5,7 +5,10 @@ import dev.keynest.manager.auth.AuthService;
 import dev.keynest.manager.auth.UserAccount;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +17,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -40,13 +42,25 @@ public class VaultController {
     }
 
     @GetMapping("/{id}")
-    public VaultService.VaultItemSecretView get(
+    public VaultService.VaultItemView get(
             @RequestHeader("Authorization") String authorization,
-            @PathVariable UUID id,
-            @RequestParam(name = "reveal", defaultValue = "false") boolean reveal
+            @PathVariable UUID id
     ) {
         UserAccount user = authService.requireUser(authorization);
-        return vaultService.get(user, id, reveal);
+        return vaultService.get(user, id);
+    }
+
+    @PostMapping("/{id}/reveal")
+    public ResponseEntity<VaultService.VaultItemSecretView> reveal(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @PathVariable UUID id
+    ) {
+        UserAccount user = authService.requireUser(authorization);
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.PRAGMA, "no-cache")
+                .header(HttpHeaders.EXPIRES, "0")
+                .body(vaultService.reveal(user, id));
     }
 
     @PostMapping

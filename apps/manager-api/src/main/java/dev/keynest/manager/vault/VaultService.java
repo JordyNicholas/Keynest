@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.UUID;
@@ -55,9 +56,14 @@ public class VaultService {
     }
 
     @Transactional(readOnly = true)
-    public VaultItemSecretView get(UserAccount user, UUID id, boolean reveal) {
+    public VaultItemView get(UserAccount user, UUID id) {
+        return toView(requireOwned(user, id));
+    }
+
+    @Transactional(readOnly = true)
+    public VaultItemSecretView reveal(UserAccount user, UUID id) {
         VaultItem item = requireOwned(user, id);
-        return new VaultItemSecretView(toView(item), reveal ? openPassword(item) : null);
+        return new VaultItemSecretView(toView(item), openPassword(item));
     }
 
     @Transactional
@@ -173,7 +179,12 @@ public class VaultService {
                     "unsupported vault item AAD version: " + item.getAadVersion()
             );
         };
-        return new String(seal.open(envelope, vaultKey, aad), StandardCharsets.UTF_8);
+        byte[] plaintext = seal.open(envelope, vaultKey, aad);
+        try {
+            return new String(plaintext, StandardCharsets.UTF_8);
+        } finally {
+            Arrays.fill(plaintext, (byte) 0);
+        }
     }
 
     private VaultItem requireOwned(UserAccount user, UUID id) {

@@ -45,4 +45,8 @@ public final class ApiPaths {
   public static String vaultItem(String id) {
     return VAULT_ITEMS + "/" + id;
   }
+
+  public static String vaultItemReveal(String id) {
+    return vaultItem(id) + "/reveal";
+  }
 }

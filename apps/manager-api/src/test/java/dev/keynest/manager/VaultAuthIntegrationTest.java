@@ -84,8 +84,7 @@ class VaultAuthIntegrationTest {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$", hasSize(1)));
 
-    mockMvc.perform(get(ApiPaths.vaultItem(id))
-        .param("reveal", "true")
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(id))
         .header("Authorization", "Bearer " + token))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.item.id", is(id)))
@@ -142,8 +141,7 @@ class VaultAuthIntegrationTest {
         now
     ));
 
-    mockMvc.perform(get(ApiPaths.vaultItem(itemId.toString()))
-        .param("reveal", "true")
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId.toString()))
         .header("Authorization", "Bearer " + token))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.password", is(plaintext)));
