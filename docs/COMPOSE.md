@@ -1,6 +1,6 @@
 # Local Compose runbook
 
-The supplied Compose file runs **Manager API and PostgreSQL 16**. Manager Web runs separately. This is a local demonstration topology with a public demo vault key, development database credentials and host ports 8080/5432. It is not a production configuration.
+The supplied Compose file runs **Manager API and PostgreSQL 16**. Manager Web runs separately. This is a local demonstration topology with a public demo vault key, development database credentials and loopback-only host ports 8080/5432. It is not a production configuration.
 
 ## Prerequisites and first startup
 
@@ -57,4 +57,14 @@ docker compose -p keynest-local -f deploy/docker-compose.yml up -d
 
 These commands retain the local database volume. Never remove that volume as an upgrade or recovery shortcut. Restarting with a different vault key makes existing envelopes unreadable.
 
-Before public deployment: replace demo/database credentials, activate `docker,prod`, keep the demo-key opt-in off, restrict database exposure, install TLS/proxy and exact CORS configuration, tune limits/timeouts, and rehearse backups with separately retained key material. The current image has no non-root user/heap-dump/container-resource hardening and Compose has no API healthcheck/restart policy. The web application is not included in Compose. Track these limitations in the release review rather than assuming the local sample provides them.
+Before public deployment: replace demo/database credentials, activate `docker,prod`, keep the demo-key opt-in off, restrict database exposure, install TLS/proxy and exact CORS configuration, tune limits/timeouts, and rehearse backups with separately retained key material. Compose has no API healthcheck/restart policy. The web application is not included in Compose. Track these limitations in the release review rather than assuming the local sample provides them.
+
+## API runtime controls
+
+The API image runs as UID/GID 10001. Compose sets a read-only root filesystem, drops all Linux capabilities, forbids privilege escalation, and limits the API to 1 GiB memory, two CPUs, 256 processes/threads and zero core-dump size. Its 64 MiB `/tmp` tmpfs is writable and has `nosuid,nodev`; it intentionally permits executable mappings because native Argon2/JNA extracts a shared library there. This exception is verified by the packaged registration/login smoke test.
+
+The image's `JAVA_TOOL_OPTIONS` disables attach-based diagnostics, automatic OOM heap dumps, native crash core dumps and fatal-error files. This reduces diagnostic leakage but also removes crash investigation artifacts and tools such as `jcmd` attach. Operators must deliberately review any override; these settings do not protect against a compromised host/process or privileged memory capture. Resource limits are a baseline for the local sample, not capacity planning for real concurrency. Argon2 memory is outside ordinary Java heap budgeting.
+
+Both published ports bind only to `127.0.0.1`. Existing remote demo clients must use an explicitly secured proxy/forwarding setup rather than relying on all-interface exposure. Rollback restores the prior image/Compose file without changing the database, but reintroduces root execution and the earlier exposure/diagnostic defaults. Keep the same key and database during either direction of an image change.
+
+CI runs `scripts/check-container-runtime.py` against the actual container before HTTP smoke tests. It checks the user, Docker controls and JVM flags without dumping environment/configuration. These controls apply to Manager API; PostgreSQL retains its image's own user/runtime model.
