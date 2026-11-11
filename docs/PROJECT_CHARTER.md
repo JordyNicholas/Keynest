@@ -1,6 +1,6 @@
 # Keynest — project charter
 
-**Status:** Proposed shared engineering charter, pending PR review  
+**Status:** Accepted shared engineering charter (PR #67, November 11, 2026)
 **Delivery target:** November 28, 2026  
 **Scope:** Reusable password/security libraries and Keynest Manager; optional AI-native developer and agent workflows
 
@@ -31,7 +31,7 @@ Aim for a secure, working Manager and reusable libraries, polished critical flow
 
 ## Coordination and authority
 
-GitHub issues, ADRs, and reviewed PRs are shared records across AI providers. The maintainer is the final decision-maker for architecture trade-offs and all security-sensitive merges. Use focused branches and PRs, verify tests, and avoid concurrent edits to the same files. See [agent instructions](../AGENTS.md), [AI architecture](AI_ARCHITECTURE.md), [product](PRODUCT.md), [coding standards](CODING_STANDARDS.md), and the baseline/delivery plan when merged.
+GitHub issues, ADRs, and reviewed PRs are shared records across AI providers. The maintainer is the final decision-maker for architecture trade-offs and all security-sensitive merges. Use focused branches and PRs, verify tests, and avoid concurrent edits to the same files. See [agent instructions](../AGENTS.md), [AI architecture](AI_ARCHITECTURE.md), [product](PRODUCT.md), [coding standards](CODING_STANDARDS.md), [verified baseline](ENGINEERING_BASELINE.md), and [delivery plan](DELIVERY_PLAN.md).
 
 ## Decisions requiring explicit review
 

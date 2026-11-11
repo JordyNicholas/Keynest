@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for maintainer review in #30.
+Accepted in maintainer-approved PR #68 on November 11, 2026.
 
 ## Context
 
