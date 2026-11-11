@@ -298,7 +298,7 @@ NotificationOutbox
 - Rate-limit auth and MFA.
 - Libs avoid logging secrets; APIs never log envelopes’ plaintext.
 - Clear sensitive `char[]`/`byte[]` where practical.
-- Threat model before public release — stub: [`THREAT_MODEL.md`](./THREAT_MODEL.md) (expand under E6 / #43).
+- Threat model before public release — source-informed review: [`THREAT_MODEL.md`](./THREAT_MODEL.md) (#43; refresh on the release commit).
 
 ---
 
