@@ -66,7 +66,7 @@ P0 and P1 can overlap lightly (CI does not block Seal tests). P2 starts after Se
 1. **CI** — `.github/workflows/ci.yml`:
    - `mvn -B test` (libs + manager-api)
    - `npm ci && npm run build` in `apps/manager-web`
-2. **Threat model stub** — [`THREAT_MODEL.md`](./THREAT_MODEL.md) **(landed — #15)**: assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), abuse cases (brute force, demo-key leakage, log scraping). Expand before public release (#43).
+2. **Threat model** — [`THREAT_MODEL.md`](./THREAT_MODEL.md) **(stub landed in #15; release expansion tracked in #43)**: assets, trust boundaries, implemented controls, residual risks, logging rules, and release verification. Refresh against the final release commit.
 3. **Tools API security baseline**:
    - Gate tools seal/open behind `keynest.tools.demo.enabled` **(landed — #16)**; `docker` profile defaults off and ships no demo hex. Local demo path documented in README.
    - Rate-limit `/api/v1/tools/validate` and auth register/login **(landed — #17)** via `RateLimitFilter` + `ApiPaths.RATE_LIMITED_POSTS`; defaults and env overrides documented in README.
