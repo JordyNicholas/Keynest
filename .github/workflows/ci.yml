@@ -46,6 +46,26 @@ jobs:
           npm run test:ci
           npm run test:build-config
 
+  consumer:
+    name: External consumer (Java ${{ matrix.java }})
+    needs: java
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ["21", "25"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+      - name: Install only the public library artifacts
+        run: mvn -B -pl libs/keynest-seal,libs/keynest-policy,libs/keynest-generate -am install -DskipTests
+      - name: Verify the standalone consumer and dependency boundary
+        run: mvn -B -f examples/external-consumer/pom.xml verify
+
   compose:
     name: Packaged Compose smoke
     needs: [java, angular]
