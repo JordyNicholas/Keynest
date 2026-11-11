@@ -4,11 +4,13 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "vercel-build": "ng build",
+    "build": "node scripts/build.mjs",
+    "vercel-build": "npm run build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --no-progress"
+    "test:config": "node --test scripts/api-base-url.test.mjs",
+    "test:build-config": "node scripts/verify-build-config.mjs",
+    "test:ci": "npm run test:config && ng test --watch=false --browsers=ChromeHeadless --no-progress"
   },
   "private": true,
   "dependencies": {

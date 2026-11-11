@@ -140,7 +140,7 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200. The UI calls the Manager API using `environment.apiBaseUrl` (dev default `http://localhost:8080/api/v1`). Production builds swap in `src/environments/prod.ts` via Angular `fileReplacements`. See [docs/VERCEL.md](./docs/VERCEL.md) for local / Compose / Vercel values.
+Open http://localhost:4200. Development uses `http://localhost:8080/api/v1`. Production defaults to the same-origin `/api/v1`; set the public build variable `KEYNEST_API_BASE_URL` for a separately hosted API without editing source. Use `npm run build` so the destination is validated. See [deployment configuration](./docs/VERCEL.md) for same-origin, local, and split-origin hosting.
 
 ### Docker (API)
 
