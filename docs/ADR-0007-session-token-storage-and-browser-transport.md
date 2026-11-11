@@ -25,7 +25,7 @@ Keynest currently supports a split-origin topology such as Vercel web plus a sep
 - All sessions issued before deployment are revoked. This is an intentional security migration and user-visible reauthentication event.
 - Tab closure removes browser persistence, and sessions are not shared automatically between tabs.
 - The API response still contains a bearer token and JavaScript still handles it. HttpOnly cookies remain a possible future design, but require an ADR covering CSRF/CORS and actual deployment topology before implementation.
-- A later versioned migration should rename the physical `token` column to `token_digest`; the current mapping avoids relying on `ddl-auto=update` for a destructive rename.
+- The versioned V2 migration introduced in #79 renames the physical `token` column to `token_digest` without rewriting digest values; see [ADR-0008](./ADR-0008-versioned-database-migrations.md).
 
 ## Verification
 

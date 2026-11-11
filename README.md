@@ -193,13 +193,15 @@ Auth / vault endpoints:
 | `POST` | `/api/v1/vault/items/{id}/reveal` | Open sealed password; response is `no-store` |
 | `PUT/DELETE` | `/api/v1/vault/items/{id}` | Update / delete |
 
-**Session security (#71):** Manager returns a 256-bit opaque bearer token, while the API stores only its SHA-256 digest in the existing `auth_sessions.token` column. Manager Web keeps the bearer in `sessionStorage`, clears legacy `localStorage`, and requires sign-in again after deployment because older raw-token database sessions are intentionally invalidated. This reduces database and browser-persistence exposure; it does not make JavaScript-held bearers immune to XSS. See [ADR-0007](./docs/ADR-0007-session-token-storage-and-browser-transport.md).
+**Session security (#71):** Manager returns a 256-bit opaque bearer token, while the API stores only its SHA-256 digest. Flyway V2 names the physical column `auth_sessions.token_digest`; the pre-Flyway `token` column held the same digest values after #71. Manager Web keeps the bearer in `sessionStorage`, clears legacy `localStorage`, and required sign-in again when #71 invalidated older raw-token sessions. This reduces database and browser-persistence exposure; it does not make JavaScript-held bearers immune to XSS. See [ADR-0007](./docs/ADR-0007-session-token-storage-and-browser-transport.md).
 
 Postgres stack:
 
 ```bash
 docker compose -f deploy/docker-compose.yml up --build
 ```
+
+**Database migrations (#79):** Flyway owns schema creation and upgrades; Hibernate runs in validation-only mode. Fresh databases execute the versioned schema normally. A pre-Flyway non-empty database is baselined at V1 and then upgraded, including the `auth_sessions.token` → `token_digest` rename. This upgrade is not application-only reversible: stop writers and complete the backup, orphan-row preflight, single-instance migration and verification steps in [the database migration runbook](./docs/DATABASE_MIGRATIONS.md) before deploying. See [ADR-0008](./docs/ADR-0008-versioned-database-migrations.md).
 
 ## Rename
 

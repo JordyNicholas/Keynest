@@ -18,8 +18,7 @@ public class AuthSession {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    // Keep the existing column name to avoid a destructive schema rename. Values are SHA-256 hex.
-    @Column(name = "token", nullable = false, unique = true, length = 64)
+    @Column(name = "token_digest", nullable = false, unique = true, length = 64)
     private String tokenDigest;
 
     @Column(name = "expires_at", nullable = false)
