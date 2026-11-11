@@ -38,9 +38,9 @@ class AiCoreTest {
     try (var credential = new ProviderCredential(KEY)) {
       assertThat(credential.toString()).isEqualTo("ProviderCredential[REDACTED]");
       assertThat(credential.appearsIn("prefix" + KEY + "suffix")).isTrue();
-      assertThat(credential.authorization()).isEqualTo("Bearer " + KEY);
+      assertThat(credential.transportValue()).isEqualTo(KEY);
       credential.close();
-      assertThatThrownBy(credential::authorization).isInstanceOf(AiFailure.class);
+      assertThatThrownBy(credential::transportValue).isInstanceOf(AiFailure.class);
     }
     for (String invalid : List.of("\n", "with space", "non-ascii-é", "x".repeat(4097))) {
       assertThatThrownBy(() -> new ProviderCredential(invalid)).isInstanceOf(AiFailure.class)
@@ -75,7 +75,7 @@ class AiCoreTest {
     assertThat(facts.size()).isEqualTo(11);
     assertThat(facts.get("minLength").intValue()).isEqualTo(16);
     assertThat(facts.toString()).doesNotContain(KEY, "description", "banned", "policyId", "user", "envelope");
-    assertThatThrownBy(fake.lastCredential::authorization).hasMessage("AI_CREDENTIAL_INVALID");
+    assertThatThrownBy(fake.lastCredential::transportValue).hasMessage("AI_CREDENTIAL_INVALID");
   }
 
   @Test
@@ -92,7 +92,7 @@ class AiCoreTest {
     fake.failure = new IllegalStateException(KEY);
     assertThatThrownBy(() -> service.explain(UUID.randomUUID(), "test", PasswordPolicy.DEFAULT_POLICY_ID, KEY))
       .hasMessage("AI_UNAVAILABLE").hasNoCause();
-    assertThatThrownBy(fake.lastCredential::authorization).hasMessage("AI_CREDENTIAL_INVALID");
+    assertThatThrownBy(fake.lastCredential::transportValue).hasMessage("AI_CREDENTIAL_INVALID");
   }
 
   @Test

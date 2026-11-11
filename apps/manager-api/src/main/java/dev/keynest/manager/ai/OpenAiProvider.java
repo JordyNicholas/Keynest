@@ -75,7 +75,7 @@ public final class OpenAiProvider implements AiProvider, AutoCloseable {
         "text", Map.of("format", Map.of("type", "json_schema", "name", "keynest_policy_explanation", "strict", true, "schema", schema)));
       HttpRequest request = HttpRequest.newBuilder(endpoint).timeout(timeout)
         .header("Content-Type", "application/json").header("Accept", "application/json")
-        .header("Accept-Encoding", "identity").header("Authorization", credential.authorization())
+        .header("Accept-Encoding", "identity").header("Authorization", "Bearer " + credential.transportValue())
         .POST(HttpRequest.BodyPublishers.ofByteArray(AiJson.MAPPER.writeValueAsBytes(body))).build();
       pending = client.sendAsync(request, info -> new LimitedBody());
       HttpResponse<byte[]> response = pending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);

@@ -14,9 +14,9 @@ public final class ProviderCredential implements AutoCloseable {
     value = supplied.toCharArray();
   }
 
-  String authorization() {
+  String transportValue() {
     if (value.length == 0) throw new AiFailure(AiFailure.Code.AI_CREDENTIAL_INVALID);
-    return "Bearer " + new String(value);
+    return new String(value);
   }
 
   public boolean appearsIn(String text) {
