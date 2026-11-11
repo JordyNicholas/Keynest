@@ -72,7 +72,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Demo seal/open disabled by default on `docker` profile (#16); generate/validate remain available |
 | A5 | Stolen DB dump | Offline attack on envelopes | AES-GCM envelopes; key not in DB; rotate via `rewrap` (#20) |
 | A6 | XSS / malicious script in Manager Web | Session + reveal API abuse | POST-only reveal responses are `no-store`; UI auto-conceals after 15 seconds and clears on destruction (#73). JavaScript/XSS can still read a displayed secret; CSP and dependency hardening remain necessary |
-| A7 | Confused deputy: vault open without authz | Cross-user secret read | Authn + user-scoped vault queries (landed with #27/#28); keep tests green |
+| A7 | Confused deputy: vault operation without ownership | Cross-user metadata/secret read or mutation | Authn + user-scoped vault queries (landed with #27/#28); comprehensive list/read/reveal/update/delete denial evidence tracked in #77 |
 | A8 | Policy bypass (generate vs validate diverge) | Weak passwords accepted | Single policy engine; generate↔validate invariant (E1) |
 | A9 | Database or browser storage exposes session bearers | Account/vault access until expiry | Persist only token digests; browser uses tab-scoped sessionStorage and clears legacy localStorage (#71). XSS remains a bearer-theft risk |
 

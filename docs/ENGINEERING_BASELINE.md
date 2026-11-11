@@ -28,6 +28,7 @@ These entries occurred after the pinned baseline and do not alter its historical
 - `[verified]` PR [#70](https://github.com/JordyNicholas/Keynest/pull/70) reconciled the shared charter, pinned baseline and active delivery plan; it accepted the charter and ADR-0006 without rewriting the historical snapshot.
 - `[verified]` Maintainer-approved PR [#72](https://github.com/JordyNicholas/Keynest/pull/72) completed issue #71: the API stores only session-token digests, Manager Web uses tab-scoped storage and legacy sessions are intentionally revoked. Java 21, Java 25 and Angular CI passed. See accepted [ADR-0007](./ADR-0007-session-token-storage-and-browser-transport.md).
 - `[verified]` Maintainer-approved PR [#74](https://github.com/JordyNicholas/Keynest/pull/74) completed issue #73: secret reveal is an authenticated POST with no-store headers, cross-user denial coverage and a 15-second client disclosure window. Java 21, Java 25 and Angular CI passed.
+- `[verified]` Maintainer-approved PR [#76](https://github.com/JordyNicholas/Keynest/pull/76) completed issue #75: rate limits ignore forwarding headers by default, accept only validated explicit proxy CIDRs and bound in-memory limiter keys. Java 21, Java 25 and Angular CI passed.
 
 ## What exists
 
