@@ -150,6 +150,8 @@ docker compose -f deploy/docker-compose.yml up --build
 
 Uses Spring profile `docker` (Postgres) with an explicit local demo-key opt-in. For a Railway-style API + Postgres deployment, activate `docker,prod`; set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your web origin, a non-demo `KEYNEST_VAULT_KEY_HEX`, a stable `KEYNEST_VAULT_KEY_ID`, and rely on `PORT`. Do not set `KEYNEST_ALLOW_DEMO_VAULT_KEY`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`. Rate limits stay **on** by default; configure `KEYNEST_RATE_LIMIT_TRUSTED_PROXIES` only from the hosting provider's documented proxy network and tune the other `KEYNEST_RATE_LIMIT_*` bounds as needed.
 
+See the [Compose runbook](./docs/COMPOSE.md) for prerequisites, first startup, separate web setup, disposable HTTP smoke testing, data-preserving shutdown and known deployment gaps. Compose includes API + PostgreSQL; Manager Web is not in the stack.
+
 ### Vercel (Manager Web)
 
 The Manager UI is Angular under **`apps/manager-web`**. The linked Vercel project must **not** use the Next.js preset (that is what caused `No Next.js version detected`).

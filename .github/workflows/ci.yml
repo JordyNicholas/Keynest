@@ -45,3 +45,23 @@ jobs:
           npm ci
           npm run test:ci
           npm run test:build-config
+
+  compose:
+    name: Packaged Compose smoke
+    needs: [java, angular]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COMPOSE_PROJECT_NAME: keynest-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start disposable API and PostgreSQL
+        run: docker compose -f deploy/docker-compose.yml up --build -d
+
+      - name: Exercise packaged API over HTTP
+        run: python3 scripts/compose-smoke.py --disposable
+
+      - name: Remove only this disposable CI project and its data
+        if: always()
+        run: docker compose -f deploy/docker-compose.yml down --volumes --remove-orphans
