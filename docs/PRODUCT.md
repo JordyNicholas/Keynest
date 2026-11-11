@@ -1,5 +1,7 @@
 # Keynest — Product Grooming
 
+**November 11, 2026 direction:** Preserve the reusable tools and Manager split while adding optional AI workflows through user-supplied provider credentials (BYOK), provider-neutral interfaces, and scoped agent access that keeps vault secrets out of model context. Core tools and vault operations remain usable without AI or a specific cloud provider. See the [verified baseline](./ENGINEERING_BASELINE.md) for observed implementation and the [November 28 delivery plan](./DELIVERY_PLAN.md) for current sequencing. Older status annotations below are historical; planned capabilities are not release claims.
+
 **Working product name:** Keynest  
 **Repo rename target:** `fep-password` → `keynest`  
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
