@@ -104,6 +104,8 @@ Risk describes the remaining release concern after the listed implemented contro
 
 ## Logging and diagnostic-data policy
 
+Container hardening in #90 runs the API as UID/GID 10001 with read-only root, bounded writable temporary storage, dropped capabilities, no-new-privileges and CPU/memory/PID/core limits in Compose. Local ports bind to loopback. Image defaults disable JVM attach, automatic OOM heap/core dumps and fatal-error files. Privileged host/process memory access and deliberate operator overrides remain outside these controls; `/tmp` allows native-library execution for Argon2/JNA. See [Compose runtime controls](./COMPOSE.md#api-runtime-controls).
+
 The health hardening in #82 opts in only read-only Actuator health access, hides components/details, disables discovery and JMX exposure, and separates process liveness from database readiness. Integration tests cover database failure/recovery and diagnostic endpoint denial. This limits HTTP diagnostic disclosure; operator-supplied configuration and telemetry still require deployment verification.
 
 Web deployment configuration in #85 replaces the cloud-host placeholder with a same-origin default and a validated public build variable. The destination receives bearer tokens and vault requests; operators must control its origin. Validation rejects credentials, query/fragment data, protocol-relative URLs and non-loopback HTTP, but cannot establish that an HTTPS host is trustworthy. Rebuild after changing destinations and verify routing/CORS before sign-in.

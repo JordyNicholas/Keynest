@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: keynest
       POSTGRES_PASSWORD: keynest
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - keynest_pg:/var/lib/postgresql/data
     healthcheck:
@@ -16,11 +16,22 @@ services:
       retries: 10
 
   manager-api:
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Native Argon2/JNA loads a shared library from /tmp; do not mount it noexec.
+    tmpfs:
+      - /tmp:size=64m,mode=1777,nosuid,nodev,exec
+    mem_limit: 1g
+    cpus: 2.0
+    pids_limit: 256
+    ulimits:
+      core: 0
     build:
       context: ..
       dockerfile: deploy/Dockerfile.api
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
       KEYNEST_DB_HOST: postgres
