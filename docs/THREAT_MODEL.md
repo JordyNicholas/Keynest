@@ -94,7 +94,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | Rate-limit validate + auth | #17 *(landed — filter + `ApiPaths.RATE_LIMITED_POSTS`; self-host knobs in README)* |
 | `rewrap` for key rotation | #20 |
 | Buffer hygiene | #22 |
-| Prod vault key from env + owner/item/policy AAD | #30 *(implementation proposed; legacy envelopes remain policy-only until resealed)* |
+| Prod vault key from env + owner/item/policy AAD | #30 *(landed in approved PR #68; legacy envelopes remain policy-only until resealed)* |
 | Release expansion + logging review | #43 |
 
 When #43 lands, expand each abuse row with residual risk, owner, and verify-in-prod checks.

@@ -2,7 +2,7 @@
 
 Baseline: [`fde5612df0053d4d6d7dae9eff8fabec7f00c8bc`](https://github.com/JordyNicholas/Keynest/commit/fde5612df0053d4d6d7dae9eff8fabec7f00c8bc), default branch `main`. Delivery target: **November 28, 2026**. Tracking: [#64](https://github.com/JordyNicholas/Keynest/issues/64).
 
-This is a source and build assessment, not a security audit or a production-readiness certification. Paths below refer to that exact commit. Proposed work is explicitly separated from verified implementation.
+This is a source and build assessment, not a security audit or a production-readiness certification. Paths below refer to that exact commit. Proposed work is explicitly separated from verified implementation. This historical snapshot is intentionally not rewritten as later work lands; use [Subsequent adopted changes](#subsequent-adopted-changes) and the [Delivery Plan](./DELIVERY_PLAN.md) for current direction.
 
 ## Verification evidence
 
@@ -18,6 +18,13 @@ This is a source and build assessment, not a security audit or a production-read
 | Repository rules | Active `main - owner merge` ruleset requires a PR, one approving review, stale-review dismissal, and last-push approval. It has a repository-role PR bypass; no required-status-check rule is present in that ruleset. Legacy branch-protection settings were not inspected |
 
 Reproduction from repository root: `mvn -B test`; then `cd apps/manager-web`, `npm ci`, `npm run build`. CI uses Node 22; the local frontend result uses the environment's Node 24. Do not confuse the two environments.
+
+## Subsequent adopted changes
+
+These entries occurred after the pinned baseline and do not alter its historical findings:
+
+- `[verified]` PR [#67](https://github.com/JordyNicholas/Keynest/pull/67) adopted the shared [Project Charter](./PROJECT_CHARTER.md), repository-wide agent instructions, and proposed [AI Architecture](./AI_ARCHITECTURE.md).
+- `[verified]` Maintainer-approved PR [#68](https://github.com/JordyNicholas/Keynest/pull/68) completed issue #30: deployed modes reject missing/demo vault keys, new envelopes bind owner/item/policy using AAD v1, and legacy policy-only envelopes remain readable until resealed. CI passed Java 21, Java 25, Angular, and 48 Java tests. See accepted [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
 
 ## What exists
 
@@ -76,7 +83,7 @@ AI failure, missing credentials, or disabled AI must not disable vault CRUD or d
 - [PRODUCT](./PRODUCT.md) and [ROADMAP](./ROADMAP.md) describe a mixture of target and earlier status. Use this document for the pinned observed state and [DELIVERY_PLAN](./DELIVERY_PLAN.md) for current sequencing.
 - Material routing has landed, but [#25](https://github.com/JordyNicholas/Keynest/issues/25) still has remaining Material polish. Do not mark it complete because routes exist.
 - Library `rewrap` and buffer cleanup exist and have tests; threat-model entries listing them as missing are stale. Manager rotation/key custody remains separate work.
-- Existing [#30](https://github.com/JordyNicholas/Keynest/issues/30) and [#43](https://github.com/JordyNicholas/Keynest/issues/43) remain relevant. Add focused issues for session/reveal/proxy/AI work when implementing; avoid duplicate epics.
+- At the pinned baseline, [#30](https://github.com/JordyNicholas/Keynest/issues/30) and [#43](https://github.com/JordyNicholas/Keynest/issues/43) were open. PR #68 later completed #30 as recorded above; #43 remains the release pass. Add focused issues for session/reveal/proxy/AI work when implementing; avoid duplicate epics.
 - `reset wipes vault` is a documented recovery direction, not an implemented reset endpoint. MFA, recovery keys, zero knowledge and organization sharing remain future work unless explicitly rescheduled.
 
 ## Verification limits

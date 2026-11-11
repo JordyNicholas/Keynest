@@ -1,6 +1,6 @@
 # Keynest delivery plan — November 28, 2026
 
-Status: working engineering plan, created November 11. Dates use America/Sao_Paulo. Owner: JordyNicholas. [Verified baseline](./ENGINEERING_BASELINE.md) · [Product](./PRODUCT.md) · [PR workflow](./PROJECT_PR_WORKFLOW.md).
+Status: active engineering plan, updated November 11. Dates use America/Sao_Paulo. Owner: JordyNicholas. [Project charter](./PROJECT_CHARTER.md) · [Verified baseline](./ENGINEERING_BASELINE.md) · [AI architecture](./AI_ARCHITECTURE.md) · [Product](./PRODUCT.md) · [PR workflow](./PROJECT_PR_WORKFLOW.md).
 
 ## Product commitments
 
@@ -12,8 +12,8 @@ The target is a tested release candidate with honest limitations. Calendar press
 
 | Dates (2026) | Outcome | Acceptance evidence |
 | --- | --- | --- |
-| Nov 11–12 | Baseline and architecture | Pinned assessment, CI and local build evidence; issue-linked documentation PR; review custody/session/AI decisions before implementation |
-| Nov 12–16 | Security foundation | Production configuration rejects demo/missing keys; owner/item/policy binding and migration strategy; session digest/transport design; POST reveal/no-store and bounded client reveal; trusted proxy behavior; cross-user and negative tests. Maintainer approval before security merges |
+| Nov 11–12 | Baseline and architecture | **Complete:** pinned assessment, adopted charter/AI boundaries, delivery plan, CI and local frontend evidence |
+| Nov 12–16 | Security foundation | **In progress:** key validation and owner/item/policy AAD landed in approved PR #68. Next: session digest/transport design, POST reveal/no-store and bounded client reveal, trusted proxy behavior, cross-user and negative tests. Maintainer approval before each security merge |
 | Nov 16–19 | Persistence and operations | Migrations + PostgreSQL tests; portable API/web configuration; health/readiness and sanitized audit events; Compose startup and restore rehearsal; notifications built from an idempotent outbox if retained in release scope |
 | Nov 18–22 | Complete Manager UX | Register/login/logout, list/create/edit/delete, generate/validate, bounded reveal, expiry and guided rotate; Material forms/dialogs; keyboard/focus/reduced-motion checks; critical browser tests |
 | Nov 20–24 | BYOK AI and agent slice | User-owned credentials through a provider port, one real provider adapter and a fake adapter for tests; optional AI policy explanation/proposal; schema validation and human apply; scoped read-only agent tools first; no secret-bearing tools exposed |
@@ -38,11 +38,11 @@ Provider credentials, user passwords, decrypted vault values and full envelopes 
 | Work | Existing issues / treatment |
 | --- | --- |
 | Baseline | [#64](https://github.com/JordyNicholas/Keynest/issues/64) |
-| Key configuration and threat model | [#30](https://github.com/JordyNicholas/Keynest/issues/30), [#43](https://github.com/JordyNicholas/Keynest/issues/43); extend with focused implementation tasks |
+| Key configuration and threat model | [#30](https://github.com/JordyNicholas/Keynest/issues/30) completed by approved PR #68; [#43](https://github.com/JordyNicholas/Keynest/issues/43) remains the release threat-model/logging pass |
 | Material, shared primitives and vault flows | [#25](https://github.com/JordyNicholas/Keynest/issues/25), [#26](https://github.com/JordyNicholas/Keynest/issues/26), [#31–35](https://github.com/JordyNicholas/Keynest/issues/31) |
 | Notifications | [#36–39](https://github.com/JordyNicholas/Keynest/issues/36); secret-free outbox and retry/idempotency coverage |
 | Runbook, consumer and release docs | [#40–43](https://github.com/JordyNicholas/Keynest/issues/40) |
-| Sessions, reveal, proxy, migrations, BYOK and agent boundaries | Create focused linked tasks when starting those changes; these are gaps in the old plan |
+| Sessions, reveal, proxy, migrations, BYOK and agent boundaries | Create focused linked tasks when starting those changes; session-token storage/transport is the next P0 security decision |
 | Future capabilities | Keep [#45–48](https://github.com/JordyNicholas/Keynest/issues/45) deferred: MFA, recovery keys, general HTTP sidecar, client-side zero knowledge |
 
 Do not bulk-close old issues from an assessment. Verify their definitions of done, add evidence and reconcile drift in the implementation PR.
