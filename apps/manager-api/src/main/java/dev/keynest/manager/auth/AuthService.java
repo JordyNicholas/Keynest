@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -61,7 +62,7 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserAccount requireUser(String authorizationHeader) {
         String token = extractToken(authorizationHeader);
-        AuthSession session = sessions.findByToken(token)
+        AuthSession session = sessions.findByTokenDigest(SessionTokenDigest.digest(token))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid session"));
         if (session.isExpired(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "session expired");
@@ -75,18 +76,23 @@ public class AuthService {
         if (authorizationHeader == null || authorizationHeader.isBlank()) {
             return;
         }
-        sessions.deleteByToken(extractToken(authorizationHeader));
+        sessions.deleteByTokenDigest(SessionTokenDigest.digest(extractToken(authorizationHeader)));
     }
 
     private AuthResponse issueSession(UserAccount user) {
         byte[] raw = new byte[32];
-        random.nextBytes(raw);
-        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+        String token;
+        try {
+            random.nextBytes(raw);
+            token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
+        } finally {
+            Arrays.fill(raw, (byte) 0);
+        }
         Instant now = Instant.now();
         AuthSession session = new AuthSession(
                 UUID.randomUUID(),
                 user.getId(),
-                token,
+                SessionTokenDigest.digest(token),
                 now.plus(SESSION_DAYS, ChronoUnit.DAYS),
                 now
         );
