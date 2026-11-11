@@ -55,3 +55,17 @@ The previous application version expects the old column name, so application-onl
 - Make data compatibility, locking, failure behavior, rollback and backup requirements explicit in the PR.
 - Test fresh H2, legacy upgrade when relevant, and PostgreSQL for dialect-sensitive changes.
 - Do not mix Hibernate schema mutation, `schema.sql` or manual production DDL with Flyway.
+
+## Automated backup/restore rehearsal
+
+`PostgresRestoreIntegrationTest` starts PostgreSQL 16 in a disposable container and Manager against a fresh source database with an ephemeral vault key. It creates an account, session and generated vault item, closes Manager to stop writers, runs `pg_dump --format=custom`, creates a separate restore database, and runs `pg_restore --exit-on-error`. Manager then starts against the restored database with the retained key and validates Flyway history and JPA mappings.
+
+The test verifies row counts, original session authentication, preserved envelope bytes, readable secret plaintext and a fresh login using the restored password hash. Secret comparisons report only pass/fail. The dump stays inside the disposable container; it is never uploaded as an artifact. The test does not connect to any operator-supplied database.
+
+Run with Java 21+, Maven and Docker:
+
+```bash
+mvn -pl apps/manager-api -am -Dtest=PostgresRestoreIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+The container test skips when Docker is unavailable. CI must execute it and record zero skips before using it as evidence. This proves the logical dump/application restore path on PostgreSQL 16; it does not prove an operator's backup storage, key escrow, TLS/network settings, packaged container deployment, point-in-time recovery or recovery-time objective. Rehearse the actual deployment separately using the first-upgrade/rollback procedure above, and retain only sanitized outcomes as release evidence.
