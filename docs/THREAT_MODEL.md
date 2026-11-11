@@ -67,7 +67,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | ID | Abuse | Impact | Current / planned control |
 | --- | --- | --- | --- |
 | A1 | Brute-force login or `/tools/validate` | Account takeover; password oracle | In-memory rate limits on validate/register/login (#17); Argon2id cost; lockout/MFA later |
-| A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Tools demo seal/open gated off in `docker` / no demo hex (#16); vault env DEK/KEK still #30 |
+| A2 | Production ships fixed tools/vault hex DEK | Anyone who knows the default opens envelopes | Tools demo seal/open gated off in `docker` / no demo hex (#16); #30 rejects missing/demo vault keys outside explicit local development |
 | A3 | Log scraping (request bodies, exceptions, fingerprints misused) | Plaintext or near-secret leakage | Never log passwords, envelopes’ plaintext, or raw keys; review in #43 |
 | A4 | Unauthenticated tools seal/open in prod | Free encrypt/decrypt with known key | Demo seal/open disabled by default on `docker` profile (#16); generate/validate remain available |
 | A5 | Stolen DB dump | Offline attack on envelopes | AES-GCM envelopes; key not in DB; rotate via `rewrap` (#20) |
@@ -94,7 +94,7 @@ MVP crypto stance (accepted): **server-side `open`**. Envelope format must remai
 | Rate-limit validate + auth | #17 *(landed — filter + `ApiPaths.RATE_LIMITED_POSTS`; self-host knobs in README)* |
 | `rewrap` for key rotation | #20 |
 | Buffer hygiene | #22 |
-| Prod vault key from env | #30 |
+| Prod vault key from env + owner/item/policy AAD | #30 *(implementation proposed; legacy envelopes remain policy-only until resealed)* |
 | Release expansion + logging review | #43 |
 
 When #43 lands, expand each abuse row with residual risk, owner, and verify-in-prod checks.

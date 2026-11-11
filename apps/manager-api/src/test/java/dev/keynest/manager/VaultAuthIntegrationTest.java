@@ -2,6 +2,11 @@ package dev.keynest.manager;
 
 import com.jayway.jsonpath.JsonPath;
 import dev.keynest.manager.api.ApiPaths;
+import dev.keynest.manager.config.VaultKeyProperties;
+import dev.keynest.manager.vault.VaultItem;
+import dev.keynest.manager.vault.VaultItemRepository;
+import dev.keynest.policy.PasswordPolicy;
+import dev.keynest.seal.KeynestSeal;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +14,11 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.HexFormat;
+import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -25,6 +35,9 @@ class VaultAuthIntegrationTest {
 
   @Autowired
   MockMvc mockMvc;
+
+  @Autowired
+  VaultItemRepository vaultItems;
 
   @Test
   void registerCreateRevealAndDeleteVaultItem() throws Exception {
@@ -61,6 +74,11 @@ class VaultAuthIntegrationTest {
 
     String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
 
+    org.assertj.core.api.Assertions.assertThat(
+        vaultItems.findById(UUID.fromString(id)).orElseThrow().getAadVersion()
+      )
+      .isEqualTo(1);
+
     mockMvc.perform(get(ApiPaths.VAULT_ITEMS)
         .header("Authorization", "Bearer " + token))
       .andExpect(status().isOk())
@@ -81,5 +99,53 @@ class VaultAuthIntegrationTest {
         .header("Authorization", "Bearer " + token))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$", hasSize(0)));
+  }
+
+  @Test
+  void policyOnlyLegacyEnvelopeRemainsReadable() throws Exception {
+    MvcResult register = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+          {"email":"legacy-vault-user@example.com","password":"MasterPassphrase!42"}
+          """))
+      .andExpect(status().isOk())
+      .andReturn();
+
+    String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
+    UUID userId = UUID.fromString(JsonPath.read(
+        register.getResponse().getContentAsString(), "$.userId"
+    ));
+    UUID itemId = UUID.randomUUID();
+    String plaintext = "LegacyVaultPassword!42";
+    KeynestSeal seal = new KeynestSeal();
+    byte[] envelope = seal.seal(
+        plaintext.getBytes(StandardCharsets.UTF_8),
+        HexFormat.of().parseHex(VaultKeyProperties.DEMO_KEY_HEX),
+        "vault-v1",
+        PasswordPolicy.DEFAULT_POLICY_ID.getBytes(StandardCharsets.UTF_8)
+      )
+      .toBytes();
+    Instant now = Instant.now();
+    vaultItems.save(new VaultItem(
+        itemId,
+        userId,
+        "Legacy item",
+        null,
+        null,
+        envelope,
+        PasswordPolicy.DEFAULT_POLICY_ID,
+        null,
+        null,
+        now,
+        14,
+        now,
+        now
+    ));
+
+    mockMvc.perform(get(ApiPaths.vaultItem(itemId.toString()))
+        .param("reveal", "true")
+        .header("Authorization", "Bearer " + token))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.password", is(plaintext)));
   }
 }
