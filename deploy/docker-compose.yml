@@ -21,7 +21,7 @@ services:
     security_opt: [no-new-privileges:true]
     # Native Argon2/JNA loads a shared library from /tmp; do not mount it noexec.
     tmpfs:
-      - /tmp:size=64m,mode=1777,nosuid,nodev
+      - /tmp:size=64m,mode=1777,nosuid,nodev,exec
     mem_limit: 1g
     cpus: 2.0
     pids_limit: 256
