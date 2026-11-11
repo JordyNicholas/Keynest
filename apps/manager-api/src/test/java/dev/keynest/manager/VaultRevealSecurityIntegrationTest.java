@@ -92,7 +92,7 @@ class VaultRevealSecurityIntegrationTest {
           {
             "label":"Reveal target",
             "username":"owner@example.com",
-            "password":"StrongRevealPassword!42#"
+            "generate":true
           }
           """))
       .andExpect(status().isOk())
