@@ -25,6 +25,8 @@ These entries occurred after the pinned baseline and do not alter its historical
 
 - `[verified]` PR [#67](https://github.com/JordyNicholas/Keynest/pull/67) adopted the shared [Project Charter](./PROJECT_CHARTER.md), repository-wide agent instructions, and proposed [AI Architecture](./AI_ARCHITECTURE.md).
 - `[verified]` Maintainer-approved PR [#68](https://github.com/JordyNicholas/Keynest/pull/68) completed issue #30: deployed modes reject missing/demo vault keys, new envelopes bind owner/item/policy using AAD v1, and legacy policy-only envelopes remain readable until resealed. CI passed Java 21, Java 25, Angular, and 48 Java tests. See accepted [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
+- `[verified]` PR [#70](https://github.com/JordyNicholas/Keynest/pull/70) reconciled the shared charter, pinned baseline and active delivery plan; it accepted the charter and ADR-0006 without rewriting the historical snapshot.
+- `[verified]` Maintainer-approved PR [#72](https://github.com/JordyNicholas/Keynest/pull/72) completed issue #71: the API stores only session-token digests, Manager Web uses tab-scoped storage and legacy sessions are intentionally revoked. Java 21, Java 25 and Angular CI passed. See accepted [ADR-0007](./ADR-0007-session-token-storage-and-browser-transport.md).
 
 ## What exists
 

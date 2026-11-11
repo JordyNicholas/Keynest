@@ -31,11 +31,16 @@
           <strong>{{ item.label }}</strong>
           <span>{{ item.username }} · {{ item.url }}</span>
           @if (revealed()[item.id]; as secret) {
-            <output class="secret">{{ secret }}</output>
+            <output class="secret" aria-live="polite">{{ secret }}</output>
+            <small>Automatically concealed after {{ revealDurationSeconds }} seconds.</small>
           }
         </div>
         <div class="row">
-          <button type="button" (click)="reveal(item.id)">Reveal</button>
+          @if (revealed()[item.id]) {
+            <button type="button" (click)="conceal(item.id)">Conceal</button>
+          } @else {
+            <button type="button" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
+          }
           <button type="button" class="danger" (click)="remove(item.id)">Delete</button>
         </div>
       </li>
