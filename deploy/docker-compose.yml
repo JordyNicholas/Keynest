@@ -30,6 +30,8 @@ services:
       KEYNEST_DB_PASSWORD: keynest
       KEYNEST_VAULT_KEY_HEX: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
       KEYNEST_VAULT_KEY_ID: vault-v1
+      # Explicit local-only opt-in; omit this in deployed environments.
+      KEYNEST_ALLOW_DEMO_VAULT_KEY: "true"
     depends_on:
       postgres:
         condition: service_healthy

@@ -42,7 +42,7 @@ Intended production layout:
 
 ### CORS
 
-When the SPA is on Vercel and the API on Railway, run the API with Spring profile `docker` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin (comma-separated if needed). Local default remains `http://localhost:4200` → `http://localhost:8080`.
+When the SPA is on Vercel and the API on Railway, run the API with Spring profiles `docker,prod` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin (comma-separated if needed). Supply a randomly generated 32-byte hex `KEYNEST_VAULT_KEY_HEX` and a stable `KEYNEST_VAULT_KEY_ID`; keep `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false. Local default remains `http://localhost:4200` → `http://localhost:8080`. Key requirements and recovery implications are documented in [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
 
 ### Local smoke test (#18)
 

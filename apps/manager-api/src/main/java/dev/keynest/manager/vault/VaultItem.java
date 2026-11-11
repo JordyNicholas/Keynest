@@ -36,6 +36,9 @@ public class VaultItem {
     @Column(name = "policy_id", nullable = false, length = 120)
     private String policyId;
 
+    @Column(name = "aad_version")
+    private Integer aadVersion;
+
     @Column(name = "expires_at")
     private Instant expiresAt;
 
@@ -62,6 +65,7 @@ public class VaultItem {
             String username,
             byte[] envelopeBytes,
             String policyId,
+            Integer aadVersion,
             Instant expiresAt,
             Instant lastRotatedAt,
             Integer notifyBeforeDays,
@@ -75,6 +79,7 @@ public class VaultItem {
         this.username = username;
         this.envelopeBytes = envelopeBytes;
         this.policyId = policyId;
+        this.aadVersion = aadVersion;
         this.expiresAt = expiresAt;
         this.lastRotatedAt = lastRotatedAt;
         this.notifyBeforeDays = notifyBeforeDays;
@@ -128,6 +133,14 @@ public class VaultItem {
 
     public void setPolicyId(String policyId) {
         this.policyId = policyId;
+    }
+
+    public Integer getAadVersion() {
+        return aadVersion;
+    }
+
+    public void setAadVersion(Integer aadVersion) {
+        this.aadVersion = aadVersion;
     }
 
     public Instant getExpiresAt() {

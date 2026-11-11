@@ -74,14 +74,16 @@ public class VaultService {
                 ? null
                 : now.plus(request.expiresInDays(), ChronoUnit.DAYS);
 
+        UUID itemId = UUID.randomUUID();
         VaultItem item = new VaultItem(
-                UUID.randomUUID(),
+                itemId,
                 user.getId(),
                 request.label().trim(),
                 blankToNull(request.url()),
                 blankToNull(request.username()),
-                sealPassword(password, policyId),
+                sealPassword(password, user.getId(), itemId, policyId),
                 policyId,
+                VaultItemAad.VERSION_ITEM_V1,
                 expiresAt,
                 now,
                 request.notifyBeforeDays() == null ? 14 : request.notifyBeforeDays(),
@@ -107,8 +109,11 @@ public class VaultService {
         if (request.password() != null && !request.password().isBlank()) {
             String policyId = blankToDefault(request.policyId(), item.getPolicyId());
             assertValid(policyId, PolicyOperation.UPDATE, request.password(), item.getUsername());
-            item.setEnvelopeBytes(sealPassword(request.password(), policyId));
+            item.setEnvelopeBytes(sealPassword(
+                    request.password(), item.getUserId(), item.getId(), policyId
+            ));
             item.setPolicyId(policyId);
+            item.setAadVersion(VaultItemAad.VERSION_ITEM_V1);
             item.setLastRotatedAt(Instant.now());
         }
         if (request.expiresInDays() != null) {
@@ -150,14 +155,24 @@ public class VaultService {
         }
     }
 
-    private byte[] sealPassword(String password, String policyId) {
-        byte[] aad = policyId.getBytes(StandardCharsets.UTF_8);
+    private byte[] sealPassword(
+            String password, UUID userId, UUID itemId, String policyId
+    ) {
+        byte[] aad = VaultItemAad.itemV1(userId, itemId, policyId);
         return seal.seal(password.getBytes(StandardCharsets.UTF_8), vaultKey, vaultKeyId, aad).toBytes();
     }
 
     private String openPassword(VaultItem item) {
         SealEnvelope envelope = SealEnvelope.fromBytes(item.getEnvelopeBytes());
-        byte[] aad = item.getPolicyId().getBytes(StandardCharsets.UTF_8);
+        byte[] aad = switch (item.getAadVersion() == null ? 0 : item.getAadVersion()) {
+            case 0 -> item.getPolicyId().getBytes(StandardCharsets.UTF_8);
+            case VaultItemAad.VERSION_ITEM_V1 -> VaultItemAad.itemV1(
+                    item.getUserId(), item.getId(), item.getPolicyId()
+            );
+            default -> throw new IllegalStateException(
+                    "unsupported vault item AAD version: " + item.getAadVersion()
+            );
+        };
         return new String(seal.open(envelope, vaultKey, aad), StandardCharsets.UTF_8);
     }
 

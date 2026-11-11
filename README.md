@@ -126,7 +126,9 @@ Tools endpoints:
 | `POST` | `/api/v1/tools/seal` / `open` | **Local demo only** — gated (see below) |
 | `POST` | `/api/v1/tools/hash-password` / `verify-password` | Argon2id |
 
-**Tools demo seal/open (#16):** Local `application.properties` sets `keynest.tools.demo.enabled=true` with a fixed hex DEK for dogfooding. The `docker` profile sets `enabled=false` by default and does **not** ship a demo key — seal/open return **403**. Override only for intentional non-prod demos: `KEYNEST_TOOLS_DEMO_ENABLED=true` plus `keynest.tools.demo.key-hex` / `key-id`. Real vault envelopes use vault APIs and `keynest.vault.*` (env DEK still #30).
+**Tools demo seal/open (#16):** Local `application.properties` sets `keynest.tools.demo.enabled=true` with a fixed hex DEK for dogfooding. The `docker` profile sets `enabled=false` by default and does **not** ship a demo key — seal/open return **403**. Override only for intentional non-prod demos: `KEYNEST_TOOLS_DEMO_ENABLED=true` plus `keynest.tools.demo.key-hex` / `key-id`.
+
+**Manager vault key (#30):** The API fails startup unless the vault key is valid 32-byte hex. The public demo value is accepted only with the explicit development setting `keynest.vault.allow-demo-key=true`; `prod`/`production` profiles always reject it. Local Compose sets `KEYNEST_ALLOW_DEMO_VAULT_KEY=true` visibly for demonstration. Any deployed environment must provide a randomly generated `KEYNEST_VAULT_KEY_HEX`, leave `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false, set a stable `KEYNEST_VAULT_KEY_ID`, and activate `prod` alongside its database profile. Preserve and back up that key: changing or losing it makes existing envelopes unreadable. See [ADR-0006](./docs/ADR-0006-manager-vault-key-and-aad.md).
 
 **Rate limits (#17):** `POST /api/v1/tools/validate`, `/api/v1/auth/register`, and `/api/v1/auth/login` share an in-memory fixed window (default **30 req / 60 s** per client IP + path). Over limit → **429** + `Retry-After`. Configure via `keynest.rate-limit.enabled` / `limit` / `window-seconds`, or env `KEYNEST_RATE_LIMIT_LIMIT` and `KEYNEST_RATE_LIMIT_WINDOW_SECONDS`. Limits are **per JVM instance** (not shared across replicas). Paths live in `ApiPaths.RATE_LIMITED_POSTS`.
 
@@ -146,7 +148,7 @@ Open http://localhost:4200. The UI calls the Manager API using `environment.apiB
 docker compose -f deploy/docker-compose.yml up --build
 ```
 
-Uses Spring profile `docker` (Postgres). The same profile is the intended path for a future Railway API + Postgres deploy: set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your Vercel origin, vault key env vars, and rely on `PORT`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`. Rate limits stay **on** by default; tighten or raise with `KEYNEST_RATE_LIMIT_*`.
+Uses Spring profile `docker` (Postgres) with an explicit local demo-key opt-in. For a Railway-style API + Postgres deployment, activate `docker,prod`; set `KEYNEST_JDBC_URL` (or host pieces), `KEYNEST_CORS_ALLOWED_ORIGINS` to your web origin, a non-demo `KEYNEST_VAULT_KEY_HEX`, a stable `KEYNEST_VAULT_KEY_ID`, and rely on `PORT`. Do not set `KEYNEST_ALLOW_DEMO_VAULT_KEY`. Tools demo seal/open stay **off** unless you explicitly set `KEYNEST_TOOLS_DEMO_ENABLED`. Rate limits stay **on** by default; tighten or raise with `KEYNEST_RATE_LIMIT_*`.
 
 ### Vercel (Manager Web)
 
