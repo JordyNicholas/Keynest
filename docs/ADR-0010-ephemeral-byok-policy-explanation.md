@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for maintainer review in #95. This document adds no runtime capability. Approval adopts a boundary for subsequent implementation; it does not approve that implementation's merge or enable provider traffic.
+Accepted in maintainer-approved PR #96 on November 11, 2026. This document adds no runtime capability; implementation and enablement remain separately reviewed.
 
 ## Context
 

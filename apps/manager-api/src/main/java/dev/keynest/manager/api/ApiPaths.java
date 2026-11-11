@@ -28,6 +28,7 @@ public final class ApiPaths {
   public static final String AUTH_ME = AUTH + "/me";
 
   public static final String VAULT_ITEMS = API_V1 + "/vault/items";
+  public static final String AI_EXPLAIN = API_V1 + "/ai/policy/explain";
 
   /**
    * POST surfaces throttled for brute-force / oracle abuse (#17).

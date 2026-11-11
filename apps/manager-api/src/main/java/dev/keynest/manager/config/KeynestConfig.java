@@ -18,7 +18,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   VaultKeyProperties.class,
   CorsProperties.class,
   ToolsDemoProperties.class,
-  RateLimitProperties.class
+  RateLimitProperties.class,
+  AiProperties.class
 })
 public class KeynestConfig {
 
