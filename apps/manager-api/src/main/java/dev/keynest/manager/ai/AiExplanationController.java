@@ -3,6 +3,7 @@ package dev.keynest.manager.ai;
 import dev.keynest.manager.api.ApiPaths;
 import dev.keynest.manager.auth.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,8 @@ public class AiExplanationController {
   }
 
   @PostMapping(path = ApiPaths.AI_EXPLAIN, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<AiExplanationService.Explanation> explain(HttpServletRequest request) {
+  public ResponseEntity<AiExplanationService.Explanation> explain(HttpServletRequest request, HttpServletResponse response) {
+    response.setHeader("Cache-Control", "no-store");
     var user = auth.requireUser(request.getHeader("Authorization"));
     explanations.requireEnabled();
     try {

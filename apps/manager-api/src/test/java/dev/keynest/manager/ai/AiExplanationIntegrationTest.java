@@ -74,7 +74,7 @@ class AiExplanationIntegrationTest {
   @Test
   void unauthenticatedRequestMakesNoProviderCall() throws Exception {
     mvc.perform(post(ApiPaths.AI_EXPLAIN).contentType(MediaType.APPLICATION_JSON).content(BODY))
-      .andExpect(status().isUnauthorized());
+      .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
     assertThat(fake.calls).isZero();
   }
 
