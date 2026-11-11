@@ -1,6 +1,6 @@
 # HTTP security events
 
-Manager emits a fixed-field `security_event` line through logger `dev.keynest.manager.security.SecurityEventLogger`. See proposed [ADR-0009](./ADR-0009-sanitized-http-security-events.md) for the scope, approval status and limits.
+Manager emits a fixed-field `security_event` line through logger `dev.keynest.manager.security.SecurityEventLogger`. See accepted [ADR-0009](./ADR-0009-sanitized-http-security-events.md) for the scope and limits.
 
 | Field | Source |
 | --- | --- |
