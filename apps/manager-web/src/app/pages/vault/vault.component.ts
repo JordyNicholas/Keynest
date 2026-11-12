@@ -1,10 +1,10 @@
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
-import { Component, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 
@@ -21,7 +21,7 @@ type VaultItem = {
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, RouterLink],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })
@@ -33,9 +33,23 @@ export class VaultPageComponent implements OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
   private rotationTarget = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('itemId');
+  readonly showUpcomingExpiry = !this.rotationTarget;
+  readonly vaultLoaded = signal(false);
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   readonly items = signal<VaultItem[]>([]);
+  readonly upcomingExpiry = computed(() => {
+    const now = Date.now();
+    const dayMs = 86_400_000;
+    return this.items()
+      .flatMap((item) => {
+        const expiry = item.expiresAt ? Date.parse(item.expiresAt) : NaN;
+        const notice = Math.max(0, item.notifyBeforeDays ?? 0);
+        return expiry <= now + notice * dayMs ? [{ item, expiry }] : [];
+      })
+      .sort((left, right) => left.expiry - right.expiry)
+      .map(({ item }) => item);
+  });
   readonly revealed = signal<Record<string, string>>({});
   readonly newLabel = signal('Example site');
   readonly newUsername = signal('demo');
@@ -54,16 +68,19 @@ export class VaultPageComponent implements OnDestroy {
       if (!this.auth.signedIn()) {
         this.concealAll();
         this.editing.set(null);
+        this.vaultLoaded.set(false);
       }
     });
     this.refreshVault();
   }
 
   refreshVault(): void {
+    this.vaultLoaded.set(false);
     this.concealAll();
     this.http.get<VaultItem[]>(`${this.apiBaseUrl}/vault/items`, { headers: this.auth.authHeaders() }).subscribe({
       next: (body) => {
         this.items.set(body);
+        this.vaultLoaded.set(true);
         this.error.set('');
         if (this.rotationTarget) {
           const item = body.find(({ id }) => id === this.rotationTarget);
