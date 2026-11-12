@@ -1,4 +1,7 @@
-import { Component, effect, inject, OnDestroy, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
+import { Component, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -11,11 +14,13 @@ type VaultItem = {
   username?: string;
   policyId: string;
   expiresAt?: string;
+  lastRotatedAt?: string;
+  notifyBeforeDays?: number;
 };
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [FormsModule],
+  imports: [DatePipe, FormsModule],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })
@@ -24,6 +29,7 @@ export class VaultPageComponent implements OnDestroy {
 
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
@@ -32,6 +38,12 @@ export class VaultPageComponent implements OnDestroy {
   readonly newLabel = signal('Example site');
   readonly newUsername = signal('demo');
   readonly newUrl = signal('https://example.com');
+  readonly newExpiryDays = signal<number | null>(90);
+  readonly newNotifyDays = signal<number | null>(14);
+  readonly editing = signal<string | null>(null);
+  readonly expiryDays = signal<number | null>(null);
+  readonly notifyDays = signal<number | null>(null);
+  readonly pending = signal(false);
   readonly error = signal('');
   readonly revealDurationSeconds = VaultPageComponent.REVEAL_DURATION_MS / 1000;
 
@@ -39,6 +51,7 @@ export class VaultPageComponent implements OnDestroy {
     effect(() => {
       if (!this.auth.signedIn()) {
         this.concealAll();
+        this.editing.set(null);
       }
     });
     this.refreshVault();
@@ -56,6 +69,7 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   createGeneratedItem(): void {
+    if (!this.validDays(this.newExpiryDays(), this.newNotifyDays())) return;
     this.http
       .post<VaultItem>(
         `${this.apiBaseUrl}/vault/items`,
@@ -64,7 +78,8 @@ export class VaultPageComponent implements OnDestroy {
           url: this.newUrl(),
           username: this.newUsername(),
           generate: true,
-          expiresInDays: 90,
+          expiresInDays: this.newExpiryDays(),
+          notifyBeforeDays: this.newNotifyDays(),
         },
         { headers: this.auth.authHeaders() }
       )
@@ -75,6 +90,62 @@ export class VaultPageComponent implements OnDestroy {
         },
         error: (err) => this.error.set(err?.error?.message ?? 'Create failed'),
       });
+  }
+
+  openEditor(item: VaultItem): void {
+    this.conceal(item.id);
+    this.expiryDays.set(null);
+    this.notifyDays.set(item.notifyBeforeDays ?? null);
+    this.error.set('');
+    this.editing.set(item.id);
+  }
+
+  generateReplacement(input: HTMLInputElement): void {
+    this.pending.set(true);
+    this.error.set('');
+    this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {})
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
+      .subscribe({
+        next: ({ password }) => {
+          if (input.isConnected && this.auth.signedIn()) input.value = password;
+        },
+        error: () => this.error.set('Could not generate a replacement password'),
+      });
+  }
+
+  saveItem(item: VaultItem, input: HTMLInputElement): void {
+    if (this.pending() || !this.validDays(this.expiryDays(), this.notifyDays())) return;
+    const password = input.value || undefined;
+    if (password && !password.trim()) {
+      this.error.set('Enter a replacement password or leave it blank.');
+      return;
+    }
+    const expiresInDays = this.expiryDays();
+    const notifyBeforeDays = this.notifyDays();
+    if (!password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
+    this.pending.set(true);
+    this.error.set('');
+    this.conceal(item.id);
+    this.http.put<VaultItem>(`${this.apiBaseUrl}/vault/items/${item.id}`,
+      { password, expiresInDays, notifyBeforeDays },
+      { headers: this.auth.authHeaders() },
+    ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
+      .subscribe({
+        next: (updated) => {
+          input.value = '';
+          this.items.update((items) => items.map((entry) => entry.id === updated.id ? updated : entry));
+          this.editing.set(null);
+        },
+        error: () => this.error.set('Could not save the vault item. Check the password policy and try again.'),
+      });
+  }
+
+  private validDays(expiry: number | null, notice: number | null): boolean {
+    const valid = (value: number | null, min: number) =>
+      value === null || (Number.isInteger(value) && value >= min && value <= 2_147_483_647);
+    if (valid(expiry, 1) && valid(notice, 0)) return true;
+    this.error.set('Enter whole days. Expiry must be at least 1 and notice at least 0.');
+    return false;
   }
 
   reveal(id: string): void {
