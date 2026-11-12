@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { VaultPageComponent } from './vault.component';
@@ -138,4 +139,31 @@ describe('VaultPageComponent', () => {
     expect(component.revealed()['item-1']).toBeUndefined();
     tick(15_000);
   }));
+});
+
+describe('Vault rotation links', () => {
+  it('opens the matching item from the authenticated list without revealing or updating it', () => {
+    sessionStorage.setItem('keynest.token', 'session-token');
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_BASE_URL, useValue: '/api/v1' },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ itemId: 'target' }) } } },
+      ],
+    });
+    const fixture = TestBed.createComponent(VaultPageComponent);
+    const http = TestBed.inject(HttpTestingController);
+    const request = http.expectOne('/api/v1/vault/items');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
+    request.flush([
+      { id: 'other', label: 'Other', policyId: 'keynest.default.v1' },
+      { id: 'target', label: 'Target', policyId: 'keynest.default.v1' },
+    ]);
+
+    expect(fixture.componentInstance.editing()).toBe('target');
+    http.verify();
+    fixture.destroy();
+    TestBed.inject(AuthService).clearSession();
+  });
 });

@@ -13,6 +13,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'tools' },
       { path: 'tools', component: ToolsPageComponent },
+      { path: 'vault/rotate/:itemId', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'policy-explanation', component: PolicyExplanationComponent, canActivate: [authGuard] },
       { path: 'account', component: AccountPageComponent },
