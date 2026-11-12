@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { VaultPageComponent } from './vault.component';
@@ -19,6 +19,7 @@ describe('VaultPageComponent', () => {
       imports: [VaultPageComponent],
       providers: [
         AuthService,
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_BASE_URL, useValue: '/api/v1' },
@@ -51,7 +52,7 @@ describe('VaultPageComponent', () => {
     }]);
     fixture.detectChanges();
 
-    const row: HTMLElement = fixture.nativeElement.querySelector('.vault-list li');
+    const row: HTMLElement = fixture.nativeElement.querySelector('[aria-labelledby=vault-heading] .vault-list li');
     expect(row.textContent).toContain('Example account');
     expect(row.textContent).toContain('demo-user');
     expect(row.textContent).toContain('https://example.com');
@@ -83,10 +84,30 @@ describe('VaultPageComponent', () => {
     expect(component.items()[0].lastRotatedAt).toBe('2026-11-12T12:00:00Z');
   });
 
+  it('lists overdue and upcoming items in expiry order with rotation links', () => {
+    spyOn(Date, 'now').and.returnValue(Date.parse('2026-11-12T12:00:00Z'));
+    const item = { label: 'Example', policyId: 'keynest.default.v1', notifyBeforeDays: 7 };
+    component.items.set([
+      { ...item, id: 'soon', expiresAt: '2026-11-18T12:00:00Z' },
+      { ...item, id: 'later', expiresAt: '2026-11-20T12:00:00Z' },
+      { ...item, id: 'overdue', expiresAt: '2026-11-11T12:00:00Z', notifyBeforeDays: 0 },
+      { ...item, id: 'no-expiry' },
+    ]);
+    fixture.detectChanges();
+
+    const links = Array.from(
+      fixture.nativeElement.querySelectorAll('[aria-labelledby="upcoming-expiry-heading"] a') as NodeListOf<HTMLAnchorElement>,
+    );
+    expect(links.map((link) => link.getAttribute('href'))).toEqual([
+      '/vault/rotate/overdue',
+      '/vault/rotate/soon',
+    ]);
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.vault-list .empty').textContent)
+    expect(fixture.nativeElement.querySelector('[aria-labelledby=vault-heading] .vault-list .empty').textContent)
       .toContain('No vault items yet.');
   });
 
@@ -146,6 +167,7 @@ describe('Vault rotation links', () => {
     sessionStorage.setItem('keynest.token', 'session-token');
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: API_BASE_URL, useValue: '/api/v1' },

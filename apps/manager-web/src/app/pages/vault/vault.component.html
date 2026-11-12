@@ -5,6 +5,25 @@
   <p class="error" role="alert">{{ error() }}</p>
 }
 
+@if (showUpcomingExpiry && vaultLoaded()) {
+  <section class="panel" aria-labelledby="upcoming-expiry-heading">
+    <h2 id="upcoming-expiry-heading">Upcoming and overdue expiry</h2>
+    <ul class="vault-list">
+      @for (item of upcomingExpiry(); track item.id) {
+        <li>
+          <div>
+            <strong>{{ item.label }}</strong>
+            <span>Expiry {{ item.expiresAt | date:'medium' }}</span>
+          </div>
+          <a [routerLink]="['/vault', 'rotate', item.id]" [attr.aria-label]="'Rotate password for ' + item.label">Rotate password</a>
+        </li>
+      } @empty {
+        <li class="empty">No passwords are due for rotation.</li>
+      }
+    </ul>
+  </section>
+}
+
 <section class="panel" aria-labelledby="vault-heading">
   <h2 id="vault-heading">Items</h2>
   <label>
