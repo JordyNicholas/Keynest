@@ -1,6 +1,6 @@
-# BYOK policy explanation backend
+# BYOK policy explanations
 
-Status: implementation review for #97 under accepted [ADR-0010](./ADR-0010-ephemeral-byok-policy-explanation.md). This backend slice has no browser form or completed live-provider smoke. It is disabled by default; existing vault/tools/readiness do not invoke a provider.
+The Manager API and web workflow implement [ADR-0010](./ADR-0010-ephemeral-byok-policy-explanation.md). AI explanations are disabled by default. Existing vault, tools and readiness routes do not invoke a provider.
 
 ## Contract
 
@@ -12,7 +12,7 @@ Status: implementation review for #97 under accepted [ADR-0010](./ADR-0010-ephem
 
 Unknown/duplicate fields, trailing JSON, non-text identifiers and bodies over 8192 bytes are rejected. Duplicate key headers and credentials outside 1–4096 printable non-space ASCII characters are rejected without echo. Only the built-in default policy is supported. There is no custom prompt, endpoint, model, user policy, vault lookup or mutation input.
 
-The response contains `providerId`, `policyId` and `explanation`, with `Cache-Control: no-store`. The explanation is untrusted plain text, nonblank and at most 4000 Java UTF-16 characters. A future browser must display it through text binding and clear its key input on every completion path; this PR does not supply that UI. Credentials remain request-scoped with best-effort mutable-buffer clearing; Java/HTTP/runtime String copies cannot be guaranteed erased.
+The response contains `providerId`, `policyId` and `explanation`, with `Cache-Control: no-store`. The explanation is untrusted plain text, nonblank and at most 4000 Java UTF-16 characters. Manager Web renders the explanation through text binding and clears the key input on submission. Credentials remain request-scoped with best-effort mutable-buffer clearing; Java/HTTP/runtime String copies cannot be guaranteed erased.
 
 The provider receives only 11 scalar policy facts: min/max length; upper/lower/digit/symbol requirements; minimum categories; ambiguity, whitespace and username-substring flags; and optional max age. Policy IDs, descriptions, denylists/regexes, accounts, metadata, passwords, envelopes and keys are absent from prompt data.
 
@@ -46,7 +46,16 @@ Only fixed `AI_POLICY_EXPLAIN` HTTP outcome events are added under [ADR-0009](./
 
 The fake-adapter tests exercise minimal projection, redacted/closed credentials, no-call rejection paths, quotas, concurrency, provider failures and output validation. Mock HTTP tests exercise serialization/credential separation, successive credentials, redirect/proxy denial, bounded reads, strict parsing, slow-body timeout, interruption and destination restrictions. Spring tests cover authentication, disabled/core behavior, duplicate/oversized inputs, stable errors and log redaction. No test contacts the real provider.
 
-A maintainer-supplied test credential and explicit cost/data-disclosure decision are still needed for a real-provider smoke. Browser disclosure, text-only rendering, cancellation and input cleanup need their own implementation/evidence. Provider networking must remain opt-in and cannot be presented as release-verified until those gates are recorded. Rollback disables the feature or reverts this slice; no schema/key/session migration is involved.
+Manager Web CI uses mocked HTTP to verify the fixed request body and separate credential header, clearing the input, rendering provider output as text, suppressing raw provider errors and cancelling the request on navigation.
+
+### Operator verification
+
+1. With default settings, sign in to Manager and open **Policy explanation**. Submit a dummy key. The page should show a generic failure, the input should be empty, and the API should return `503 AI_DISABLED`. Existing vault and tools routes should remain usable.
+2. For live verification, use an isolated deployment and explicitly approve the provider data disclosure and possible charges. Configure `KEYNEST_AI_ENABLED=true` and set `KEYNEST_AI_OPENAI_MODEL` to the reviewed model. Use a dedicated test key entered directly in the page.
+3. Submit once and verify a plain-text explanation and an empty key field. Record the environment, model and outcome without storing the key or copying raw request headers.
+4. Restore `KEYNEST_AI_ENABLED=false` and verify the disabled behavior again. This rollback requires no schema, key or session migration.
+
+Live-provider verification remains pending.
 
 ## Provider references checked for implementation
 
