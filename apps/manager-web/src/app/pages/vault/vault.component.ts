@@ -4,6 +4,7 @@ import { finalize } from 'rxjs';
 import { Component, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 
@@ -31,6 +32,7 @@ export class VaultPageComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
+  private rotationTarget = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('itemId');
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   readonly items = signal<VaultItem[]>([]);
@@ -63,6 +65,15 @@ export class VaultPageComponent implements OnDestroy {
       next: (body) => {
         this.items.set(body);
         this.error.set('');
+        if (this.rotationTarget) {
+          const item = body.find(({ id }) => id === this.rotationTarget);
+          this.rotationTarget = null;
+          if (item && this.auth.signedIn()) {
+            this.openEditor(item);
+          } else {
+            this.error.set('Vault item unavailable for rotation.');
+          }
+        }
       },
       error: () => this.error.set('Vault list failed — sign in again'),
     });
