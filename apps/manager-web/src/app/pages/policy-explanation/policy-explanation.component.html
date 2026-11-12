@@ -1,0 +1,24 @@
+<h1>Policy explanation</h1>
+<p>OpenAI receives the built-in password policy ({{ policyId }}) and instructions to explain it.
+  Your OpenAI key authenticates this request and provider charges may apply.</p>
+
+<form (submit)="explain($event, providerKey)">
+  <label for="provider-key">OpenAI API key</label>
+  <input #providerKey id="provider-key" type="password" autocomplete="off"
+    spellcheck="false" maxlength="4096" required [disabled]="pending()" />
+  <button type="submit" [disabled]="pending()">Send to OpenAI</button>
+  @if (pending()) {
+    <button type="button" (click)="cancel()">Cancel</button>
+    <p role="status">Requesting an explanation…</p>
+  }
+</form>
+
+@if (error()) {
+  <p role="alert">{{ error() }}</p>
+}
+@if (explanation()) {
+  <section aria-labelledby="explanation-heading" aria-live="polite">
+    <h2 id="explanation-heading">Explanation</h2>
+    <p>{{ explanation() }}</p>
+  </section>
+}
