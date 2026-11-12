@@ -57,6 +57,31 @@ describe('VaultPageComponent', () => {
     expect(row.querySelector('output.secret')).toBeNull();
   });
 
+  it('generates a replacement and saves it only after explicit submission', () => {
+    const item = { id: 'item-1', label: 'Example', policyId: 'keynest.default.v1', notifyBeforeDays: 14 };
+    component.items.set([item]);
+    component.openEditor(item);
+    fixture.detectChanges();
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[autocomplete=new-password]');
+    component.generateReplacement(input);
+    http.expectOne('/api/v1/tools/generate').flush({ password: 'test-replacement' });
+    http.expectNone('/api/v1/vault/items/item-1');
+    expect(input.value).toBe('test-replacement');
+
+    component.expiryDays.set(30);
+    component.saveItem(item, input);
+    const request = http.expectOne('/api/v1/vault/items/item-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
+    expect(request.request.body).toEqual({
+      password: 'test-replacement', expiresInDays: 30, notifyBeforeDays: 14,
+    });
+    request.flush({ ...item, lastRotatedAt: '2026-11-12T12:00:00Z' });
+    expect(input.value).toBe('');
+    expect(component.editing()).toBeNull();
+    expect(component.items()[0].lastRotatedAt).toBe('2026-11-12T12:00:00Z');
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 

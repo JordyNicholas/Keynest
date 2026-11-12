@@ -1,5 +1,5 @@
 <h1 class="page-title">Vault</h1>
-<p class="page-lede">Sealed credentials for the signed-in user. Full vault UX lands in E4.</p>
+<p class="page-lede">Manage passwords and expiry dates for your saved accounts.</p>
 
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
@@ -19,9 +19,17 @@
     Username
     <input type="text" [ngModel]="newUsername()" (ngModelChange)="newUsername.set($event)" />
   </label>
+  <label>
+    Expires in days (optional)
+    <input type="number" min="1" [ngModel]="newExpiryDays()" (ngModelChange)="newExpiryDays.set($event)" />
+  </label>
+  <label>
+    Notify before expiry (days)
+    <input type="number" min="0" [ngModel]="newNotifyDays()" (ngModelChange)="newNotifyDays.set($event)" />
+  </label>
   <div class="row">
-    <button type="button" (click)="createGeneratedItem()">Create with generated password</button>
-    <button type="button" (click)="refreshVault()">Refresh</button>
+    <button type="button" [disabled]="pending()" (click)="createGeneratedItem()">Create with generated password</button>
+    <button type="button" [disabled]="pending()" (click)="refreshVault()">Refresh</button>
   </div>
 
   <ul class="vault-list">
@@ -30,6 +38,13 @@
         <div>
           <strong>{{ item.label }}</strong>
           <span>{{ item.username }} · {{ item.url }}</span>
+          <span>Expires {{ item.expiresAt ? (item.expiresAt | date:'medium') : 'never' }}</span>
+          @if (item.lastRotatedAt) {
+            <span>Last rotated {{ item.lastRotatedAt | date:'medium' }}</span>
+          }
+          @if (item.notifyBeforeDays != null) {
+            <span>Expiry notice lead time {{ item.notifyBeforeDays }} days</span>
+          }
           @if (revealed()[item.id]; as secret) {
             <output class="secret" aria-live="polite">{{ secret }}</output>
             <small>Automatically concealed after {{ revealDurationSeconds }} seconds.</small>
@@ -39,10 +54,33 @@
           @if (revealed()[item.id]) {
             <button type="button" (click)="conceal(item.id)">Conceal</button>
           } @else {
-            <button type="button" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
+            <button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
-          <button type="button" class="danger" (click)="remove(item.id)">Delete</button>
+          <button type="button" [disabled]="pending()" (click)="openEditor(item)">Expiry and rotation</button>
+          <button type="button" class="danger" [disabled]="pending()" (click)="remove(item.id)">Delete</button>
         </div>
+        @if (editing() === item.id) {
+          <section [attr.aria-label]="'Expiry and rotation for ' + item.label">
+            <p>Change the password at the account's website before saving the replacement here.
+              Leave the replacement blank to edit expiry only.</p>
+            <label>
+              Replacement password
+              <input #replacement type="password" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
+            </label>
+            <label><input #showReplacement type="checkbox" (change)="replacement.type = showReplacement.checked ? 'text' : 'password'" /> Show replacement</label>
+            <button type="button" [disabled]="pending()" (click)="generateReplacement(replacement)">Generate replacement</button>
+            <label>
+              New expiry in days (leave blank to keep current expiry)
+              <input type="number" min="1" [disabled]="pending()" [ngModel]="expiryDays()" (ngModelChange)="expiryDays.set($event)" />
+            </label>
+            <label>
+              Notify before expiry (days)
+              <input type="number" min="0" [disabled]="pending()" [ngModel]="notifyDays()" (ngModelChange)="notifyDays.set($event)" />
+            </label>
+            <button type="button" [disabled]="pending()" (click)="saveItem(item, replacement)">Save changes</button>
+            <button type="button" [disabled]="pending()" (click)="replacement.value = ''; editing.set(null)">Cancel</button>
+          </section>
+        }
       </li>
     } @empty {
       <li class="empty">No vault items yet.</li>
