@@ -2,7 +2,7 @@
 
 **Status:** Proposed design boundaries, not an implemented capability. See [Project Charter](PROJECT_CHARTER.md).
 
-The first concrete BYOK boundary is proposed in [ADR-0010 — ephemeral policy explanation](ADR-0010-ephemeral-byok-policy-explanation.md). It narrows the initial workflow to authenticated, explicitly invoked explanations of built-in policy scalars, with per-request credentials and no policy/vault mutation. The broader proposal/agent workflows below remain future designs; approval of the ADR does not claim a provider integration exists.
+The first concrete BYOK boundary is accepted in [ADR-0010 — ephemeral policy explanation](ADR-0010-ephemeral-byok-policy-explanation.md). The backend implementation is tracked in #97 and [its contract/evidence](AI_BACKEND.md); browser and live-provider evidence remain separate gates. The broader proposal/agent workflows below remain future designs.
 
 ## Goals
 

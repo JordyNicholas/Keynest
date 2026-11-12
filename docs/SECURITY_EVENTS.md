@@ -7,7 +7,7 @@ Manager emits a fixed-field `security_event` line through logger `dev.keynest.ma
 | `schema_version` | Constant `1` |
 | `event_id` | Server-generated UUID; never a client correlation ID |
 | `occurred_at` | Server-generated UTC instant |
-| `action` | Fixed enum: AUTH_REGISTER/LOGIN/LOGOUT/ME or VAULT_LIST/READ/CREATE/UPDATE/DELETE/REVEAL |
+| `action` | Fixed enum: AUTH_REGISTER/LOGIN/LOGOUT/ME, VAULT_LIST/READ/CREATE/UPDATE/DELETE/REVEAL, or AI_POLICY_EXPLAIN |
 | `outcome` | SUCCESS (2xx), REJECTED (4xx), ERROR (5xx/escaping exception), OTHER |
 | `http_status` | Observed response status, or synthetic 500 for an escaping exception |
 
