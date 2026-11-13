@@ -1,10 +1,8 @@
 package dev.keynest.manager.notification;
 
-import dev.keynest.policy.schema.PolicyRegistry;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.dao.DuplicateKeyException;
@@ -20,11 +18,11 @@ class ExpiryOutbox {
     """;
 
   private final JdbcTemplate jdbc;
-  private final PolicyRegistry policies;
+  private final ExpiryReminderTiming timing;
 
-  ExpiryOutbox(JdbcTemplate jdbc, PolicyRegistry policies) {
+  ExpiryOutbox(JdbcTemplate jdbc, ExpiryReminderTiming timing) {
     this.jdbc = jdbc;
-    this.policies = policies;
+    this.timing = timing;
   }
 
   void enqueueDue(Instant now) {
@@ -54,9 +52,8 @@ class ExpiryOutbox {
   }
 
   private void enqueueIfDue(Candidate item, Instant now) {
-    Instant expiry = effectiveExpiry(item);
-    int leadDays = item.noticeDays() == null ? 0 : Math.max(0, item.noticeDays());
-    if (expiry == null || expiry.isAfter(now.plus(leadDays, ChronoUnit.DAYS))) {
+    Instant expiry = timing.effectiveExpiry(item.expiry(), item.lastRotatedAt(), item.createdAt(), item.policyId());
+    if (!timing.isDue(expiry, item.noticeDays(), now)) {
       return;
     }
 
@@ -74,20 +71,6 @@ class ExpiryOutbox {
     } catch (DuplicateKeyException ignored) {
       // A concurrent scanner already enqueued this item's expiry.
     }
-  }
-
-  private Instant effectiveExpiry(Candidate item) {
-    if (item.expiry() != null) {
-      return item.expiry().toInstant();
-    }
-    Integer maxAge = policies.find(item.policyId())
-      .map(policy -> policy.toRuntimePolicy().maxAgeDays())
-      .orElse(null);
-    if (maxAge == null) {
-      return null;
-    }
-    OffsetDateTime passwordSetAt = item.lastRotatedAt() == null ? item.createdAt() : item.lastRotatedAt();
-    return passwordSetAt.toInstant().plus(maxAge, ChronoUnit.DAYS);
   }
 
   private record Candidate(
