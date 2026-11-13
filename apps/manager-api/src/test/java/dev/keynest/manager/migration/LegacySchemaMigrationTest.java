@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LegacySchemaMigrationTest {
 
   @Test
-  void baselinesLegacySchemaAndPreservesRowsThroughV2() throws Exception {
+  void baselinesLegacySchemaAndPreservesRowsThroughV3() throws Exception {
     String url = "jdbc:h2:mem:legacy-" + UUID.randomUUID()
       + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
     UUID userId = UUID.randomUUID();
@@ -38,8 +38,8 @@ class LegacySchemaMigrationTest {
       .validateMigrationNaming(true)
       .load();
 
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(1);
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("2");
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(2);
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("3");
 
     try (Connection connection = DriverManager.getConnection(url, "sa", "")) {
       assertThat(singleString(connection, "SELECT token_digest FROM auth_sessions WHERE id = '" + sessionId + "'"))
@@ -52,7 +52,7 @@ class LegacySchemaMigrationTest {
         SELECT COUNT(*) FROM flyway_schema_history
         WHERE success = TRUE AND version IS NOT NULL
         """))
-        .isEqualTo(2);
+        .isEqualTo(3);
 
       try (Statement statement = connection.createStatement()) {
         statement.executeUpdate("DELETE FROM users WHERE id = '" + userId + "'");

@@ -79,7 +79,7 @@ class PostgresRestoreIntegrationTest {
     try (ConfigurableApplicationContext restored = startManager(RESTORED_DB, keyHex)) {
       JdbcTemplate jdbc = restored.getBean(JdbcTemplate.class);
       assertThat(jdbc.queryForObject("SELECT current_database()", String.class)).isEqualTo(RESTORED_DB);
-      assertThat(restored.getBean(Flyway.class).info().current().getVersion().getVersion()).isEqualTo("2");
+      assertThat(restored.getBean(Flyway.class).info().current().getVersion().getVersion()).isEqualTo("3");
       restored.getBean(Flyway.class).validate();
       assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM users", Long.class)).isEqualTo(1L);
       assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM auth_sessions", Long.class)).isEqualTo(1L);
