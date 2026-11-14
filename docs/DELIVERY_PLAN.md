@@ -1,6 +1,8 @@
-# Keynest delivery plan — November 28, 2026
+# Keynest delivery plan
 
 Status: active engineering plan, updated November 11. Dates use America/Sao_Paulo. Owner: JordyNicholas. [Project charter](./PROJECT_CHARTER.md) · [Verified baseline](./ENGINEERING_BASELINE.md) · [AI architecture](./AI_ARCHITECTURE.md) · [Product](./PRODUCT.md) · [PR workflow](./PROJECT_PR_WORKFLOW.md).
+
+**First MVP target: Saturday, November 21, 2026.** Track the accelerated release in the [MVP release checklist](./MVP_RELEASE_EVIDENCE.md). The table below records the original November 28 schedule.
 
 ## Product commitments
 
