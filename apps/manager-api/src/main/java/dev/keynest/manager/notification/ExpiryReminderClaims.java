@@ -28,6 +28,18 @@ class ExpiryReminderClaims {
       """, token, utc(leaseUntil), key.itemId(), utc(key.expiresAt()), maxAttempts, utc(now), utc(now)) == 1;
   }
 
+  int failExhausted(Instant now, int maxAttempts) {
+    if (maxAttempts < 1) {
+      throw new IllegalArgumentException("Invalid reminder attempt limit");
+    }
+    return jdbc.update("""
+      UPDATE expiry_notification_outbox
+      SET status = 'FAILED', next_attempt_at = NULL, claim_token = NULL, lease_until = NULL
+      WHERE attempts >= ?
+        AND ((status = 'CLAIMED' AND lease_until <= ?) OR status = 'PENDING')
+      """, maxAttempts, utc(now));
+  }
+
   boolean finish(Key key, UUID token, Instant now, Result result) {
     return transition(key, token, now, result.name(), null);
   }

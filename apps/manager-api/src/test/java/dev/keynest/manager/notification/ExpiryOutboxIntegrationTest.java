@@ -17,6 +17,7 @@ class ExpiryOutboxIntegrationTest {
 
   @Autowired JdbcTemplate jdbc;
   @Autowired ExpiryOutbox outbox;
+  @Autowired ExpiryReminderClaims claims;
 
   @Test
   void queuesDueItemsOnceAndRemovesRowsWhenTheirVaultItemIsDeleted() {
@@ -37,6 +38,68 @@ class ExpiryOutboxIntegrationTest {
     jdbc.update("DELETE FROM vault_items WHERE id = ?", due);
     assertThat(jdbc.query("SELECT vault_item_id FROM expiry_notification_outbox",
       (rs, row) -> rs.getObject(1, UUID.class))).containsExactly(fallback);
+    jdbc.update("DELETE FROM users WHERE id = ?", user);
+  }
+
+  @Test
+  void retriesAfterBackoffAndRejectsExpiredOrReplacedClaimTokens() {
+    var key = pendingReminder();
+    try {
+      UUID first = UUID.randomUUID();
+      UUID second = UUID.randomUUID();
+      UUID third = UUID.randomUUID();
+      Instant leaseEnd = NOW.plusSeconds(30);
+      Instant retryAt = NOW.plusSeconds(60);
+
+      assertThat(claims.claim(key, first, NOW, leaseEnd, 3)).isTrue();
+      assertThat(claims.claim(key, second, NOW, leaseEnd, 3)).isFalse();
+      assertThat(claims.retry(key, first, NOW, retryAt)).isTrue();
+      assertThat(claims.claim(key, second, leaseEnd, retryAt, 3)).isFalse();
+      assertThat(claims.claim(key, second, retryAt, retryAt.plusSeconds(30), 3)).isTrue();
+      Instant reclaimedAt = retryAt.plusSeconds(30);
+      assertThat(claims.finish(key, second, reclaimedAt, ExpiryReminderClaims.Result.SENT)).isFalse();
+      assertThat(claims.claim(key, third, reclaimedAt, reclaimedAt.plusSeconds(30), 3)).isTrue();
+      assertThat(claims.finish(key, second, reclaimedAt, ExpiryReminderClaims.Result.SENT)).isFalse();
+      assertThat(claims.finish(key, third, reclaimedAt, ExpiryReminderClaims.Result.SENT)).isTrue();
+      assertThat(status(key)).isEqualTo("SENT");
+    } finally {
+      jdbc.update("DELETE FROM vault_items WHERE id = ?", key.itemId());
+    }
+  }
+
+  @Test
+  void failsAnExhaustedLeaseOnlyAfterItExpires() {
+    var key = pendingReminder();
+    try {
+      UUID token = UUID.randomUUID();
+      Instant leaseEnd = NOW.plusSeconds(30);
+      assertThat(claims.claim(key, token, NOW, leaseEnd, 1)).isTrue();
+      assertThat(claims.failExhausted(NOW, 1)).isZero();
+      assertThat(claims.claim(key, UUID.randomUUID(), leaseEnd, leaseEnd.plusSeconds(30), 1)).isFalse();
+      assertThat(claims.failExhausted(leaseEnd, 1)).isEqualTo(1);
+      assertThat(claims.failExhausted(leaseEnd, 1)).isZero();
+      assertThat(status(key)).isEqualTo("FAILED");
+    } finally {
+      jdbc.update("DELETE FROM vault_items WHERE id = ?", key.itemId());
+    }
+  }
+
+  private ExpiryReminderClaims.Key pendingReminder() {
+    UUID user = UUID.randomUUID();
+    jdbc.update("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
+      user, user + "@example.test", "test-hash", OLD);
+    OffsetDateTime expiry = OffsetDateTime.parse("2026-11-13T12:00:00Z");
+    UUID item = insertItem(user, expiry, null);
+    jdbc.update("""
+      INSERT INTO expiry_notification_outbox (vault_item_id, expires_at, queued_at)
+      VALUES (?, ?, ?)
+      """, item, expiry, OLD);
+    return new ExpiryReminderClaims.Key(item, expiry.toInstant());
+  }
+
+  private String status(ExpiryReminderClaims.Key key) {
+    return jdbc.queryForObject("SELECT status FROM expiry_notification_outbox WHERE vault_item_id = ?",
+      String.class, key.itemId());
   }
 
   private UUID insertItem(UUID user, OffsetDateTime expiry, OffsetDateTime lastRotated) {
