@@ -52,7 +52,7 @@ class LegacySchemaMigrationTest {
         SELECT COUNT(*) FROM flyway_schema_history
         WHERE success = TRUE AND version IS NOT NULL
         """))
-        .isEqualTo(4);
+        .isEqualTo(5);
 
       try (Statement statement = connection.createStatement()) {
         statement.executeUpdate("DELETE FROM users WHERE id = '" + userId + "'");
