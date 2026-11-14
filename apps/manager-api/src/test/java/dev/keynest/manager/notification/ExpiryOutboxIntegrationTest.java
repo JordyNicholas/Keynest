@@ -2,8 +2,11 @@ package dev.keynest.manager.notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ class ExpiryOutboxIntegrationTest {
   @Autowired JdbcTemplate jdbc;
   @Autowired ExpiryOutbox outbox;
   @Autowired ExpiryReminderClaims claims;
+  @Autowired ExpiryReminderTiming timing;
 
   @Test
   void queuesDueItemsOnceAndRemovesRowsWhenTheirVaultItemIsDeleted() {
@@ -81,6 +85,31 @@ class ExpiryOutboxIntegrationTest {
       assertThat(status(key)).isEqualTo("FAILED");
     } finally {
       jdbc.update("DELETE FROM vault_items WHERE id = ?", key.itemId());
+    }
+  }
+
+  @Test
+  void dispatchesToTheCurrentOwnerAndCancelsStaleExpiry() {
+    var valid = pendingReminder();
+    var stale = pendingReminder();
+    try {
+      jdbc.update("UPDATE vault_items SET expires_at = ? WHERE id = ?",
+        OffsetDateTime.parse("2026-11-14T12:00:00Z"), stale.itemId());
+      UUID owner = jdbc.queryForObject("SELECT user_id FROM vault_items WHERE id = ?", UUID.class, valid.itemId());
+      var delivered = new ArrayList<UUID>();
+      var dispatcher = new ExpiryReminderDispatcher(jdbc, claims, timing, Clock.fixed(NOW, ZoneOffset.UTC), id -> {
+        delivered.add(id);
+        return ExpiryReminderDispatcher.Outcome.SENT;
+      });
+
+      dispatcher.dispatchBatch();
+      dispatcher.dispatchBatch();
+
+      assertThat(delivered).containsExactly(owner);
+      assertThat(status(valid)).isEqualTo("SENT");
+      assertThat(status(stale)).isEqualTo("CANCELLED");
+    } finally {
+      jdbc.update("DELETE FROM vault_items WHERE id IN (?, ?)", valid.itemId(), stale.itemId());
     }
   }
 
