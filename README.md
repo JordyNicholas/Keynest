@@ -6,7 +6,7 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-**First MVP target: Saturday, November 21, 2026.** See the [MVP release checklist](./docs/MVP_RELEASE_EVIDENCE.md). Read the [verified repository baseline](./docs/ENGINEERING_BASELINE.md) and [current delivery plan](./docs/DELIVERY_PLAN.md) for implementation status, architecture direction, and release gates. The product direction is security-first, AI-native, BYOK-first, and infrastructure-agnostic; AI capabilities are planned, not implemented at the recorded baseline.
+**Release targets:** November 21 internal MVP checkpoint and November 28 public release, subject to the [release gates](./docs/MASTER_ROADMAP.md).
 
 > Project charter: [docs/PROJECT_CHARTER.md](./docs/PROJECT_CHARTER.md) · Verified baseline: [docs/ENGINEERING_BASELINE.md](./docs/ENGINEERING_BASELINE.md) · Delivery plan: [docs/DELIVERY_PLAN.md](./docs/DELIVERY_PLAN.md) · AI boundaries: [docs/AI_ARCHITECTURE.md](./docs/AI_ARCHITECTURE.md) · Product: [docs/PRODUCT.md](./docs/PRODUCT.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · ADRs in [`docs/`](./docs/)
 
@@ -42,8 +42,8 @@ Try the [standalone Java consumer](./examples/external-consumer/README.md): it g
 
 1. Store login data (URL, username/email, password).
 2. Create / read / update / delete vault items.
-3. Manage expiry (notify + guided update).
-4. Unlock safely (master credential + optional MFA).
+3. View upcoming and overdue expiries and follow guided rotation.
+4. Sign in with a master password.
 5. Deploy self-hosted or cloud.
 
 ### Security stance
@@ -55,6 +55,12 @@ Try the [standalone Java consumer](./examples/external-consumer/README.md): it g
 | Argon2id hash/verify for auth; AES-256-GCM for vault secrets | “Reverse engineering” hashes |
 
 Primitives stay standard: Argon2id, AES-256-GCM, CSPRNG. See [ADR-0001](./docs/ADR-0001-crypto-model.md), [ADR-0003](./docs/ADR-0003-keynest-seal.md), and the source-informed release [threat model](./docs/THREAT_MODEL.md).
+
+### Current release limitations
+
+Manager decrypts vault passwords server-side using a server-wide key. Vault metadata is plaintext in the database, and browser JavaScript can read the tab-scoped session bearer. Rate limits apply per API instance. Security events are operational logs. Keep database backups and the matching vault key separately.
+
+Manager Web starts separately from Compose. The reminder adapter simulates delivery locally. BYOK policy explanation is off by default and uses third-party processing when enabled. Live-provider verification remains pending. MFA and agent tools are outside this release scope. See the [threat model](./docs/THREAT_MODEL.md) and [MVP evidence checklist](./docs/MVP_RELEASE_EVIDENCE.md).
 
 ### Password policy schemas (Zod-like contract)
 
