@@ -28,8 +28,14 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 5. Sign out and revisit Vault and the rotation link. Verify both require sign-in. Repeat key navigation with the browser's reduced-motion preference enabled.
 6. Record the candidate SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
 
+## Governance evidence
+
+[PR #124](https://github.com/JordyNicholas/Keynest/pull/124) added the Apache-2.0 license, Maven license metadata and security policy. The maintainer confirmed on November 15 that GitHub private vulnerability reporting is enabled. A signed-in non-admin still needs to verify that **Report a vulnerability** opens the private form. A submission is unnecessary. See the [security policy](../SECURITY.md).
+
+The [unreleased changelog](../CHANGELOG.md) is in place.
+
 ## Open release gates
 
 - Full-stack rehearsal and operator backup/restore with separately retained vault key.
-- Package availability, changelog, license selection and private security reporting route.
+- Package availability and a reporter-side check of GitHub's private vulnerability form.
 - Maintainer decision on live BYOK rehearsal and agent scope for this release.
