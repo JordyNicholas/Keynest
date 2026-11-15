@@ -11,6 +11,14 @@
   <name>Keynest</name>
   <description>Password tools platform and Manager product</description>
 
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <modules>
     <module>libs/keynest-policy</module>
     <module>libs/keynest-generate</module>
