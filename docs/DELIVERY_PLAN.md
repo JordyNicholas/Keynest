@@ -1,5 +1,7 @@
 # Keynest delivery plan
 
+> **Current execution authority:** [Master Product & Engineering Roadmap](MASTER_ROADMAP.md) consolidates the November 21 checkpoint, November 28 release scope and all post-release phases. This file preserves the original delivery schedule and issue map; where scope or sequencing conflicts, follow the master roadmap.
+
 Status: active engineering plan, updated November 11. Dates use America/Sao_Paulo. Owner: JordyNicholas. [Project charter](./PROJECT_CHARTER.md) · [Verified baseline](./ENGINEERING_BASELINE.md) · [AI architecture](./AI_ARCHITECTURE.md) · [Product](./PRODUCT.md) · [PR workflow](./PROJECT_PR_WORKFLOW.md).
 
 **First MVP target: Saturday, November 21, 2026.** Track the accelerated release in the [MVP release checklist](./MVP_RELEASE_EVIDENCE.md). The table below records the original November 28 schedule.
