@@ -100,7 +100,7 @@ Risk describes the remaining release concern after the listed implemented contro
 | T14 | CORS/TLS/proxy deployment error exposes API | Exact configured CORS origins; bearer sent in `Authorization`; no cookie-auth CSRF surface; forwarding headers untrusted by default | TLS is external; wildcard headers are allowed for configured origins; origin lists and proxy topology need deployment verification | Medium, operational |
 | T15 | Vulnerable dependency or build workflow compromises release | Java/Angular builds run in CI; version policy is documented | Dependency update automation, CodeQL/SAST, SBOM, artifact signing/provenance, and pinned third-party actions are not yet release evidence | High, open release hardening |
 | T16 | Future AI/provider/agent feature leaks secrets or grants model authority | No provider or agent runtime is currently implemented; architecture forbids secret-bearing model context and model-authorized permissions | BYOK custody/egress and agent identity/scope/plan-apply/audit ADRs plus negative tests are mandatory before implementation or enablement | High, gated |
-| T17 | Future notifications copy plaintext into an outbox/provider | Notification runtime is not implemented | Outbox payload must contain references/minimal metadata only; adapters need redaction, retry, SSRF/egress, and provider-secret controls | Medium, gated |
+| T17 | Future notifications copy plaintext into an outbox/provider | The outbox stores item references and expiry timestamps. The opt-in console adapter emits a fixed simulation event | External delivery remains deferred pending verified recipient consent, redaction, and transport review | Medium, gated |
 
 ## Logging and diagnostic-data policy
 
