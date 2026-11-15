@@ -17,6 +17,8 @@ External reminder email is off the critical path for this target. The in-app exp
 
 [CI for PR #119](https://github.com/JordyNicholas/Keynest/actions/runs/43629011117) passed the packaged API/PostgreSQL smoke over HTTP, the PostgreSQL restore integration test, the Manager Web build and 18 browser tests, and standalone library consumption on JDK 21 and 25. This is baseline evidence. Reconfirm against the final release candidate.
 
+On November 15, [push CI](https://github.com/JordyNicholas/Keynest/actions/runs/43743613231) passed on main commit `158f1042a1ab92d2173d6ab34bb2f2ea203b24f0`. All six jobs passed: Maven and external library consumer on Java 21 and 25, Angular build and tests, and packaged Compose smoke. Repeat CI on the final candidate.
+
 ## Full-stack browser rehearsal
 
 Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./COMPOSE.md). Leave AI and reminder dispatch disabled. Use synthetic accounts and secrets.
@@ -30,12 +32,12 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 
 ## Governance evidence
 
-[PR #124](https://github.com/JordyNicholas/Keynest/pull/124) added the Apache-2.0 license, Maven license metadata and security policy. The maintainer confirmed on November 15 that GitHub private vulnerability reporting is enabled. A signed-in non-admin still needs to verify that **Report a vulnerability** opens the private form. A submission is unnecessary. See the [security policy](../SECURITY.md).
+[PR #124](https://github.com/JordyNicholas/Keynest/pull/124) added the Apache-2.0 license, Maven license metadata and security policy. The maintainer confirmed on November 15 that GitHub private vulnerability reporting is enabled. The maintainer deferred the reporter-side form check. See the [security policy](../SECURITY.md).
 
 The [unreleased changelog](../CHANGELOG.md) is in place.
 
 ## Open release gates
 
 - Full-stack rehearsal and operator backup/restore with separately retained vault key.
-- Package availability and a reporter-side check of GitHub's private vulnerability form.
+- Package availability.
 - Maintainer decision on live BYOK rehearsal and agent scope for this release.
