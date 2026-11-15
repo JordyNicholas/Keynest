@@ -1,5 +1,7 @@
 # Keynest
 
+**Engineering execution:** [Canonical product and development roadmap](docs/MASTER_ROADMAP.md) · [November MVP evidence](docs/MVP_RELEASE_EVIDENCE.md)
+
 Self-hostable **password tools** you can embed, plus a first-party **Manager** vault that dogfoods them.
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.

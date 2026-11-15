@@ -2,6 +2,8 @@
 
 These instructions apply to the repository. Read them before planning, editing, reviewing, or merging. They apply to ChatGPT Work, Cursor, Claude, and human contributors alike; no agent's chat history is authoritative.
 
+**Canonical execution roadmap:** [docs/MASTER_ROADMAP.md](docs/MASTER_ROADMAP.md) is the start-to-finish plan and current release-scope/priority authority. Read it before choosing the next task. Accepted ADRs and explicit maintainer decisions still govern technical/security contracts.
+
 ## Source of truth and coordination
 
 1. Read the adopted [Project Charter](docs/PROJECT_CHARTER.md), [Product](docs/PRODUCT.md), [Coding Standards](docs/CODING_STANDARDS.md), and applicable accepted ADRs. Read [AI Architecture](docs/AI_ARCHITECTURE.md) for AI or agent work; it remains a proposed design boundary until its decisions land through ADRs and implementation PRs.
