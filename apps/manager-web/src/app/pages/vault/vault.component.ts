@@ -35,6 +35,7 @@ export class VaultPageComponent implements OnDestroy {
   private rotationTarget = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('itemId');
   readonly showUpcomingExpiry = !this.rotationTarget;
   readonly vaultLoaded = signal(false);
+  private readonly revealRequests = new Map<string, symbol>();
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
   readonly items = signal<VaultItem[]>([]);
@@ -235,14 +236,22 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   reveal(id: string): void {
+    const token = this.auth.token();
+    if (!token || this.revealRequests.has(id)) return;
+    const request = Symbol();
+    this.revealRequests.set(id, request);
     this.http
       .post<{ item: VaultItem; password: string }>(
         `${this.apiBaseUrl}/vault/items/${id}/reveal`,
         {},
         { headers: this.auth.authHeaders() }
       )
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
+        if (this.revealRequests.get(id) === request) this.revealRequests.delete(id);
+      }))
       .subscribe({
         next: (body) => {
+          if (this.revealRequests.get(id) !== request || this.auth.token() !== token) return;
           this.conceal(id);
           this.revealed.update((current) => ({ ...current, [id]: body.password }));
           this.concealTimers.set(
@@ -252,11 +261,16 @@ export class VaultPageComponent implements OnDestroy {
           this.policyViolations.set([]);
           this.error.set('');
         },
-        error: () => this.error.set('Reveal failed'),
+        error: () => {
+          if (this.revealRequests.get(id) === request && this.auth.token() === token) {
+            this.error.set('Reveal failed');
+          }
+        },
       });
   }
 
   conceal(id: string): void {
+    this.revealRequests.delete(id);
     const timer = this.concealTimers.get(id);
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -294,6 +308,7 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   private concealAll(): void {
+    this.revealRequests.clear();
     for (const timer of this.concealTimers.values()) {
       clearTimeout(timer);
     }
