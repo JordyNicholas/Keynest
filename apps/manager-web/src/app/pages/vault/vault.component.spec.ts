@@ -195,6 +195,22 @@ describe('VaultPageComponent', () => {
     expect(component.revealed()['item-1']).toBeUndefined();
   }));
 
+  it('ignores a reveal response after conceal or a session change', () => {
+    const endpoint = '/api/v1/vault/items/item-1/reveal';
+    const response = { item: { id: 'item-1' }, password: 'sample' };
+    component.reveal('item-1');
+    const concealed = http.expectOne(endpoint);
+    component.conceal('item-1');
+    concealed.flush(response);
+    expect(component.revealed()['item-1']).toBeUndefined();
+
+    component.reveal('item-1');
+    const oldSession = http.expectOne(endpoint);
+    TestBed.inject(AuthService).setSession('new-session', 'test@example.com');
+    oldSession.flush(response);
+    expect(component.revealed()['item-1']).toBeUndefined();
+  });
+
   it('replaces the timer and supports immediate manual concealment', fakeAsync(() => {
     component.reveal('item-1');
     http.expectOne('/api/v1/vault/items/item-1/reveal').flush({
