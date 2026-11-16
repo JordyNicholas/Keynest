@@ -29,6 +29,12 @@ The Manager must call the **same** public library APIs external services would. 
 
 Try the [standalone Java consumer](./examples/external-consumer/README.md): it generates/validates, seals/opens and rewraps using only the three libraries, with Manager/Spring dependencies explicitly banned. Development artifacts currently require a local Maven install; published-package distribution remains release work.
 
+### Library publication
+
+The standalone example is the supported way to try the libraries before registry publication. A successful run verifies generation and validation, sealing and opening, rewrapping, and wrong-key and wrong-context rejection using only the library dependencies.
+
+GitHub Packages is the planned first registry. Select a release version, publish the Maven parent and the three library artifacts, and verify the standalone consumer with a clean Maven cache and no local install step. Document the verified coordinates and authentication instructions after that check. Maven Central publication remains future work. See [GitHub’s Maven registry guide](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry).
+
 ### Problems we solve
 
 **Integrators**
