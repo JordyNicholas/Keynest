@@ -99,27 +99,40 @@ export class VaultPageComponent implements OnDestroy {
     });
   }
 
-  createGeneratedItem(): void {
-    if (!this.validDays(this.newExpiryDays(), this.newNotifyDays())) return;
+  createItem(input: HTMLInputElement, generate: boolean): void {
+    if (this.pending() || !this.auth.signedIn()
+        || !this.validDays(this.newExpiryDays(), this.newNotifyDays())) return;
+    const label = this.newLabel().trim();
+    if (!label || label.length > 200 || this.newUsername().length > 320 || this.newUrl().length > 2000) {
+      this.error.set('Enter a label and keep the metadata within the field limits.');
+      return;
+    }
+    const password = generate ? undefined : input.value;
+    if (!generate && !password?.trim()) {
+      this.error.set('Enter a password or choose to generate one.');
+      return;
+    }
+    input.value = '';
+    this.pending.set(true);
+    this.error.set('');
     this.http
       .post<VaultItem>(
         `${this.apiBaseUrl}/vault/items`,
         {
-          label: this.newLabel(),
+          label,
           url: this.newUrl(),
           username: this.newUsername(),
-          generate: true,
+          generate,
+          password,
           expiresInDays: this.newExpiryDays(),
           notifyBeforeDays: this.newNotifyDays(),
         },
         { headers: this.auth.authHeaders() }
       )
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({
-        next: () => {
-          this.refreshVault();
-          this.error.set('');
-        },
-        error: (err) => this.error.set(err?.error?.message ?? 'Create failed'),
+        next: () => this.refreshVault(),
+        error: () => this.error.set('Could not create the vault item. Check the fields and password policy.'),
       });
   }
 

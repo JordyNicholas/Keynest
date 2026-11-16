@@ -46,8 +46,13 @@
     Notify before expiry (days)
     <input type="number" min="0" [ngModel]="newNotifyDays()" (ngModelChange)="newNotifyDays.set($event)" />
   </label>
+  <label>
+    Password for manual creation
+    <input #newPassword type="password" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
+  </label>
   <div class="row">
-    <button type="button" [disabled]="pending()" (click)="createGeneratedItem()">Create with generated password</button>
+    <button type="button" [disabled]="pending()" (click)="createItem(newPassword, false)">Create with entered password</button>
+    <button type="button" [disabled]="pending()" (click)="createItem(newPassword, true)">Create with generated password</button>
     <button type="button" [disabled]="pending()" (click)="refreshVault()">Refresh</button>
   </div>
 

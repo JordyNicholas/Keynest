@@ -142,6 +142,23 @@ describe('VaultPageComponent', () => {
     expect(component.items()[0].label).toBe('New label');
   });
 
+  it('submits a manually entered password only in the create request', () => {
+    const input = document.createElement('input');
+    component.createItem(input, false);
+    http.expectNone('/api/v1/vault/items');
+
+    input.value = 'test-password';
+    component.createItem(input, false);
+    const request = http.expectOne('/api/v1/vault/items');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
+    expect(request.request.body.generate).toBeFalse();
+    expect(request.request.body.password).toBe('test-password');
+    expect(input.value).toBe('');
+    request.flush({}, { status: 400, statusText: 'Bad Request' });
+    expect(component.pending()).toBeFalse();
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 
