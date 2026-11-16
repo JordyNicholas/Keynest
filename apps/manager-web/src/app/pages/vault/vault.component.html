@@ -75,13 +75,25 @@
           } @else {
             <button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
-          <button type="button" [disabled]="pending()" (click)="openEditor(item)">Expiry and rotation</button>
+          <button type="button" [disabled]="pending()" (click)="openEditor(item)">Edit item</button>
           <button type="button" class="danger" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
         </div>
         @if (editing() === item.id) {
-          <section [attr.aria-label]="'Expiry and rotation for ' + item.label">
+          <section [attr.aria-label]="'Edit vault item ' + item.label">
             <p>Change the password at the account's website before saving the replacement here.
-              Leave the replacement blank to edit expiry only.</p>
+              Leave the replacement blank to keep the current password.</p>
+            <label>
+              Label
+              <input type="text" maxlength="200" [disabled]="pending()" [ngModel]="editLabel()" (ngModelChange)="editLabel.set($event)" />
+            </label>
+            <label>
+              Username
+              <input type="text" maxlength="320" [disabled]="pending()" [ngModel]="editUsername()" (ngModelChange)="editUsername.set($event)" />
+            </label>
+            <label>
+              URL
+              <input type="url" maxlength="2000" [disabled]="pending()" [ngModel]="editUrl()" (ngModelChange)="editUrl.set($event)" />
+            </label>
             <label>
               Replacement password
               <input #replacement type="password" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
