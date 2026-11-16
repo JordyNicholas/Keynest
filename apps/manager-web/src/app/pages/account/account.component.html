@@ -1,5 +1,5 @@
 <h1 class="page-title">Account</h1>
-<p class="page-lede">Sign in to use the vault. Polished auth screens land in E4.</p>
+<p class="page-lede">Sign in or create an account to use the vault.</p>
 
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
@@ -9,19 +9,19 @@
   <h2 id="auth-heading">Session</h2>
   @if (auth.signedIn()) {
     <p>Signed in as <strong>{{ auth.email() }}</strong></p>
-    <button type="button" (click)="logout()">Sign out</button>
+    <button mat-stroked-button type="button" (click)="logout()">Sign out</button>
   } @else {
     <label>
       Email
-      <input type="email" [ngModel]="formEmail()" (ngModelChange)="formEmail.set($event)" />
+      <input type="email" autocomplete="username" [ngModel]="formEmail()" (ngModelChange)="formEmail.set($event)" />
     </label>
     <label>
       Master password
-      <input type="password" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
+      <input type="password" autocomplete="current-password" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
     </label>
     <div class="row">
-      <button type="button" (click)="register()">Register</button>
-      <button type="button" (click)="login()">Sign in</button>
+      <button mat-stroked-button type="button" (click)="register()">Register</button>
+      <button mat-flat-button type="button" (click)="login()">Sign in</button>
     </div>
   }
 </section>
