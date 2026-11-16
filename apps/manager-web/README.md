@@ -1,13 +1,14 @@
-# ManagerWeb
+# Keynest Manager Web
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.22.
 
 ## Development server
 
-To start a local development server, run:
+Use Node.js 22 and npm. Start [Manager API](../../README.md#run-api), then run from `apps/manager-web`:
 
 ```bash
-ng serve
+npm ci
+npm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
@@ -65,7 +66,7 @@ Set `CHROME_BIN` to your browser executable when Chrome is not found automatical
 
 ## Running end-to-end tests
 
-No end-to-end test target is configured yet. The release plan still requires a full-stack browser rehearsal against Manager API and PostgreSQL.
+Run the [manual full-stack browser rehearsal](../../docs/MVP_RELEASE_EVIDENCE.md#full-stack-browser-rehearsal) against Manager API and PostgreSQL.
 
 ## Additional Resources
 

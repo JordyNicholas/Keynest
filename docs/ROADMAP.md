@@ -2,7 +2,7 @@
 
 > **Historical technical breakdown.** For the current end-to-end execution order, November 21/28 release gates and post-release product phases, follow [MASTER_ROADMAP.md](MASTER_ROADMAP.md). Reconcile historical phase/status notes here with current `main` before creating work.
 
-**November 11, 2026 update:** The [verified engineering baseline](./ENGINEERING_BASELINE.md) records the current code. The [November 28 delivery plan](./DELIVERY_PLAN.md) governs current sequencing and release gates, including optional BYOK AI and scoped agent workflows. The phases below retain the earlier task breakdown; their status descriptions require reconciliation against implementation evidence.
+The [verified engineering baseline](./ENGINEERING_BASELINE.md) records the November 11 snapshot. The phases below retain the earlier task breakdown. The [MVP evidence checklist](./MVP_RELEASE_EVIDENCE.md) records current verification.
 
 **Status:** Planning  
 **Scope:** Ordered path from today’s skeleton to a shippable Manager + embeddable tools platform.  

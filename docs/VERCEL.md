@@ -56,7 +56,7 @@ The built-in limiter is intentionally portable and per API process. Multiple rep
 
 ### Local smoke test (#18)
 
-1. `mvn -pl apps/manager-api spring-boot:run` → H2, port 8080  
-2. `cd apps/manager-web && npm start` → `dev.ts` → `http://localhost:8080/api/v1`  
+1. Start Manager API using the [README commands](../README.md#run-api). The local H2 configuration listens on port 8080.
+2. `cd apps/manager-web && npm ci && npm start` → `dev.ts` → `http://localhost:8080/api/v1`
 3. Open http://localhost:4200 and hit health / register / vault  
 4. Production check: `npm run test:config` and `npm run test:build-config` verify URL rejection plus custom/default bundle substitution. The last build uses the same-origin default. Set your real public API URL and run `npm run build` again for a split-origin deploy.

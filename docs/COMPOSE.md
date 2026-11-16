@@ -28,7 +28,7 @@ npm ci
 npm start
 ```
 
-Open `http://localhost:4200`. The development web build targets `http://localhost:8080/api/v1`; the Compose API allows that web origin. Register, create an item, reveal it, and delete it. The full Material vault UX remains separate delivery work.
+Open `http://localhost:4200`. The development web build targets `http://localhost:8080/api/v1`; the Compose API allows that web origin. For the complete browser journey, follow the [full-stack rehearsal](./MVP_RELEASE_EVIDENCE.md#full-stack-browser-rehearsal).
 
 For a separately hosted static frontend, including Vercel, build with its reachable HTTPS API destination using `KEYNEST_API_BASE_URL` and configure the deployed API's exact CORS origins. The local demo Compose must first be adapted to real key/database custody and TLS before exposing it. See [web deployment configuration](./VERCEL.md) and [health probe routing](./OPERATIONS.md). No hosted-provider deployment is claimed by this local rehearsal.
 

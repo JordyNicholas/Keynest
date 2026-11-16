@@ -21,7 +21,7 @@ In scope:
 - PostgreSQL/H2 persistence, Flyway upgrades, backup, and restore expectations;
 - browser-to-API transport, CORS, trusted proxies, logging, and runtime configuration.
 
-Not implemented and therefore not claimed as protected surfaces: BYOK AI provider access, agent/MCP tools, notification delivery, MFA, organization RBAC, recovery keys, and client-side zero-knowledge open. Their intended boundaries are included only as release gates so they cannot be added without a focused ADR and negative tests.
+After the original review, Keynest added [ephemeral BYOK policy explanation](./AI_BACKEND.md) and [local reminder simulation](./EXPIRY_REMINDER_REHEARSAL.md). Both are off by default. Agent/MCP tools, external reminder delivery, MFA, organization RBAC, recovery keys, and client-side zero-knowledge open remain outside the MVP.
 
 Evidence reviewed for #43:
 
@@ -99,7 +99,7 @@ Risk describes the remaining release concern after the listed implemented contro
 | T13 | Oversized/malformed requests or expensive crypto cause denial of service | Selected auth/tools endpoints are rate-limited; validation rejects malformed domain input | Request-size limits, timeouts, concurrency bounds, and global/edge limits are not explicitly configured; Argon2 and parsing paths are resource intensive | Medium, open |
 | T14 | CORS/TLS/proxy deployment error exposes API | Exact configured CORS origins; bearer sent in `Authorization`; no cookie-auth CSRF surface; forwarding headers untrusted by default | TLS is external; wildcard headers are allowed for configured origins; origin lists and proxy topology need deployment verification | Medium, operational |
 | T15 | Vulnerable dependency or build workflow compromises release | Java/Angular builds run in CI; version policy is documented | Dependency update automation, CodeQL/SAST, SBOM, artifact signing/provenance, and pinned third-party actions are not yet release evidence | High, open release hardening |
-| T16 | Future AI/provider/agent feature leaks secrets or grants model authority | No provider or agent runtime is currently implemented; architecture forbids secret-bearing model context and model-authorized permissions | BYOK custody/egress and agent identity/scope/plan-apply/audit ADRs plus negative tests are mandatory before implementation or enablement | High, gated |
+| T16 | Future AI/provider/agent feature leaks secrets or grants model authority | ADR-0010 limits the optional runtime to one read-only explanation of a built-in policy with an ephemeral provider key; agent/MCP runtime is deferred | Live-provider verification remains pending. Agent identity, scopes and approval flows require separate design and tests | High, gated |
 | T17 | Future notifications copy plaintext into an outbox/provider | The outbox stores item references and expiry timestamps. The opt-in console adapter emits a fixed simulation event | External delivery remains deferred pending verified recipient consent, redaction, and transport review | Medium, gated |
 
 ## Logging and diagnostic-data policy
@@ -132,7 +132,7 @@ Production operators must keep HTTP body/header capture and framework request-de
 - Verify TLS, exact CORS origins, inactive demo tools, non-demo vault key, restricted actuator endpoints, request-size/time limits, and sanitized access logs in the release topology.
 - Restore a database backup and its separately preserved vault key, then reveal a pre-backup item and record only pass/fail evidence.
 - Scan dependencies and container images; produce an SBOM and resolve release-blocking findings.
-- If AI, agents, or notifications are included, attach their accepted ADRs and focused egress, redaction, authorization, replay, and failure-path evidence. Otherwise keep them disabled and describe them as future work.
+- Verify AI-disabled core journeys and default-off reminder settings. Keep external email and agent tools outside the MVP. If live BYOK is enabled for release, attach reviewed egress, redaction and failure-path evidence under ADR-0010.
 
 ## Residual-risk decisions
 

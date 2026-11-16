@@ -7,7 +7,7 @@ These instructions apply to the repository. Read them before planning, editing, 
 ## Source of truth and coordination
 
 1. Read the adopted [Project Charter](docs/PROJECT_CHARTER.md), [Product](docs/PRODUCT.md), [Coding Standards](docs/CODING_STANDARDS.md), and applicable accepted ADRs. Read [AI Architecture](docs/AI_ARCHITECTURE.md) for AI or agent work; it remains a proposed design boundary until its decisions land through ADRs and implementation PRs.
-2. Use [Engineering Baseline](docs/ENGINEERING_BASELINE.md) as the verified historical snapshot at its pinned commit. Use [Delivery Plan](docs/DELIVERY_PLAN.md), current `main`, GitHub issues, reviewed PRs, and CI evidence for current status and sequencing. Do not rewrite the baseline to imply that later work existed at its pinned commit.
+2. Use [Engineering Baseline](docs/ENGINEERING_BASELINE.md) as the verified historical snapshot at its pinned commit. Use [Master Roadmap](docs/MASTER_ROADMAP.md), current `main`, GitHub issues, reviewed PRs, and CI evidence for current status and sequencing. Do not rewrite the baseline to imply that later work existed at its pinned commit.
 3. GitHub issues and reviewed PRs track work. Before changing files, inspect open PRs, active branches, and recent commits; avoid overlapping edits. Use `KN#<issue>-<slug>` branches and link the issue in the PR.
 4. Distinguish `[verified]` implementation facts, `[proposed]` designs, and `[needs verification]` assumptions. Never claim tests, security audits, deployment, or AI capabilities that have not been verified.
 5. Preserve established public contracts and existing user data unless an approved migration exists. Prefer incremental changes over rewrites without evidence.
@@ -36,5 +36,5 @@ These instructions apply to the repository. Read them before planning, editing, 
 - Follow `.editorconfig`, Angular conventions, API contract consistency, accessibility, keyboard and reduced-motion support.
 - Each PR: problem, approach, evidence, tests, compatibility/migration/deployment effects, risk, rollback, linked issue. No mass formatting or unrelated refactoring.
 - Run relevant unit, integration, browser, PostgreSQL, and build checks when possible. If tools are unavailable, say so and do not imply success.
-- Never write directly to `main`, force-update another agent's branch, bypass branch protection, or merge security-sensitive changes without the maintainer's **explicit approval of that reviewed change**. General authorization to work is not merge approval.
+- Never write directly to `main`, force-update another agent's branch, bypass branch protection, or merge security-sensitive changes without the maintainer's **explicit approval of that reviewed change**. Feature changes also require maintainer approval in chat. Documentation-only PRs can merge after CI passes.
 - If instructions conflict, raise a specific decision in an issue or ADR; do not silently choose an interpretation.

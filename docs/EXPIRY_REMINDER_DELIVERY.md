@@ -1,6 +1,6 @@
 # Expiry reminder delivery
 
-Status: proposed for [#37](https://github.com/JordyNicholas/Keynest/issues/37) and [#39](https://github.com/JordyNicholas/Keynest/issues/39). The scanner in #106 queues an item ID and effective expiry. Delivery is a separate opt-in setting.
+The scanner, dispatcher and local console adapter are implemented and opt-in. The scanner queues an item ID and effective expiry. Follow the [local rehearsal](./EXPIRY_REMINDER_REHEARSAL.md) for simulation. The external delivery requirements below remain proposed. Address verification and consent are tracked in [#115](https://github.com/JordyNicholas/Keynest/issues/115).
 
 ## Recipient and message
 
