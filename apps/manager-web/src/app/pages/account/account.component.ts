@@ -1,3 +1,4 @@
+import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +10,7 @@ type AuthResponse = { userId: string; email: string; token: string; expiresAt: s
 
 @Component({
   selector: 'kn-account-page',
-  imports: [FormsModule, MatButtonModule],
+  imports: [PasswordVisibilityDirective, FormsModule, MatButtonModule],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })

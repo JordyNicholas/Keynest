@@ -1,3 +1,4 @@
+import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { passwordViolationMessages } from '../password-violation-messages';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,7 +23,7 @@ type VaultItem = {
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })

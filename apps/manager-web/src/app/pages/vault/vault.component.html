@@ -57,11 +57,12 @@
   </label>
   <label>
     Password for manual creation
-    <input #newPassword type="password" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
+    <input #newPassword knPasswordVisibility #newVisibility="knPasswordVisibility" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
   </label>
   <div class="row">
-    <button type="button" [disabled]="pending()" (click)="createItem(newPassword, false)">Create with entered password</button>
-    <button type="button" [disabled]="pending()" (click)="createItem(newPassword, true)">Create with generated password</button>
+    <button type="button" [disabled]="pending()" [attr.aria-pressed]="newVisibility.visible()" (click)="newVisibility.toggle()">Show entered password</button>
+    <button type="button" [disabled]="pending()" (click)="newVisibility.hide(); createItem(newPassword, false)">Create with entered password</button>
+    <button type="button" [disabled]="pending()" (click)="newVisibility.hide(); createItem(newPassword, true)">Create with generated password</button>
     <button type="button" [disabled]="pending()" (click)="refreshVault()">Refresh</button>
   </div>
 
@@ -110,9 +111,9 @@
             </label>
             <label>
               Replacement password
-              <input #replacement type="password" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
+              <input #replacement knPasswordVisibility #replacementVisibility="knPasswordVisibility" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
             </label>
-            <label><input #showReplacement type="checkbox" (change)="replacement.type = showReplacement.checked ? 'text' : 'password'" /> Show replacement</label>
+            <button type="button" [disabled]="pending()" [attr.aria-pressed]="replacementVisibility.visible()" (click)="replacementVisibility.toggle()">Show replacement password</button>
             <button type="button" [disabled]="pending()" (click)="generateReplacement(replacement)">Generate replacement</button>
             <label>
               New expiry in days (leave blank to keep current expiry)
@@ -122,7 +123,7 @@
               Notify before expiry (days)
               <input type="number" min="0" [disabled]="pending()" [ngModel]="notifyDays()" (ngModelChange)="notifyDays.set($event)" />
             </label>
-            <button type="button" [disabled]="pending()" (click)="saveItem(item, replacement)">Save changes</button>
+            <button type="button" [disabled]="pending()" (click)="replacementVisibility.hide(); saveItem(item, replacement)">Save changes</button>
             <button type="button" [disabled]="pending()" (click)="replacement.value = ''; editing.set(null)">Cancel</button>
           </section>
         }

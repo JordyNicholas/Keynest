@@ -17,11 +17,12 @@
     </label>
     <label>
       Master password
-      <input type="password" autocomplete="current-password" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
+      <input knPasswordVisibility #passwordVisibility="knPasswordVisibility" autocomplete="current-password" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
     </label>
     <div class="row">
-      <button mat-stroked-button type="button" (click)="register()">Register</button>
-      <button mat-flat-button type="button" (click)="login()">Sign in</button>
+      <button type="button" [attr.aria-pressed]="passwordVisibility.visible()" (click)="passwordVisibility.toggle()">Show master password</button>
+      <button mat-stroked-button type="button" (click)="passwordVisibility.hide(); register()">Register</button>
+      <button mat-flat-button type="button" (click)="passwordVisibility.hide(); login()">Sign in</button>
     </div>
   }
 </section>
