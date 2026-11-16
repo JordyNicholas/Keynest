@@ -1,4 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { JsonPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +16,11 @@ export class ToolsPageComponent {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
 
+  private readonly destroyRef = inject(DestroyRef);
+
+  readonly validating = signal(false);
+  readonly validationError = signal('');
+  readonly validation = signal<{ valid: boolean; violations: string[]; policyId: string } | null>(null);
   readonly health = signal<unknown>(null);
   readonly generated = signal('');
   readonly error = signal('');
@@ -42,6 +49,24 @@ export class ToolsPageComponent {
       },
       error: () => this.error.set('Generate failed'),
     });
+  }
+
+  validateSample(event: Event, input: HTMLInputElement): void {
+    event.preventDefault();
+    if (this.validating() || !input.value) return;
+
+    const password = input.value;
+    input.value = '';
+    this.validation.set(null);
+    this.validationError.set('');
+    this.validating.set(true);
+    this.http.post<{ valid: boolean; violations: string[]; policyId: string }>(
+      `${this.apiBaseUrl}/tools/validate?operation=update`, { password },
+    ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.validating.set(false)))
+      .subscribe({
+        next: (result) => this.validation.set(result),
+        error: () => this.validationError.set('Could not validate the sample password. Try again.'),
+      });
   }
 
   clearGenerated(): void {

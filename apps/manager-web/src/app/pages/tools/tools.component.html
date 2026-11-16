@@ -1,5 +1,5 @@
 <h1 class="page-title">Tools</h1>
-<p class="page-lede">Password tools demo — Material polish lands in #25.</p>
+<p class="page-lede">Generate a password or check a sample against the default policy.</p>
 
 @if (error()) {
   <p class="error" role="alert">{{ error() }}</p>
@@ -14,14 +14,40 @@
 <section class="panel" aria-labelledby="gen-heading">
   <h2 id="gen-heading">Generate tool</h2>
   <div class="row">
-    <button type="button" (click)="generate()">Generate password</button>
+    <button mat-flat-button type="button" (click)="generate()">Generate password</button>
     @if (generated()) {
-      <button type="button" (click)="clearGenerated()">Clear</button>
+      <button mat-stroked-button type="button" (click)="clearGenerated()">Clear</button>
     }
   </div>
   @if (generated()) {
     <output class="secret" animate.enter="kn-enter" animate.leave="kn-leave">
       {{ generated() }}
     </output>
+  }
+</section>
+
+<section class="panel" aria-labelledby="validation-heading">
+  <h2 id="validation-heading">Check a sample password</h2>
+  <p id="validation-instructions">Use a sample you do not use for an account. Keynest sends it to the Manager API for validation.</p>
+  <form (submit)="validateSample($event, sample)">
+    <label for="policy-sample">Sample password</label>
+    <input #sample id="policy-sample" type="password" autocomplete="off" spellcheck="false"
+           aria-describedby="validation-instructions" required [disabled]="validating()" />
+    <button mat-flat-button type="submit" [disabled]="validating()">Check password</button>
+  </form>
+  @if (validationError()) {
+    <p class="error" role="alert">{{ validationError() }}</p>
+  }
+  @if (validation(); as result) {
+    <div role="status">
+      <p>{{ result.valid ? 'Meets' : 'Does not meet' }} the {{ result.policyId }} update policy.</p>
+      @if (result.violations.length) {
+        <ul>
+          @for (code of result.violations; track $index) {
+            <li>{{ code }}</li>
+          }
+        </ul>
+      }
+    </div>
   }
 </section>
