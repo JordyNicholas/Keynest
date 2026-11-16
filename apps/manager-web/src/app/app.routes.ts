@@ -1,3 +1,6 @@
+import { ApiHealthPageComponent } from './pages/tools/api-health.component';
+import { CheckPasswordPageComponent } from './pages/tools/check-password.component';
+import { GeneratePasswordPageComponent } from './pages/tools/generate-password.component';
 import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
 import { ToolsPageComponent } from './pages/tools/tools.component';
@@ -13,6 +16,9 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'tools' },
       { path: 'tools', component: ToolsPageComponent },
+      { path: 'tools/generate', component: GeneratePasswordPageComponent },
+      { path: 'tools/check', component: CheckPasswordPageComponent },
+      { path: 'status', component: ApiHealthPageComponent },
       { path: 'vault/rotate/:itemId', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'policy-explanation', component: PolicyExplanationComponent, canActivate: [authGuard] },

@@ -1,0 +1,13 @@
+<h1 class="page-title" id="health-heading">API health</h1>
+<p class="page-lede">Check whether this Manager Web instance can reach its configured API.</p>
+<kn-inline-error [message]="error()" />
+
+<section class="panel" aria-labelledby="health-heading">
+  <button mat-flat-button type="button" [disabled]="checking()" (click)="refreshHealth()">Refresh health</button>
+  @if (checking()) {
+    <p role="status">Checking API health…</p>
+  }
+  @if (health(); as result) {
+    <pre aria-label="API health response">{{ result | json }}</pre>
+  }
+</section>

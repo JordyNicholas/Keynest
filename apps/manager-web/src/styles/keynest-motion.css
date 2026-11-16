@@ -27,3 +27,10 @@
 .kn-leave {
   animation: kn-fade-out 0.3s ease-in;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .kn-enter,
+  .kn-leave {
+    animation: none;
+  }
+}
