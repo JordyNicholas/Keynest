@@ -2,6 +2,7 @@ import { InlineErrorComponent } from '../inline-error.component';
 import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -18,6 +19,7 @@ type AuthResponse = { userId: string; email: string; token: string; expiresAt: s
 export class AccountPageComponent {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
   readonly auth = inject(AuthService);
 
   readonly formEmail = signal('');
@@ -59,6 +61,7 @@ export class AccountPageComponent {
     this.formPassword.set('');
     this.auth.setSession(body.token, body.email);
     this.error.set('');
+    void this.router.navigateByUrl('/vault');
   }
 
   private clearAuth(): void {

@@ -1,0 +1,43 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
+import { routes } from './app.routes';
+import { AuthService } from './auth/auth.service';
+import { API_BASE_URL } from './injectionTokens';
+
+describe('Manager entry routes', () => {
+  beforeEach(() => {
+    sessionStorage.removeItem('keynest.token');
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: API_BASE_URL, useValue: '/api/v1' },
+      ],
+    });
+  });
+
+  afterEach(() => {
+    TestBed.inject(HttpTestingController).verify();
+    TestBed.inject(AuthService).clearSession();
+  });
+
+  it('opens the public generator without a session or a request on entry', async () => {
+    const harness = await RouterTestingHarness.create('/');
+    expect(TestBed.inject(Router).url).toBe('/tools/generate');
+    expect(harness.routeNativeElement?.textContent).toContain('Sign in to Manager');
+    TestBed.inject(HttpTestingController).expectNone('/api/v1/tools/generate');
+  });
+
+  it('opens the authenticated vault when a session is already present', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
+    await RouterTestingHarness.create('/');
+    expect(TestBed.inject(Router).url).toBe('/vault');
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/vault/items');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer test-session');
+    request.flush([]);
+  });
+});
