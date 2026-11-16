@@ -1,8 +1,8 @@
 # Keynest — AI and agent architecture
 
-**Status:** Proposed design boundaries, not an implemented capability. See [Project Charter](PROJECT_CHARTER.md).
+**Status:** Implemented BYOK policy explanation and proposed follow-on AI and agent boundaries. See [Project Charter](PROJECT_CHARTER.md).
 
-The first concrete BYOK boundary is accepted in [ADR-0010 — ephemeral policy explanation](ADR-0010-ephemeral-byok-policy-explanation.md). The backend implementation is tracked in #97 and [its contract/evidence](AI_BACKEND.md); browser and live-provider evidence remain separate gates. The broader proposal/agent workflows below remain future designs.
+The first concrete BYOK boundary is accepted in [ADR-0010 — ephemeral policy explanation](ADR-0010-ephemeral-byok-policy-explanation.md). The API and Manager Web workflows landed in #98 and #100. See the [contract and verification status](AI_BACKEND.md). Live-provider verification remains pending. The broader proposal/agent workflows below remain future designs.
 
 ## Goals
 

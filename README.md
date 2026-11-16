@@ -104,7 +104,6 @@ apps/manager-api         Spring Boot façade (dogfoods libs)
 apps/manager-web         Angular Manager shell
 deploy/                  Docker Compose + API Dockerfile
 docs/                    PRODUCT, ADRs, coding standards, published schema copies
-archive/next-prototype   legacy Next.js app (do not extend)
 ```
 
 Indentation and formatting: root [`.editorconfig`](./.editorconfig) — **2 spaces** (see [docs/CODING_STANDARDS.md](./docs/CODING_STANDARDS.md)).
@@ -115,7 +114,7 @@ Indentation and formatting: root [`.editorconfig`](./.editorconfig) — **2 spac
 
 - **JDK 21 LTS** (primary runtime; CI also tests on JDK 25 with bytecode `--release 21`)
 - Maven 3.9+
-- Node 20+ (Angular Manager UI)
+- Node.js 22 and npm (Manager Web; matches CI)
 
 See [ADR-0005](./docs/ADR-0005-java-and-toolchain-policy.md) for version policy.
 
@@ -128,7 +127,8 @@ mvn test
 ### Run API
 
 ```bash
-mvn -pl apps/manager-api spring-boot:run
+mvn -pl apps/manager-api -am package -DskipTests
+java -jar apps/manager-api/target/manager-api-0.1.0-SNAPSHOT.jar
 ```
 
 Tools endpoints:
@@ -185,20 +185,11 @@ Repo config: root [`vercel.json`](./vercel.json) and [`apps/manager-web/vercel.j
 
 ## MVP status
 
-1. Grooming docs + stack decision — done  
-2. Maven libs + Spring/Angular skeleton — done  
-3. Password policy JSON Schema + loader skeleton — done  
-4. **Manager auth + sealed vault CRUD (H2 local / Postgres via Compose)** — done  
-5. Seal golden vector tests — done  
-6. Next — see phased roadmap in [docs/ROADMAP.md](./docs/ROADMAP.md) (Material shell, notify, sample consumer, ship path)
+Manager includes account registration and sessions, manual and generated vault creation, metadata editing, timed reveal, confirmed deletion and password rotation, and expiry visibility. Tools can generate passwords and validate samples. See the [MVP release evidence](./docs/MVP_RELEASE_EVIDENCE.md) for verification status and open release gates.
 
-## Run Manager API (vault)
+## Manager API (auth and vault)
 
-```bash
-mvn -pl apps/manager-api spring-boot:run
-```
-
-Auth / vault endpoints:
+Use the API startup commands above.
 
 | Method | Path | Notes |
 |---|---|---|

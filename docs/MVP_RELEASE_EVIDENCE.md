@@ -1,6 +1,6 @@
 # November 21 MVP release evidence
 
-Target: Saturday, November 21, 2026 (America/Sao_Paulo). Record the release candidate SHA and evidence links before calling a gate complete. See the [delivery plan](./DELIVERY_PLAN.md) for original acceptance criteria.
+Target: Saturday, November 21, 2026 (America/Sao_Paulo). Record the release candidate SHA and evidence links before calling a gate complete. See the [canonical roadmap](./MASTER_ROADMAP.md) for execution order and acceptance criteria.
 
 | Gate | Evidence required |
 | --- | --- |
@@ -35,12 +35,13 @@ Record the revision, date, operator and environment, observed result, and saniti
 
 Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./COMPOSE.md). Leave AI and reminder dispatch disabled. Use synthetic accounts and secrets.
 
-1. Open Manager Web on port 4200. Sign in from Account. Tab through sign-in and vault actions and verify visible focus and a usable tab order.
-2. Create a generated vault entry, reload Vault, and verify the entry and expiry metadata appear.
+1. Open Manager Web on port 4200. Register a synthetic account if needed, then sign in from Account. Tab through sign-in and vault actions and verify visible focus and a usable tab order.
+2. Create a generated entry and a manual entry. Try a deliberately weak synthetic password and verify policy feedback. Reload Vault and verify the saved entries and expiry metadata.
 3. Reveal the password, conceal it manually, then reveal again and verify automatic concealment after 15 seconds.
-4. Open the rotation editor, generate a replacement, and save it for the synthetic account. Verify the rotation timestamp changes. Reveal once to check the replacement, then conceal it.
-5. Sign out and revisit Vault and the rotation link. Verify both require sign-in. Repeat key navigation with the browser's reduced-motion preference enabled.
-6. Record the candidate SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
+4. Edit the item label or username and save. Reopen the editor, generate a replacement, then confirm saving it for the synthetic account. Verify the rotation timestamp changes. Reveal once to check the replacement, then conceal it.
+5. Cancel a deletion and verify the item remains. Confirm deletion and verify the item disappears.
+6. Sign out and revisit Vault and the rotation link. Verify both require sign-in. Repeat key navigation with the browser's reduced-motion preference enabled.
+7. Record the tested SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
 
 ## Governance evidence
 
@@ -52,4 +53,4 @@ The [unreleased changelog](../CHANGELOG.md) is in place.
 
 - Full-stack rehearsal and operator backup/restore with separately retained vault key.
 - Package availability.
-- Maintainer decision on live BYOK rehearsal and agent scope for this release.
+- Optional live BYOK rehearsal requires maintainer approval. Keep BYOK disabled for core verification. Agent tooling is post-release.
