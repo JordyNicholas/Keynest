@@ -1,3 +1,4 @@
+import { InlineErrorComponent } from '../inline-error.component';
 import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -10,7 +11,7 @@ type AuthResponse = { userId: string; email: string; token: string; expiresAt: s
 
 @Component({
   selector: 'kn-account-page',
-  imports: [PasswordVisibilityDirective, FormsModule, MatButtonModule],
+  imports: [InlineErrorComponent, PasswordVisibilityDirective, FormsModule, MatButtonModule],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })

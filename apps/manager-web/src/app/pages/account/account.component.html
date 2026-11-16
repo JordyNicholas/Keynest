@@ -1,9 +1,7 @@
 <h1 class="page-title">Account</h1>
 <p class="page-lede">Sign in or create an account to use the vault.</p>
 
-@if (error()) {
-  <p class="error" role="alert">{{ error() }}</p>
-}
+<kn-inline-error [message]="error()" />
 
 <section class="panel" aria-labelledby="auth-heading">
   <h2 id="auth-heading">Session</h2>
