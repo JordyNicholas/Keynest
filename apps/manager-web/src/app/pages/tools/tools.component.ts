@@ -1,3 +1,4 @@
+import { passwordViolationMessages } from '../password-violation-messages';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
@@ -20,7 +21,7 @@ export class ToolsPageComponent {
 
   readonly validating = signal(false);
   readonly validationError = signal('');
-  readonly validation = signal<{ valid: boolean; violations: string[]; policyId: string } | null>(null);
+  readonly validation = signal<{ valid: boolean; messages: string[]; policyId: string } | null>(null);
   readonly health = signal<unknown>(null);
   readonly generated = signal('');
   readonly error = signal('');
@@ -64,7 +65,9 @@ export class ToolsPageComponent {
       `${this.apiBaseUrl}/tools/validate?operation=update`, { password },
     ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.validating.set(false)))
       .subscribe({
-        next: (result) => this.validation.set(result),
+        next: ({ valid, policyId, violations }) => this.validation.set({
+          valid, policyId, messages: passwordViolationMessages(violations),
+        }),
         error: () => this.validationError.set('Could not validate the sample password. Try again.'),
       });
   }

@@ -41,10 +41,10 @@
   @if (validation(); as result) {
     <div role="status">
       <p>{{ result.valid ? 'Meets' : 'Does not meet' }} the {{ result.policyId }} update policy.</p>
-      @if (result.violations.length) {
+      @if (result.messages.length) {
         <ul>
-          @for (code of result.violations; track $index) {
-            <li>{{ code }}</li>
+          @for (message of result.messages; track $index) {
+            <li>{{ message }}</li>
           }
         </ul>
       }
