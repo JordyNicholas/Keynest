@@ -1,3 +1,4 @@
+import { InlineErrorComponent } from '../inline-error.component';
 import { passwordViolationMessages } from '../password-violation-messages';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,7 +10,7 @@ import { API_BASE_URL } from '../../injectionTokens';
 
 @Component({
   selector: 'kn-tools-page',
-  imports: [JsonPipe, MatButtonModule],
+  imports: [InlineErrorComponent, JsonPipe, MatButtonModule],
   templateUrl: './tools.component.html',
   styleUrls: ['../page-shared.css', './tools.component.css'],
 })

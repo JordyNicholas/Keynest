@@ -1,3 +1,4 @@
+import { InlineErrorComponent } from '../inline-error.component';
 import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { passwordViolationMessages } from '../password-violation-messages';
 import { DatePipe } from '@angular/common';
@@ -23,7 +24,7 @@ type VaultItem = {
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink],
+  imports: [InlineErrorComponent, PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })

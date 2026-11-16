@@ -1,9 +1,7 @@
 <h1 class="page-title">Tools</h1>
 <p class="page-lede">Generate a password or check a sample against the default policy.</p>
 
-@if (error()) {
-  <p class="error" role="alert">{{ error() }}</p>
-}
+<kn-inline-error [message]="error()" />
 
 <section class="panel" aria-labelledby="health-heading">
   <h2 id="health-heading">API</h2>
@@ -35,9 +33,7 @@
            aria-describedby="validation-instructions" required [disabled]="validating()" />
     <button mat-flat-button type="submit" [disabled]="validating()">Check password</button>
   </form>
-  @if (validationError()) {
-    <p class="error" role="alert">{{ validationError() }}</p>
-  }
+  <kn-inline-error [message]="validationError()" />
   @if (validation(); as result) {
     <div role="status">
       <p>{{ result.valid ? 'Meets' : 'Does not meet' }} the {{ result.policyId }} update policy.</p>

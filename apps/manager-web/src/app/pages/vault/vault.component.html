@@ -1,18 +1,7 @@
 <h1 class="page-title">Vault</h1>
 <p class="page-lede">Manage passwords and expiry dates for your saved accounts.</p>
 
-@if (error()) {
-  <div class="error" role="alert">
-    <p>{{ error() }}</p>
-    @if (policyViolations().length) {
-      <ul>
-        @for (message of policyViolations(); track message) {
-          <li>{{ message }}</li>
-        }
-      </ul>
-    }
-  </div>
-}
+<kn-inline-error [message]="error()" [details]="policyViolations()" />
 
 @if (showUpcomingExpiry && vaultLoaded()) {
   <section class="panel" aria-labelledby="upcoming-expiry-heading">
