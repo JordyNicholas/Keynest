@@ -19,6 +19,18 @@ External reminder email is off the critical path for this target. The in-app exp
 
 On November 15, [push CI](https://github.com/JordyNicholas/Keynest/actions/runs/43743613231) passed on main commit `158f1042a1ab92d2173d6ab34bb2f2ea203b24f0`. All six jobs passed: Maven and external library consumer on Java 21 and 25, Angular build and tests, and packaged Compose smoke. Repeat CI on the final candidate.
 
+## Implementation baseline for manual verification
+
+On November 16, [main CI](https://github.com/JordyNicholas/Keynest/actions/runs/43889723243) passed all six jobs on `c052de639dbba1856a1bae7e76806122a1637e50`: Maven and standalone consumer on Java 21 and 25, Angular, and packaged Compose smoke. Use this revision to start manual verification. Select the release candidate after verification and any fixes.
+
+### Evidence to record
+
+Record the revision, date, operator and environment, observed result, and sanitized evidence for each rehearsal. Use pass, fail, or pending.
+
+- **Browser:** Exercise sign-in, both manual and generated creation, reload, reveal/conceal, metadata edit, rotation, delete confirmation, and sign-out. Include keyboard focus, reduced motion, and a rejected password.
+- **Recovery:** Follow [database migrations](./DATABASE_MIGRATIONS.md) using a disposable restore target and the separately retained matching vault key. Verify fresh sign-in and reveal after restart.
+- **Board:** Track shipping in [#12](https://github.com/JordyNicholas/Keynest/issues/12). The repository rename in [#44](https://github.com/JordyNicholas/Keynest/issues/44) is an operator task and is outside this verification run.
+
 ## Full-stack browser rehearsal
 
 Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./COMPOSE.md). Leave AI and reminder dispatch disabled. Use synthetic accounts and secrets.
