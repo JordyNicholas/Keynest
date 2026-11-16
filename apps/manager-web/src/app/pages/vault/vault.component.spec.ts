@@ -104,6 +104,26 @@ describe('VaultPageComponent', () => {
     ]);
   });
 
+  it('deletes only after confirmation and ignores a second request while deleting', () => {
+    const confirm = spyOn(window, 'confirm').and.returnValue(false);
+    const item = { id: 'item-1', label: 'Example', policyId: 'keynest.default.v1' };
+    component.items.set([item]);
+
+    component.remove(item.id);
+    http.expectNone('/api/v1/vault/items/item-1');
+    expect(component.items()).toEqual([item]);
+
+    confirm.and.returnValue(true);
+    component.remove(item.id);
+    component.remove(item.id);
+    const request = http.expectOne('/api/v1/vault/items/item-1');
+    expect(request.request.method).toBe('DELETE');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
+    request.flush(null, { status: 204, statusText: 'No Content' });
+    expect(component.items()).toEqual([]);
+    expect(component.pending()).toBeFalse();
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 

@@ -76,7 +76,7 @@
             <button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
           <button type="button" [disabled]="pending()" (click)="openEditor(item)">Expiry and rotation</button>
-          <button type="button" class="danger" [disabled]="pending()" (click)="remove(item.id)">Delete</button>
+          <button type="button" class="danger" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
         </div>
         @if (editing() === item.id) {
           <section [attr.aria-label]="'Expiry and rotation for ' + item.label">
