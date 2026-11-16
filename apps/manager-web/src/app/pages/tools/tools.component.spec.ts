@@ -26,7 +26,7 @@ describe('ToolsPageComponent', () => {
     request.flush({ valid: false, violations: ['password.too_short'], policyId: 'keynest.default.v1' });
     fixture.detectChanges();
 
-    expect(host.querySelector('[role=status]')?.textContent).toContain('password.too_short');
+    expect(host.querySelector('[role=status]')?.textContent).toContain('Use a longer password.');
     http.verify();
   });
 });

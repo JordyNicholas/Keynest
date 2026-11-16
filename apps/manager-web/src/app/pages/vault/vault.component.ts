@@ -1,3 +1,4 @@
+import { passwordViolationMessages } from '../password-violation-messages';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
@@ -205,23 +206,9 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   private showSaveError(body: { code?: string; violations?: unknown } | null, fallback: string): void {
-    const messages = new Map([
-      ['password.too_short', 'Use a longer password.'],
-      ['password.too_long', 'Use a shorter password.'],
-      ['password.whitespace_forbidden', 'Remove whitespace.'],
-      ['password.ambiguous_chars', 'Remove ambiguous characters.'],
-      ['password.require_upper', 'Add an uppercase letter.'],
-      ['password.require_lower', 'Add a lowercase letter.'],
-      ['password.require_digit', 'Add a digit.'],
-      ['password.require_symbol', 'Add a symbol.'],
-      ['password.min_categories', 'Use more character categories.'],
-      ['password.contains_username', 'Remove the username from the password.'],
-      ['password.banned_substring', 'Avoid disallowed text.'],
-      ['password.banned_regex', 'Avoid disallowed patterns.'],
-    ]);
     const rejected = body?.code === 'VAULT_PASSWORD_POLICY' && Array.isArray(body.violations);
     this.policyViolations.set(rejected
-      ? (body.violations as string[]).flatMap((code) => messages.get(code) ?? [])
+      ? passwordViolationMessages(body.violations)
       : []);
     this.error.set(rejected ? 'The password does not meet the vault policy.' : fallback);
   }
