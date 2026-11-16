@@ -56,6 +56,9 @@ export class VaultPageComponent implements OnDestroy {
   readonly newUrl = signal('https://example.com');
   readonly newExpiryDays = signal<number | null>(90);
   readonly newNotifyDays = signal<number | null>(14);
+  readonly editLabel = signal('');
+  readonly editUsername = signal('');
+  readonly editUrl = signal('');
   readonly editing = signal<string | null>(null);
   readonly expiryDays = signal<number | null>(null);
   readonly notifyDays = signal<number | null>(null);
@@ -122,6 +125,9 @@ export class VaultPageComponent implements OnDestroy {
 
   openEditor(item: VaultItem): void {
     this.conceal(item.id);
+    this.editLabel.set(item.label);
+    this.editUsername.set(item.username ?? '');
+    this.editUrl.set(item.url ?? '');
     this.expiryDays.set(null);
     this.notifyDays.set(item.notifyBeforeDays ?? null);
     this.error.set('');
@@ -148,14 +154,25 @@ export class VaultPageComponent implements OnDestroy {
       this.error.set('Enter a replacement password or leave it blank.');
       return;
     }
+    const label = this.editLabel().trim();
+    const username = this.editUsername().trim();
+    const url = this.editUrl().trim();
+    if (!label || label.length > 200 || username.length > 320 || url.length > 2000) {
+      this.error.set('Enter a label and keep the metadata within the field limits.');
+      return;
+    }
+    const metadata: { label?: string; username?: string; url?: string } = {};
+    if (label !== item.label) metadata.label = label;
+    if (username !== (item.username ?? '')) metadata.username = username;
+    if (url !== (item.url ?? '')) metadata.url = url;
     const expiresInDays = this.expiryDays();
     const notifyBeforeDays = this.notifyDays();
-    if (!password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
+    if (!Object.keys(metadata).length && !password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
     this.pending.set(true);
     this.error.set('');
     this.conceal(item.id);
     this.http.put<VaultItem>(`${this.apiBaseUrl}/vault/items/${item.id}`,
-      { password, expiresInDays, notifyBeforeDays },
+      { ...metadata, password, expiresInDays, notifyBeforeDays },
       { headers: this.auth.authHeaders() },
     ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({

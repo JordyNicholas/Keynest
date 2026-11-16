@@ -124,6 +124,24 @@ describe('VaultPageComponent', () => {
     expect(component.pending()).toBeFalse();
   });
 
+  it('saves changed metadata without replacing the password', () => {
+    const item = { id: 'item-1', label: 'Old label', username: 'demo', policyId: 'keynest.default.v1' };
+    component.items.set([item]);
+    component.openEditor(item);
+    component.editLabel.set(' New label ');
+    component.editUsername.set('');
+
+    component.saveItem(item, document.createElement('input'));
+
+    const request = http.expectOne('/api/v1/vault/items/item-1');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body.label).toBe('New label');
+    expect(request.request.body.username).toBe('');
+    expect(request.request.body.password).toBeUndefined();
+    request.flush({ ...item, label: 'New label', username: null });
+    expect(component.items()[0].label).toBe('New label');
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 
