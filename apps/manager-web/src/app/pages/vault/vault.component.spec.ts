@@ -159,6 +159,15 @@ describe('VaultPageComponent', () => {
     expect(component.pending()).toBeFalse();
   });
 
+  it('discards a vault list response after sign-out', () => {
+    component.refreshVault();
+    const request = http.expectOne('/api/v1/vault/items');
+    TestBed.inject(AuthService).clearSession();
+    request.flush([{ id: 'old', label: 'Old account', policyId: 'keynest.default.v1' }]);
+    expect(component.items()).toEqual([]);
+    expect(component.vaultLoaded()).toBeFalse();
+  });
+
   it('renders an empty state when the vault list is empty', () => {
     fixture.detectChanges();
 

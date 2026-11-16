@@ -70,8 +70,12 @@ export class VaultPageComponent implements OnDestroy {
   readonly revealDurationSeconds = VaultPageComponent.REVEAL_DURATION_MS / 1000;
 
   constructor() {
+    let session = this.auth.token();
     effect(() => {
-      if (!this.auth.signedIn()) {
+      const token = this.auth.token();
+      if (session !== token) {
+        session = token;
+        this.items.set([]);
         this.concealAll();
         this.editing.set(null);
         this.vaultLoaded.set(false);
@@ -83,8 +87,12 @@ export class VaultPageComponent implements OnDestroy {
   refreshVault(): void {
     this.vaultLoaded.set(false);
     this.concealAll();
-    this.http.get<VaultItem[]>(`${this.apiBaseUrl}/vault/items`, { headers: this.auth.authHeaders() }).subscribe({
+    const token = this.auth.token();
+    if (!token) return;
+    this.http.get<VaultItem[]>(`${this.apiBaseUrl}/vault/items`, { headers: this.auth.authHeaders() })
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (body) => {
+        if (this.auth.token() !== token) return;
         this.items.set(body);
         this.vaultLoaded.set(true);
         this.policyViolations.set([]);
@@ -99,7 +107,9 @@ export class VaultPageComponent implements OnDestroy {
           }
         }
       },
-      error: () => this.error.set('Vault list failed — sign in again'),
+      error: () => {
+        if (this.auth.token() === token) this.error.set('Vault list failed — sign in again');
+      },
     });
   }
 
