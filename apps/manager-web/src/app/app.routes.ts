@@ -1,6 +1,8 @@
 import { ApiHealthPageComponent } from './pages/tools/api-health.component';
 import { CheckPasswordPageComponent } from './pages/tools/check-password.component';
 import { GeneratePasswordPageComponent } from './pages/tools/generate-password.component';
+import { inject } from '@angular/core';
+import { AuthService } from './auth/auth.service';
 import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
 import { ToolsPageComponent } from './pages/tools/tools.component';
@@ -14,7 +16,11 @@ export const routes: Routes = [
     path: '',
     component: ShellComponent,
     children: [
-      { path: '', pathMatch: 'full', redirectTo: 'tools' },
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: () => inject(AuthService).signedIn() ? '/vault' : '/tools/generate',
+      },
       { path: 'tools', component: ToolsPageComponent },
       { path: 'tools/generate', component: GeneratePasswordPageComponent },
       { path: 'tools/check', component: CheckPasswordPageComponent },
