@@ -214,13 +214,19 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   remove(id: string): void {
-    this.http.delete(`${this.apiBaseUrl}/vault/items/${id}`, { headers: this.auth.authHeaders() }).subscribe({
-      next: () => {
-        this.conceal(id);
-        this.refreshVault();
-      },
-      error: () => this.error.set('Delete failed'),
-    });
+    if (this.pending() || !window.confirm('Permanently delete this vault item?')) return;
+    this.pending.set(true);
+    this.error.set('');
+    this.conceal(id);
+    this.http.delete(`${this.apiBaseUrl}/vault/items/${id}`, { headers: this.auth.authHeaders() })
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
+      .subscribe({
+        next: () => {
+          if (this.editing() === id) this.editing.set(null);
+          this.items.update((items) => items.filter((item) => item.id !== id));
+        },
+        error: () => this.error.set('Delete failed'),
+      });
   }
 
   ngOnDestroy(): void {
