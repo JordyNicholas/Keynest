@@ -71,6 +71,10 @@ describe('VaultPageComponent', () => {
     expect(input.value).toBe('test-replacement');
 
     component.expiryDays.set(30);
+    const confirm = spyOn(window, 'confirm').and.returnValue(false);
+    component.saveItem(item, input);
+    http.expectNone('/api/v1/vault/items/item-1');
+    confirm.and.returnValue(true);
     component.saveItem(item, input);
     const request = http.expectOne('/api/v1/vault/items/item-1');
     expect(request.request.method).toBe('PUT');

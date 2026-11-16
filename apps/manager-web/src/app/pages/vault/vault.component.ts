@@ -1,3 +1,4 @@
+import { confirmVaultChange } from '../confirm-vault-change';
 import { InlineErrorComponent } from '../inline-error.component';
 import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { passwordViolationMessages } from '../password-violation-messages';
@@ -200,6 +201,7 @@ export class VaultPageComponent implements OnDestroy {
     const expiresInDays = this.expiryDays();
     const notifyBeforeDays = this.notifyDays();
     if (!Object.keys(metadata).length && !password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
+    if (password && !confirmVaultChange('replace-password')) return;
     this.pending.set(true);
     this.policyViolations.set([]);
     this.error.set('');
@@ -286,7 +288,7 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   remove(id: string): void {
-    if (this.pending() || !window.confirm('Permanently delete this vault item?')) return;
+    if (this.pending() || !confirmVaultChange('delete')) return;
     this.pending.set(true);
     this.policyViolations.set([]);
     this.error.set('');
