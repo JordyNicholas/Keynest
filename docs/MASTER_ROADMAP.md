@@ -1,8 +1,8 @@
 # Keynest — Canonical Product & Engineering Roadmap
 
 **Status:** Active, maintainer-directed execution plan  
-**Updated:** November 15, 2026 (America/Sao_Paulo)  
-**Internal MVP checkpoint:** **Saturday, November 21, 2026**  
+**Updated:** November 16, 2026 (America/Sao_Paulo)  
+**Implementation-complete internal MVP checkpoint:** **Saturday, November 21, 2026**  
 **Portfolio-ready open-source release target:** **Saturday, November 28, 2026**  
 **After November 28:** staged follow-on releases; no invented delivery dates
 
@@ -52,7 +52,7 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 | AI | Core works with AI disabled; optional narrow BYOK read-only policy explanation | If live provider unverified, keep disabled or clearly experimental | Multi-provider breadth, policy writes, MCP/agent tools |
 | Account/team | Safe documented session/recovery behavior | No MFA, advanced recovery, org RBAC or SSO | MFA, recovery keys, enterprise roles/OIDC |
 
-**Security cannot be waived for a date.** November 21 is an **internal MVP evidence checkpoint**; November 28 is the public-release target **only if P0 gates pass**. If they do not, keep the candidate internal, document the blocker and make a maintainer go/no-go decision.
+**Security cannot be waived for a date.** November 21 is an **internal implementation-complete MVP checkpoint**, not a release-candidate or full-system testing milestone; comprehensive verification follows on November 22–26, and release-candidate preparation follows on November 27–28; November 28 is the public-release target **only if P0 gates pass**. If they do not, keep the candidate internal, document the blocker and make a maintainer go/no-go decision.
 
 ## 4. Execution roadmap, from foundation to mature product
 
@@ -111,26 +111,38 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 
 **Exit:** optional browser policy explanation has mock/negative and approved live evidence, **or** remains safely disabled with an explicit limitation. Vault operation never depends on it.
 
-### Phase 5 — November 21 internal MVP checkpoint (P0)
+### Phase 5 — November 16–21: complete MVP implementation (P0/P1)
 
-**Goal:** freeze scope and gather a real evidence packet.
-- Use [MVP_RELEASE_EVIDENCE.md](MVP_RELEASE_EVIDENCE.md). Record candidate SHA and CI URLs for Maven JDK 21/25, Angular build/browser tests, PostgreSQL restore, independent consumer and packaged Compose smoke.
-- Perform **separate human-operated** full-stack browser and retained-key backup/restore rehearsals; CI is not a substitute.
-- Verify license/disclosure, README/changelog/threat model, data privacy limitations and clean demo setup.
-- Reconcile open UI and shipping issues [#25](https://github.com/JordyNicholas/Keynest/issues/25), [#26](https://github.com/JordyNicholas/Keynest/issues/26), [#31](https://github.com/JordyNicholas/Keynest/issues/31), [#32](https://github.com/JordyNicholas/Keynest/issues/32), [#33](https://github.com/JordyNicholas/Keynest/issues/33), [#42](https://github.com/JordyNicholas/Keynest/issues/42) against actual definitions of done.
-- Record go/no-go. Freeze new feature scope; afterward prioritize defects, evidence, docs and packaging.
+**Goal:** finish the planned product before full release rehearsals. The November 21 checkpoint means **implementation complete**, not fully tested or publicly ready.
+- Reconcile current `main`, open PRs and issue definitions of done before starting work; do not duplicate another agent's changes.
+- Finish Angular/Material account, tools and vault UX: register/login/logout, list/create/edit/delete, bounded reveal/conceal, generate/validate, guided rotate, expiry views, responsive/accessibility fundamentals, error and empty states.
+- Finish the associated Spring Boot/API integration, preserving crypto, auth, ownership, migration and key-custody boundaries. Fix critical security/correctness defects as soon as discovered.
+- Keep **targeted unit/integration/negative security tests and PR CI** mandatory during implementation; repair failing PR checks before merge. Comprehensive human browser, retained-key restore and deployment rehearsals are scheduled **after** implementation.
+- Complete only the existing narrow, optional BYOK policy explanation if core delivery is not threatened; AI stays disabled by default and cannot authorize actions or access vault secrets.
+- Reconcile open UI issues [#25](https://github.com/JordyNicholas/Keynest/issues/25), [#26](https://github.com/JordyNicholas/Keynest/issues/26), [#31](https://github.com/JordyNicholas/Keynest/issues/31), [#32](https://github.com/JordyNicholas/Keynest/issues/32), [#33](https://github.com/JordyNicholas/Keynest/issues/33) with implementation. Do not assume open issues prove missing functionality.
 
-**Exit:** evidenced internal MVP or named P0 blockers with owner and resolution plan; no premature public claim.
+**Exit:** release-scoped functionality implemented on `main`, affected PR checks passing, and an explicit list of any unfinished functionality or critical defects. No release-candidate declaration.
 
-### Phase 6 — November 22–28 stabilization and public release (P0/P1)
+### Phase 6 — November 22–26: full-system verification and defect remediation (P0/P1)
 
-**Goal:** a credible open-source, portfolio-ready first release.
-- Fix verified blockers with focused PRs; rerun affected tests and **all release gates on final SHA**.
-- Finish changelog, version/tag, distribution artifacts (or honest local distribution notes), quickstart, synthetic demo, screenshots/walkthrough, threat/limitations disclosure.
-- Verify clean deploy/recovery and full browser journeys. Verify AI-disabled core. Disable optional features lacking safe evidence.
-- Maintainer approves security-sensitive merges and final claims. Publish only with P0 gates passed; otherwise document delay.
+**Goal:** test the implemented product end to end, then fix defects without adding scope.
+- Perform a **human-operated** full-stack browser walkthrough with synthetic accounts: login, create, reload, reveal/conceal, edit/rotate, delete, logout, keyboard/focus, responsive and failure paths.
+- Rehearse clean PostgreSQL/API Compose and separately hosted/built Angular setup, migrations, backup/restore with the **same separately retained vault key**, and post-restore login/reveal.
+- Review golden vectors, AAD tamper/tenant denial, session revocation, key guards, no-store reveal, redaction and deployment settings. Verify core operation with AI disabled.
+- Record actual SHA, environment, commands/results, failures and fixes in [MVP_RELEASE_EVIDENCE.md](MVP_RELEASE_EVIDENCE.md). A successful CI configuration, PR or Vercel status is not substitute evidence.
+- Optional live-provider BYOK smoke requires maintainer-approved credential, cost and data-disclosure decisions. Disable/defer AI if it endangers P0.
 
-**Exit:** public tagged release, reproducible evidence, accurate feature/security claims, demo and maintainer sign-off. **Stop the November deadline review after November 28**; switch to post-release milestones.
+**Exit:** verified complete journeys and recovery, critical defects resolved, and documented limitations. If critical defects persist, defer release candidacy.
+
+### Phase 6B — November 27–28: release candidate, packaging and public go/no-go (P0/P1)
+
+**Goal:** publish a credible, demonstrable open-source release only after verification.
+- Freeze a candidate SHA and obtain **actual passing CI on that exact SHA** for Maven 21/25, Angular tests/build, independent consumer, packaged Compose and required security/regression gates.
+- Finalize README/quickstart, changelog, threat and known-limitations disclosures, license/SECURITY.md, version/tag, honest distribution notes, synthetic demo and portfolio screenshots/walkthrough.
+- Link browser, recovery and deployment evidence; confirm AI-disabled core and disable optional capabilities without safe evidence.
+- Obtain maintainer go/no-go and required security/feature approvals. If any P0 gate fails, delay public release rather than weakening the gate.
+
+**Exit:** public tagged release with evidence and maintainer sign-off, or explicit no-go. Stop the November deadline review after November 28.
 
 ### Phase 7 — Adoption and reliability after first release
 
@@ -181,29 +193,24 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 
 **Exit:** each feature has its own problem statement, approved ADR, migration/security tests, operations and support plan.
 
-## 5. Immediate dedicated-agent queue (strict order unless evidence changes)
+## 5. Immediate dedicated-agent queue (implementation first)
 
-1. **Close governance/security docs:** ask maintainer to select license and private security reporting contact; add root `LICENSE`/`SECURITY.md`, reconcile README/THREAT_MODEL and known limitations. **Acceptance:** approved license, working private reporting route, accurate confidentiality/AI/deployment claims.
-2. **Produce release evidence:** obtain exact-SHA CI and human full-stack browser + retained-key restore; validate clean Compose and independent consumer. **Acceptance:** links to passing results and dated operator walkthrough, with failures marked as failures.
-3. **Fix actual P0 failures:** prioritize crypto/auth/tenant/secret exposure, migrations/recovery and broken vault journeys; include negative tests. **Acceptance:** resolved defect with targeted tests and full final-SHA release gates.
-4. **Polish and package:** Material UX/accessibility, README demo, screenshots, changelog, version and artifact distribution statement. **Acceptance:** unfamiliar engineer follows docs to a successful demo.
-5. **Optional AI smoke:** run only if maintainer approves provider/cost/data disclosure; otherwise leave disabled and document. **Acceptance:** no credential persistence, no vault secrets sent, bounded provider behavior, AI-disabled core unaffected.
+**Maintainer decision — November 16:** prioritize completing development **before** comprehensive testing, deployment/recovery rehearsals and release-candidate definition. This does **not** waive tests alongside code, CI, security reviews, PR approvals or fixing known security defects. The dedicated agent should continue non-conflicting work without waiting for new orders.
+
+1. **Finish core development now (through November 21):** inspect latest `main`, PRs (including [#131](https://github.com/JordyNicholas/Keynest/pull/131) if still open), branches and issues. Finish and polish routed Material account/tools/vault CRUD, generation/validation, reveal/conceal, rotation, expiry, backend wiring, accessibility fundamentals and error states. **Acceptance:** implemented and merged scoped journeys, relevant unit/integration/security tests, green affected-PR CI, no known unresolved critical defect.
+2. **Finish bounded AI only if non-blocking:** keep ephemeral BYOK explanation read-only, opt-in, provider-neutral, secret-free and disabled by default. **Acceptance:** fake-adapter and credential/egress negative tests; no persisted AI key, model-driven authorization or unrestricted MCP. Defer live-provider smoke until approved verification.
+3. **Full verification after implementation (November 22–26):** run browser walkthrough, responsive/accessibility checks, real PostgreSQL/Compose startup, retained-key backup/restore and post-restore reveal, security/privacy review and AI-disabled regression. **Acceptance:** dated SHA/environment-linked actual results, resolved P0 failures and documented limitations.
+4. **Release candidate only after verification (November 27–28):** freeze SHA, rerun all release CI gates, finalize documentation, distribution/version, demo and portfolio materials. **Acceptance:** exact-SHA passing CI, manual evidence, license/security disclosure and maintainer go/no-go. Delay public release if P0 gates fail.
+5. **Keep post-release scope deferred:** MFA, recovery keys, enterprise RBAC/SSO, cloud KMS, broad MCP/agents, client-side zero knowledge and advanced reminders.
 
 ```text
 Current main / issues / accepted ADRs
-  ├── P0 security + database/key recovery ────┐
-  ├── P0 core browser journey ────────────────┤
-  └── P0 license / security disclosure ───────┤
-                                              v
-                             Nov 21 internal MVP evidence
-                                              |
-                             P1 polish + release packaging
-                             P2 optional BYOK (non-blocking)
-                                              |
-                             Nov 28 release go/no-go
-                                              |
-                Adoption → key hierarchy/teams → AI platform
-                        → scoped Agent Gateway → enterprise
+  └── Implement core Angular + API journeys (tests per PR)
+         └── Optional narrow BYOK explanation (non-blocking)
+                └── Nov 21 implementation-complete MVP
+                       └── Nov 22–26 full-system verification + fixes
+                              └── Nov 27–28 release candidate / go-no-go
+                                     └── Adoption → keys/teams → AI/MCP → enterprise
 ```
 
 ## 6. Acceptance and approval contract for every agent task
