@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 
@@ -8,7 +9,7 @@ type AuthResponse = { userId: string; email: string; token: string; expiresAt: s
 
 @Component({
   selector: 'kn-account-page',
-  imports: [FormsModule],
+  imports: [FormsModule, MatButtonModule],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
@@ -17,8 +18,8 @@ export class AccountPageComponent {
   private readonly http = inject(HttpClient);
   readonly auth = inject(AuthService);
 
-  readonly formEmail = signal('demo@keynest.dev');
-  readonly formPassword = signal('DemoPassphrase!42');
+  readonly formEmail = signal('');
+  readonly formPassword = signal('');
   readonly error = signal('');
 
   register(): void {
@@ -53,6 +54,7 @@ export class AccountPageComponent {
   }
 
   private onAuth(body: AuthResponse): void {
+    this.formPassword.set('');
     this.auth.setSession(body.token, body.email);
     this.error.set('');
   }
