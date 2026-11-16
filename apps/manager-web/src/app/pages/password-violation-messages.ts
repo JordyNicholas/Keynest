@@ -13,6 +13,7 @@ const messages = new Map([
   ['password.banned_regex', 'Avoid disallowed patterns.'],
 ]);
 
-export function passwordViolationMessages(codes: unknown[]): string[] {
+export function passwordViolationMessages(codes: unknown): string[] {
+  if (!Array.isArray(codes)) return [];
   return codes.flatMap((code) => typeof code === 'string' ? messages.get(code) ?? [] : []);
 }
