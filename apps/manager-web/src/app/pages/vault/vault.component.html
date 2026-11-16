@@ -2,7 +2,16 @@
 <p class="page-lede">Manage passwords and expiry dates for your saved accounts.</p>
 
 @if (error()) {
-  <p class="error" role="alert">{{ error() }}</p>
+  <div class="error" role="alert">
+    <p>{{ error() }}</p>
+    @if (policyViolations().length) {
+      <ul>
+        @for (message of policyViolations(); track message) {
+          <li>{{ message }}</li>
+        }
+      </ul>
+    }
+  </div>
 }
 
 @if (showUpcomingExpiry && vaultLoaded()) {

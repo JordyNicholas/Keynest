@@ -157,7 +157,20 @@ public class VaultService {
             case GENERATE -> passwordStandards.validateForGenerateCheck(policyId, password);
         };
         if (!result.valid()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "password policy violations: " + result.violations());
+            throw new PolicyRejected(List.copyOf(result.violations()));
+        }
+    }
+
+    static final class PolicyRejected extends RuntimeException {
+        private final List<String> violations;
+
+        PolicyRejected(List<String> violations) {
+            super("Vault password policy rejected the password");
+            this.violations = violations;
+        }
+
+        List<String> violations() {
+            return violations;
         }
     }
 
