@@ -63,6 +63,7 @@ export class VaultPageComponent implements OnDestroy {
   readonly expiryDays = signal<number | null>(null);
   readonly notifyDays = signal<number | null>(null);
   readonly pending = signal(false);
+  readonly policyViolations = signal<string[]>([]);
   readonly error = signal('');
   readonly revealDurationSeconds = VaultPageComponent.REVEAL_DURATION_MS / 1000;
 
@@ -84,6 +85,7 @@ export class VaultPageComponent implements OnDestroy {
       next: (body) => {
         this.items.set(body);
         this.vaultLoaded.set(true);
+        this.policyViolations.set([]);
         this.error.set('');
         if (this.rotationTarget) {
           const item = body.find(({ id }) => id === this.rotationTarget);
@@ -114,6 +116,7 @@ export class VaultPageComponent implements OnDestroy {
     }
     input.value = '';
     this.pending.set(true);
+    this.policyViolations.set([]);
     this.error.set('');
     this.http
       .post<VaultItem>(
@@ -132,7 +135,7 @@ export class VaultPageComponent implements OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({
         next: () => this.refreshVault(),
-        error: () => this.error.set('Could not create the vault item. Check the fields and password policy.'),
+        error: (response) => this.showSaveError(response.error, 'Could not create the vault item.'),
       });
   }
 
@@ -143,12 +146,14 @@ export class VaultPageComponent implements OnDestroy {
     this.editUrl.set(item.url ?? '');
     this.expiryDays.set(null);
     this.notifyDays.set(item.notifyBeforeDays ?? null);
+    this.policyViolations.set([]);
     this.error.set('');
     this.editing.set(item.id);
   }
 
   generateReplacement(input: HTMLInputElement): void {
     this.pending.set(true);
+    this.policyViolations.set([]);
     this.error.set('');
     this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {})
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
@@ -182,6 +187,7 @@ export class VaultPageComponent implements OnDestroy {
     const notifyBeforeDays = this.notifyDays();
     if (!Object.keys(metadata).length && !password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
     this.pending.set(true);
+    this.policyViolations.set([]);
     this.error.set('');
     this.conceal(item.id);
     this.http.put<VaultItem>(`${this.apiBaseUrl}/vault/items/${item.id}`,
@@ -194,8 +200,30 @@ export class VaultPageComponent implements OnDestroy {
           this.items.update((items) => items.map((entry) => entry.id === updated.id ? updated : entry));
           this.editing.set(null);
         },
-        error: () => this.error.set('Could not save the vault item. Check the password policy and try again.'),
+        error: (response) => this.showSaveError(response.error, 'Could not save the vault item.'),
       });
+  }
+
+  private showSaveError(body: { code?: string; violations?: unknown } | null, fallback: string): void {
+    const messages = new Map([
+      ['password.too_short', 'Use a longer password.'],
+      ['password.too_long', 'Use a shorter password.'],
+      ['password.whitespace_forbidden', 'Remove whitespace.'],
+      ['password.ambiguous_chars', 'Remove ambiguous characters.'],
+      ['password.require_upper', 'Add an uppercase letter.'],
+      ['password.require_lower', 'Add a lowercase letter.'],
+      ['password.require_digit', 'Add a digit.'],
+      ['password.require_symbol', 'Add a symbol.'],
+      ['password.min_categories', 'Use more character categories.'],
+      ['password.contains_username', 'Remove the username from the password.'],
+      ['password.banned_substring', 'Avoid disallowed text.'],
+      ['password.banned_regex', 'Avoid disallowed patterns.'],
+    ]);
+    const rejected = body?.code === 'VAULT_PASSWORD_POLICY' && Array.isArray(body.violations);
+    this.policyViolations.set(rejected
+      ? (body.violations as string[]).flatMap((code) => messages.get(code) ?? [])
+      : []);
+    this.error.set(rejected ? 'The password does not meet the vault policy.' : fallback);
   }
 
   private validDays(expiry: number | null, notice: number | null): boolean {
@@ -221,6 +249,7 @@ export class VaultPageComponent implements OnDestroy {
             id,
             setTimeout(() => this.conceal(id), VaultPageComponent.REVEAL_DURATION_MS)
           );
+          this.policyViolations.set([]);
           this.error.set('');
         },
         error: () => this.error.set('Reveal failed'),
@@ -246,6 +275,7 @@ export class VaultPageComponent implements OnDestroy {
   remove(id: string): void {
     if (this.pending() || !window.confirm('Permanently delete this vault item?')) return;
     this.pending.set(true);
+    this.policyViolations.set([]);
     this.error.set('');
     this.conceal(id);
     this.http.delete(`${this.apiBaseUrl}/vault/items/${id}`, { headers: this.auth.authHeaders() })
