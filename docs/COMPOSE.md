@@ -57,7 +57,7 @@ docker compose -p keynest-local -f deploy/docker-compose.yml up -d
 
 These commands retain the local database volume. Never remove that volume as an upgrade or recovery shortcut. Restarting with a different vault key makes existing envelopes unreadable.
 
-Before public deployment: replace demo/database credentials, activate `docker,prod`, keep the demo-key opt-in off, restrict database exposure, install TLS/proxy and exact CORS configuration, tune limits/timeouts, and rehearse backups with separately retained key material. Compose has no API healthcheck/restart policy. The web application is not included in Compose. Track these limitations in the release review rather than assuming the local sample provides them.
+For separate test and production environments, use the [hosted Compose workflow](DEPLOYMENT.md) with an HTTPS ingress and distinct state and keys. Rehearse backups with separately retained key material. The local sample has no API healthcheck or restart policy. Manager Web runs separately.
 
 ## API runtime controls
 
