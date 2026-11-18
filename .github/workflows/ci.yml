@@ -5,6 +5,15 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      publish_manager_api:
+        description: Publish the verified Manager API image to GHCR (main only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 jobs:
   java:
@@ -91,3 +100,87 @@ jobs:
       - name: Remove only this disposable CI project and its data
         if: always()
         run: docker compose -f deploy/docker-compose.yml down --volumes --remove-orphans
+
+  hosted-compose:
+    name: Hosted Compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COMPOSE_PROJECT_NAME: keynest-hosted-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      KEYNEST_API_IMAGE: keynest-manager-api:ci
+      KEYNEST_API_PORT: "8080"
+      KEYNEST_CORS_ALLOWED_ORIGINS: https://keynest-test.example.invalid
+      KEYNEST_VAULT_KEY_ID: ci-v1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set disposable database and vault credentials
+        run: |
+          for name in KEYNEST_DB_PASSWORD KEYNEST_VAULT_KEY_HEX; do
+            value=$(openssl rand -hex 32)
+            echo "::add-mask::$value"
+            echo "$name=$value" >> "$GITHUB_ENV"
+          done
+
+      - name: Build and start the deployable Manager API
+        run: |
+          docker build --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            -f deploy/Dockerfile.api -t "$KEYNEST_API_IMAGE" .
+          docker compose -f deploy/docker-compose.hosted.yml pull postgres
+          docker compose -f deploy/docker-compose.hosted.yml up --pull never -d
+
+      - name: Verify hosted runtime and browser preflight
+        run: |
+          python3 scripts/check-container-runtime.py --compose-file deploy/docker-compose.hosted.yml
+          python3 scripts/compose-smoke.py --disposable --cors-origin "$KEYNEST_CORS_ALLOWED_ORIGINS"
+          postgres="$(docker compose -f deploy/docker-compose.hosted.yml ps -q postgres)"
+          test "$(docker inspect --format '{{len .HostConfig.PortBindings}}' "$postgres")" = 0
+
+      - name: Report only sanitized startup failure categories
+        if: failure()
+        run: python3 scripts/check-container-runtime.py --compose-file deploy/docker-compose.hosted.yml --diagnostics
+
+      - name: Save the exact verified image for publication
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_manager_api
+        run: docker save "$KEYNEST_API_IMAGE" | gzip > "${RUNNER_TEMP}/manager-api.tar.gz"
+
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_manager_api
+        with:
+          name: manager-api-image
+          path: ${{ runner.temp }}/manager-api.tar.gz
+          compression-level: 0
+          retention-days: 1
+          overwrite: true
+
+      - name: Remove only the disposable hosted test project and its data
+        if: always()
+        run: docker compose -f deploy/docker-compose.hosted.yml down --volumes --remove-orphans
+
+  publish-manager-api:
+    name: Publish verified Manager API image
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.publish_manager_api
+    needs: [consumer, compose, hosted-compose]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: manager-api-image
+          path: ${{ runner.temp }}
+
+      - name: Push the tested image and record its immutable reference
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/manager-api:sha-$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          docker load --input "$RUNNER_TEMP/manager-api.tar.gz"
+          docker tag keynest-manager-api:ci "$image"
+          printf '%s' "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker push "$image"
+          docker pull "$image"
+          digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image")"
+          printf 'Manager API for commit `%s`\n\n`%s`\n' "$GITHUB_SHA" "$digest" >> "$GITHUB_STEP_SUMMARY"

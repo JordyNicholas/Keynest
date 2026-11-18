@@ -67,8 +67,33 @@ def wait_until_ready():
   raise SmokeFailure('readiness did not become UP within 120 seconds')
 
 
-def run():
+def check_cors(allowed_origin):
+  url = BASE + API + '/vault/items'
+  for origin in (allowed_origin, 'https://unlisted.example.invalid'):
+    preflight = Request(url, method='OPTIONS', headers={
+      'Origin': origin,
+      'Access-Control-Request-Method': 'POST',
+      'Access-Control-Request-Headers': 'authorization, content-type',
+    })
+    try:
+      with opener.open(preflight, timeout=5) as response:
+        check(origin == allowed_origin and 200 <= response.status < 300, 'unlisted CORS origin accepted')
+        check(response.headers.get('Access-Control-Allow-Origin') == origin, 'CORS origin must match exactly')
+        methods = response.headers.get('Access-Control-Allow-Methods', '').replace(' ', '').split(',')
+        check('POST' in methods, 'CORS must allow POST')
+        headers = response.headers.get('Access-Control-Allow-Headers', '').lower().replace(' ', '').split(',')
+        check({'authorization', 'content-type'} <= set(headers), 'CORS must allow bearer and JSON headers')
+    except HTTPError as error:
+      with error:
+        check(origin != allowed_origin and error.code == 403, 'unexpected CORS preflight rejection')
+        check('Access-Control-Allow-Origin' not in error.headers, 'unlisted origin must receive no CORS grant')
+
+
+def run(cors_origin):
   wait_until_ready()
+  if cors_origin:
+    check_cors(cors_origin)
+    print('PASS: configured CORS origin accepted and unlisted origin rejected')
   _, live = expect('GET', '/actuator/health/liveness')
   check(live == {'status': 'UP'}, 'liveness must expose only UP status')
   expect('GET', '/actuator/env', status=404)
@@ -125,9 +150,10 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument('--disposable', action='store_true', required=True,
     help='confirm localhost:8080 belongs to a fresh disposable Compose project')
-  parser.parse_args()
+  parser.add_argument('--cors-origin', help='expected browser origin for a hosted Compose preflight')
+  args = parser.parse_args()
   try:
-    run()
+    run(args.cors_origin)
   except SmokeFailure as error:
     print('FAIL: ' + str(error), file=sys.stderr)
     sys.exit(1)

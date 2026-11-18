@@ -2,6 +2,8 @@
 
 Manager Web is a static Angular application and can use any static host or reverse proxy. Production defaults to `/api/v1` on the web origin. Split-origin hosting uses the public build variable `KEYNEST_API_BASE_URL`; no cloud-specific hostname or source edit is required.
 
+For separate Docker-backed test and production environments, follow the [Manager deployment workflow](DEPLOYMENT.md).
+
 The Git-connected Vercel project was created when this repo was a **Next.js** app. Keynest Manager Web is now **Angular** at `apps/manager-web`.
 
 ## Required dashboard changes
