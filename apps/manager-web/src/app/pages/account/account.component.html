@@ -12,6 +12,17 @@
     }
     <button mat-stroked-button type="button" (click)="logout()">Sign out</button>
   </section>
+
+  <section class="panel" aria-labelledby="ai-settings-heading">
+    <h2 id="ai-settings-heading">AI settings</h2>
+    <p>Use your own OpenAI key to explain the built-in password policy. A Keynest administrator must enable AI explanations for this instance.</p>
+    <details #aiSetup (toggle)="aiSetupOpen.set(aiSetup.open)">
+      <summary>OpenAI setup</summary>
+      @if (aiSetupOpen()) {
+        <kn-policy-explanation [embedded]="true" />
+      }
+    </details>
+  </section>
 } @else {
   <p class="page-lede">Sign in or create an account to use your vault.</p>
   <form class="panel" (ngSubmit)="login()">

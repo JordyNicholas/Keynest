@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
@@ -9,9 +9,10 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 
 @Component({
+  selector: 'kn-policy-explanation',
   imports: [InlineErrorComponent, MatButtonModule, RouterLink],
   templateUrl: './policy-explanation.component.html',
-  styleUrl: '../page-shared.css',
+  styleUrls: ['../page-shared.css', './policy-explanation.component.css'],
 })
 export class PolicyExplanationComponent {
   private readonly http = inject(HttpClient);
@@ -20,6 +21,7 @@ export class PolicyExplanationComponent {
   private readonly destroyRef = inject(DestroyRef);
   private request?: Subscription;
 
+  readonly embedded = input(false);
   readonly providerId = 'openai';
   readonly policyId = 'keynest.default.v1';
   readonly pending = signal(false);

@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { OverlayContainer } from '@angular/cdk/overlay';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { VaultPageComponent } from './vault.component';
@@ -57,8 +58,25 @@ describe('VaultPageComponent', () => {
     expect(row.textContent).toContain('demo-user');
     expect(row.textContent).toContain('https://example.com');
     expect(row.querySelector('output.secret')).toBeNull();
-    const links = Array.from(row.querySelectorAll('a'), (link) => link.getAttribute('href'));
+    const host: HTMLElement = fixture.nativeElement;
+    host.style.inlineSize = '288px';
+    const reveal = row.querySelector<HTMLButtonElement>('button')!;
+    const more = row.querySelector<HTMLButtonElement>('button[aria-haspopup=menu]')!;
+    expect(reveal.textContent).toContain('Reveal for 15s');
+    expect(reveal.getBoundingClientRect().top).toBe(more.getBoundingClientRect().top);
+    expect(more.getBoundingClientRect().right).toBeLessThanOrEqual(row.getBoundingClientRect().right);
+    expect(row.querySelector('a')).toBeNull();
+
+    more.click();
+    fixture.detectChanges();
+    const menu = TestBed.inject(OverlayContainer).getContainerElement().querySelector('[role=menu]')!;
+    expect(menu.getAttribute('aria-label')).toBe('Actions for Example account');
+    const links = Array.from(menu.querySelectorAll('a'), (link) => link.getAttribute('href'));
     expect(links).toEqual(['/vault/edit/item-1', '/vault/rotate/item-1']);
+    const deleteAction = menu.querySelector('button')!;
+    expect(deleteAction.textContent).toContain('Delete');
+    expect(getComputedStyle(deleteAction).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    expect(getComputedStyle(deleteAction).color).not.toBe(getComputedStyle(menu.querySelector('a')!).color);
   });
 
   it('labels expiry on saved cards at both thresholds and for overdue and undated passwords', () => {

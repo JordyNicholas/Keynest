@@ -36,15 +36,22 @@
             <small>Automatically concealed after {{ revealDurationSeconds }} seconds.</small>
           }
         </div>
-        <div class="row vault-card-actions">
+        <div class="vault-card-actions">
           @if (revealed()[item.id]) {
-            <button mat-flat-button type="button" (click)="conceal(item.id)">Conceal</button>
+            <button mat-stroked-button type="button" (click)="conceal(item.id)">Conceal</button>
           } @else {
-            <button mat-flat-button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
+            <button mat-stroked-button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
-          <a mat-stroked-button [routerLink]="['/vault', 'edit', item.id]" [attr.aria-label]="'Edit ' + item.label">Edit details</a>
-          <a mat-stroked-button [routerLink]="['/vault', 'rotate', item.id]" [attr.aria-label]="'Rotate password for ' + item.label">Rotate password</a>
-          <button mat-stroked-button type="button" class="delete-button" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
+          <button mat-button type="button" [matMenuTriggerFor]="itemActions"
+                  [attr.aria-label]="'More actions for ' + item.label">More actions</button>
+          <mat-menu #itemActions="matMenu" [aria-label]="'Actions for ' + item.label">
+            <ng-template matMenuContent>
+              <a mat-menu-item [routerLink]="['/vault', 'edit', item.id]">Edit details</a>
+              <a mat-menu-item [routerLink]="['/vault', 'rotate', item.id]">Rotate password</a>
+              <button mat-menu-item type="button" class="delete-button" [disabled]="pending()"
+                      (click)="remove(item.id)">Delete</button>
+            </ng-template>
+          </mat-menu>
         </div>
       </li>
     } @empty {

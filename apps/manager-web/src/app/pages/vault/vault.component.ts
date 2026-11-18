@@ -6,6 +6,7 @@ import { finalize } from 'rxjs';
 import { Component, computed, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
@@ -16,7 +17,7 @@ const DAY_MS = 86_400_000;
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [InlineErrorComponent, DatePipe, RouterLink, MatButtonModule],
+  imports: [InlineErrorComponent, DatePipe, RouterLink, MatButtonModule, MatMenuModule],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })

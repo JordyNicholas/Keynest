@@ -7,12 +7,13 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
+import { PolicyExplanationComponent } from '../policy-explanation/policy-explanation.component';
 
 type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, FormsModule, MatButtonModule, RouterLink],
+  imports: [InlineErrorComponent, FormsModule, MatButtonModule, RouterLink, PolicyExplanationComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
@@ -26,6 +27,7 @@ export class AccountPageComponent {
   readonly formEmail = signal('');
   readonly formPassword = signal('');
   readonly error = signal('');
+  readonly aiSetupOpen = signal(false);
 
   constructor() {
     const token = this.auth.token();
@@ -87,6 +89,7 @@ export class AccountPageComponent {
   }
 
   private clearAuth(): void {
+    this.aiSetupOpen.set(false);
     this.auth.clearSession();
     this.error.set('');
   }
