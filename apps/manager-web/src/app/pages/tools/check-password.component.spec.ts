@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
 import { CheckPasswordPageComponent } from './check-password.component';
 
@@ -8,7 +9,7 @@ describe('CheckPasswordPageComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CheckPasswordPageComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_BASE_URL, useValue: '/api/v1' }],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), { provide: API_BASE_URL, useValue: '/api/v1' }],
     });
   });
 
