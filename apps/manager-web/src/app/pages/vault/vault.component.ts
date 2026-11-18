@@ -7,6 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { Component, computed, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -25,7 +26,7 @@ type VaultItem = {
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [InlineErrorComponent, PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink],
+  imports: [InlineErrorComponent, PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink, MatButtonModule],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })
@@ -56,11 +57,6 @@ export class VaultPageComponent implements OnDestroy {
       .map(({ item }) => item);
   });
   readonly revealed = signal<Record<string, string>>({});
-  readonly newLabel = signal('Example site');
-  readonly newUsername = signal('demo');
-  readonly newUrl = signal('https://example.com');
-  readonly newExpiryDays = signal<number | null>(90);
-  readonly newNotifyDays = signal<number | null>(14);
   readonly editLabel = signal('');
   readonly editUsername = signal('');
   readonly editUrl = signal('');
@@ -114,44 +110,6 @@ export class VaultPageComponent implements OnDestroy {
         if (this.auth.token() === token) this.error.set('Vault list failed — sign in again');
       },
     });
-  }
-
-  createItem(input: HTMLInputElement, generate: boolean): void {
-    if (this.pending() || !this.auth.signedIn()
-        || !this.validDays(this.newExpiryDays(), this.newNotifyDays())) return;
-    const label = this.newLabel().trim();
-    if (!label || label.length > 200 || this.newUsername().length > 320 || this.newUrl().length > 2000) {
-      this.error.set('Enter a label and keep the metadata within the field limits.');
-      return;
-    }
-    const password = generate ? undefined : input.value;
-    if (!generate && !password?.trim()) {
-      this.error.set('Enter a password or choose to generate one.');
-      return;
-    }
-    input.value = '';
-    this.pending.set(true);
-    this.policyViolations.set([]);
-    this.error.set('');
-    this.http
-      .post<VaultItem>(
-        `${this.apiBaseUrl}/vault/items`,
-        {
-          label,
-          url: this.newUrl(),
-          username: this.newUsername(),
-          generate,
-          password,
-          expiresInDays: this.newExpiryDays(),
-          notifyBeforeDays: this.newNotifyDays(),
-        },
-        { headers: this.auth.authHeaders() }
-      )
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
-      .subscribe({
-        next: () => this.refreshVault(),
-        error: (response) => this.showSaveError(response.error, 'Could not create the vault item.'),
-      });
   }
 
   openEditor(item: VaultItem): void {

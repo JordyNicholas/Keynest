@@ -1,0 +1,55 @@
+<h1 class="page-title">Add vault item</h1>
+<kn-inline-error [message]="error()" [details]="details()" />
+
+<form ngNativeValidate class="panel" (submit)="visibility.hide(); save($event, password)">
+  <fieldset [disabled]="saving()">
+    <legend>Login details</legend>
+    <label>Label
+      <input type="text" required maxlength="200" [ngModel]="label()" (ngModelChange)="label.set($event)" name="label" />
+    </label>
+    <label>Username (optional)
+      <input type="text" maxlength="320" [ngModel]="username()" (ngModelChange)="username.set($event)" name="username" />
+    </label>
+    <label>Website URL (optional)
+      <input type="url" maxlength="2000" [ngModel]="url()" (ngModelChange)="url.set($event)" name="url" />
+    </label>
+  </fieldset>
+
+  <fieldset [disabled]="saving()">
+    <legend>Password</legend>
+    <label>
+      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); password.value = ''; visibility.hide()" name="mode" aria-label="Password source">
+        <option value="existing">Enter an existing password</option>
+        <option value="generate">Generate on save</option>
+      </select>
+    </label>
+    <div [hidden]="mode() === 'generate'">
+      <label>Existing password
+        <input #password knPasswordVisibility #visibility="knPasswordVisibility"
+               autocomplete="new-password" spellcheck="false" [required]="mode() === 'existing'"
+               [disabled]="mode() === 'generate'" />
+      </label>
+      <button mat-stroked-button type="button" [attr.aria-pressed]="visibility.visible()" (click)="visibility.toggle()">Show password</button>
+    </div>
+    @if (mode() === 'generate') {
+      <p>Keynest generates and saves the password when you submit. You can reveal it from Vault.</p>
+    }
+  </fieldset>
+
+  <fieldset [disabled]="saving()">
+    <legend>Expiry</legend>
+    <label>Expires in days (optional)
+      <input type="number" min="1" max="2147483647" step="1" [ngModel]="expiryDays()" (ngModelChange)="expiryDays.set($event)" name="expiry" />
+    </label>
+    <label>Notify before expiry (days)
+      <input type="number" min="0" max="2147483647" step="1" [ngModel]="noticeDays()" (ngModelChange)="noticeDays.set($event)" name="notice" />
+    </label>
+  </fieldset>
+
+  <div class="row">
+    <button mat-flat-button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save item' }}</button>
+    @if (!saving()) {
+      <a mat-stroked-button routerLink="/vault">Cancel</a>
+    }
+  </div>
+</form>
