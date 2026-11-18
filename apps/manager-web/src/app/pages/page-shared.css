@@ -31,30 +31,6 @@
   font-size: 0.95rem;
 }
 
-/* Native buttons only — do not override Material (mat-*) chrome. */
-button:not(.mat-mdc-button) {
-  font-family: var(--kn-font-body);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--kn-color-accent-ink);
-  background: var(--kn-color-accent);
-  border: 0;
-  padding: 0.65rem 1rem;
-  cursor: pointer;
-}
-
-button:not(.mat-mdc-button):hover {
-  background: var(--kn-color-accent-hover);
-}
-
-button.danger:not(.mat-mdc-button) {
-  background: var(--kn-color-danger-accent);
-}
-
-button.danger:not(.mat-mdc-button):hover {
-  background: var(--kn-color-danger-accent-hover);
-}
-
 label {
   display: grid;
   gap: 0.4rem;

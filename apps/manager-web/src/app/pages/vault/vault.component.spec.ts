@@ -73,7 +73,10 @@ describe('VaultPageComponent', () => {
     expect(menu.getAttribute('aria-label')).toBe('Actions for Example account');
     const links = Array.from(menu.querySelectorAll('a'), (link) => link.getAttribute('href'));
     expect(links).toEqual(['/vault/edit/item-1', '/vault/rotate/item-1']);
-    expect(menu.querySelector('button')?.textContent).toContain('Delete');
+    const deleteAction = menu.querySelector('button')!;
+    expect(deleteAction.textContent).toContain('Delete');
+    expect(getComputedStyle(deleteAction).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    expect(getComputedStyle(deleteAction).color).not.toBe(getComputedStyle(menu.querySelector('a')!).color);
   });
 
   it('labels expiry on saved cards at both thresholds and for overdue and undated passwords', () => {
