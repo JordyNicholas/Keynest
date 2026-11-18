@@ -34,6 +34,16 @@ JordyNicholas confirmed both results on November 18, 2026. The test dates, revis
 | Full-stack browser walkthrough with AI disabled | Pending | Manager Web and API revisions pending | OS, browser version, and Web/API deployment topology pending | Pass, maintainer-confirmed |
 | PostgreSQL backup and restore with the matching retained vault key | Pending | Manager API revision or image digest pending | Host/runtime, PostgreSQL version, and restore-target details pending | Pass, maintainer-confirmed |
 
+### Operator environment captured November 18, 2026
+
+| Command | Reported output |
+| --- | --- |
+| `git rev-parse HEAD` | `3f10d42f7a58b726d108b712d8fac00287356599` |
+| `docker compose version` | `Docker Compose version v5.7.0` |
+| `postgres --version` in the Compose PostgreSQL service | `postgres (PostgreSQL) 16.16` |
+
+The checkout SHA matches the frozen candidate. Attribution of this checkout and environment to the historical walkthrough and restore is pending.
+
 ### Evidence to record
 
 Record the revision, date, operator and environment, observed result, and sanitized evidence for each rehearsal. Use pass, fail, or pending.
