@@ -1,10 +1,4 @@
-@if (!embedded()) {
-  <a routerLink="/tools/check">Back to Check password policy</a>
-  <h1 class="page-title">Explain the built-in password policy</h1>
-  <p class="page-lede">Get a plain-language explanation of why Keynest’s default rules exist. Your Keynest administrator must enable this optional feature.</p>
-}
-
-<form [class.panel]="!embedded()" (submit)="explain($event, providerKey)">
+<form (submit)="explain($event, providerKey)">
   <p id="provider-disclosure">OpenAI receives selected built-in policy rules and instructions to explain them. Your API key is used once, and provider charges may apply.</p>
   <label for="provider-key">OpenAI API key</label>
   <input #providerKey id="provider-key" type="password" autocomplete="off" aria-describedby="provider-disclosure"
@@ -21,9 +15,3 @@
 </form>
 
 <kn-inline-error [message]="error()" />
-@if (explanation()) {
-  <section class="panel" aria-labelledby="explanation-heading" aria-live="polite" animate.enter="kn-enter">
-    <h2 id="explanation-heading">Explanation</h2>
-    <p>{{ explanation() }}</p>
-  </section>
-}

@@ -2,7 +2,7 @@ import { InlineErrorComponent } from '../inline-error.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -27,7 +27,8 @@ export class AccountPageComponent {
   readonly formEmail = signal('');
   readonly formPassword = signal('');
   readonly error = signal('');
-  readonly aiSetupOpen = signal(false);
+  readonly aiSetupRequested = inject(ActivatedRoute).snapshot.queryParamMap.get('ai') === 'policy-explanation';
+  readonly aiSetupOpen = signal(this.aiSetupRequested);
 
   constructor() {
     const token = this.auth.token();

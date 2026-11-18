@@ -9,9 +9,8 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
 import { passwordViolationMessages } from '../password-violation-messages';
-import { BuiltInPolicy } from '../tools/built-in-policy';
+import { BuiltInPolicy, generatorOptionsForPolicy } from '../tools/built-in-policy';
 import { PasswordGeneratorOptionsComponent } from '../tools/password-generator-options.component';
-import { maxPasswordLength, minPasswordLength } from '../tools/password-options';
 
 @Component({
   selector: 'kn-vault-create-page',
@@ -32,16 +31,7 @@ export class VaultCreatePageComponent {
   readonly loadingPolicy = signal(false);
   readonly policyRules = computed(() => {
     const rules = this.policy()?.rules;
-    if (!rules) return null;
-    return {
-      minLength: Math.max(minPasswordLength, rules.minLength),
-      maxLength: Math.min(maxPasswordLength, rules.maxLength),
-      requiredGroups: {
-        lower: rules.requireLower, upper: rules.requireUpper, digits: rules.requireDigit, symbols: rules.requireSymbol,
-      },
-      minCategories: rules.minCategories,
-      excludeAmbiguous: rules.excludeAmbiguous,
-    };
+    return rules ? generatorOptionsForPolicy(rules) : null;
   });
 
   readonly label = signal('');

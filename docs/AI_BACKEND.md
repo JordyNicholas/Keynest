@@ -4,7 +4,7 @@ The Manager API and web workflow implement [ADR-0010](./ADR-0010-ephemeral-byok-
 
 ## Manager Web
 
-Open **AI settings → OpenAI setup** in Account settings, or follow **Explain the built-in policy** from the password-policy tool. Both use the same one-request credential flow. Closing the account setup clears any unsubmitted key and cancels the browser’s pending request.
+Open **AI settings → OpenAI setup** in Account settings, or follow **Explain the built-in policy with AI** from the password-policy tool to open that setup. The explanation request checks provider access and returns the result to **Why these rules?**. Rejected keys and provider failures return to the same form with different guidance. Closing setup clears any unsubmitted key and cancels the browser’s pending request.
 
 ## Contract
 
