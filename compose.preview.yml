@@ -1,0 +1,4 @@
+services:
+  manager-api:
+    environment:
+      KEYNEST_CORS_ALLOWED_ORIGINS: "http://localhost:4200,https://keynest-manager.vercel.app"
