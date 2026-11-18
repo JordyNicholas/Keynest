@@ -2,6 +2,8 @@
 
 Manager Web works from a local browser or Vercel. Manager API and PostgreSQL run in Docker in each environment. Set the web build's public `KEYNEST_API_BASE_URL` for its target environment. Vercel Preview and Production use distinct HTTPS API origins, with a separate database volume, database password and vault key for each Compose project.
 
+Run production on a dedicated Docker host. Prefer a second Docker host for test. If a test host is unavailable, [run the test stack locally](#local-test-fallback) and continue verification there. A hosted Preview walkthrough requires a reachable test API.
+
 | Environment | Manager Web | Manager API | Compose project |
 | --- | --- | --- | --- |
 | Local development | `http://localhost:4200`, via `npm start` in `apps/manager-web` | `http://localhost:8080/api/v1` | `keynest-local`, local development Compose |
@@ -16,7 +18,7 @@ CI builds and starts the Manager API with the hosted Compose definition and a di
 
 For a deployment candidate on `main`, use GitHub **Actions → CI → Run workflow**, select `main`, and enable **Publish the verified Manager API image to GHCR**. Publication runs after the CI gates and pushes the exact Manager API image used by the hosted Compose smoke test. Use the digest in the run summary (`ghcr.io/<owner>/<repo>/manager-api@sha256:…`) in both environments. Give each Docker host registry pull access if the package is private. This workflow publishes a container image. The steps below control when each deployment changes.
 
-## Deploy and verify test
+## Deploy and verify hosted test
 
 The Docker host needs HTTPS ingress with separate test and production hostnames. For each hostname, route `/api/v1/**` to the corresponding API loopback port, preserving the request path and query. Keep the Spring Actuator probe endpoints on loopback. Preserve the API's cache-control headers and bypass shared caching for `/api/v1/**`. Follow the [trusted proxy guidance](VERCEL.md#reverse-proxies-and-rate-limit-identity) before configuring any forwarded addresses.
 
@@ -48,6 +50,12 @@ The readiness check retries while Spring starts. On Linux, supply the private en
 1. In Vercel, set `KEYNEST_API_BASE_URL` for **Preview** (scope to the test branch if needed) to the test HTTPS URL including `/api/v1`. Redeploy the candidate commit. Use a [stable preview domain](https://vercel.com/docs/domains/working-with-domains/assign-domain-to-a-git-branch) in the test CORS allowlist and open that domain for testing.
 2. In Edge DevTools, check that the request to `/api/v1/tools/health` reaches the test API and returns JSON. For a preflight on a Vault request, check that `Access-Control-Allow-Origin` matches the actual preview URL's origin. Verify sign-in and the Vault workflow with disposable test credentials. Keep real credentials and passwords out of test evidence.
 3. To run a local web build against the same hosted test API, add the local web origin to the test allowlist (comma-separated), apply the Compose configuration, and [build Manager Web with the test API URL](VERCEL.md#manager-api-base-url-api_base_url). Serve the output with your local static server using a SPA fallback. The default `npm start` continues to use the localhost API.
+
+## Local test fallback
+
+Use Docker Desktop with Linux containers on Windows. Use the same hosted Compose file and test image digest. Set the local test env file's `KEYNEST_API_PORT` to `8080` and `KEYNEST_CORS_ALLOWED_ORIGINS` to `http://localhost:4200`. Use local test credentials and a new vault key. Port 8080 must be available. If the development stack is using it, stop that API from the repository root with `docker compose -p keynest-local -f deploy/docker-compose.yml stop manager-api`.
+
+Run the test commands above using `-p keynest-test-local` and the local test env file, and probe port 8080 instead of 8081. From `apps/manager-web`, run `npm ci` and `npm start`, then open `http://localhost:4200`. Record this as local verification. Use a hosted test API for the Vercel browser check when it becomes available.
 
 ## Promote to production
 
