@@ -27,16 +27,18 @@ On November 18, [PR #163 CI](https://github.com/JordyNicholas/Keynest/actions/ru
 
 ### Maintainer rehearsal results
 
-JordyNicholas confirmed the following results on November 18, 2026. The tested revisions and environment details are pending.
+JordyNicholas confirmed both results on November 18, 2026. The test dates, revisions, and environments below describe the actual rehearsals.
 
-| Rehearsal | Result | Source |
-| --- | --- | --- |
-| Full-stack browser walkthrough with AI disabled | Pass | Maintainer confirmation |
-| PostgreSQL backup and restore with the matching retained vault key | Pass | Maintainer confirmation |
+| Rehearsal | Test date | Tested revision | Environment | Result |
+| --- | --- | --- | --- | --- |
+| Full-stack browser walkthrough with AI disabled | Pending | Manager Web and API revisions pending | OS, browser version, and Web/API deployment topology pending | Pass, maintainer-confirmed |
+| PostgreSQL backup and restore with the matching retained vault key | Pending | Manager API revision or image digest pending | Host/runtime, PostgreSQL version, and restore-target details pending | Pass, maintainer-confirmed |
 
 ### Evidence to record
 
 Record the revision, date, operator and environment, observed result, and sanitized evidence for each rehearsal. Use pass, fail, or pending.
+
+For a local build, run `git rev-parse HEAD` in the checkout used to build the tested service. If the checkout has moved since the test, use the original build or deployment record. Record Web and API separately when they came from different builds. For a hosted deployment, use its recorded source commit, deployment ID, or image digest. Use **Unknown** when the original evidence cannot be recovered.
 
 - **Browser:** Exercise sign-in, both manual and generated creation, reload, reveal/conceal, metadata edit, rotation, delete confirmation, and sign-out. Include keyboard focus, reduced motion, and a rejected password.
 - **Recovery:** Follow [database migrations](./DATABASE_MIGRATIONS.md) using a disposable restore target and the separately retained matching vault key. Verify fresh sign-in and reveal after restart.
@@ -59,14 +61,15 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 
 [PR #124](https://github.com/JordyNicholas/Keynest/pull/124) added the Apache-2.0 license, Maven license metadata and security policy. The maintainer confirmed on November 15 that GitHub private vulnerability reporting is enabled. The maintainer deferred the reporter-side form check. See the [security policy](../SECURITY.md).
 
-The [unreleased changelog](../CHANGELOG.md) is in place.
+The [candidate changelog](../CHANGELOG.md) is in place.
 
 ## Candidate distribution
+
+Keynest `0.1.0-rc.1` is pinned to [`3f10d42`](https://github.com/JordyNicholas/Keynest/commit/3f10d42f7a58b726d108b712d8fac00287356599). All six jobs in [the candidate CI run](https://github.com/JordyNicholas/Keynest/actions/runs/44404840850) passed on that exact commit, including 39 Angular browser tests, Maven and the standalone consumer on Java 21 and 25, and packaged Compose smoke.
 
 The `0.1.0-rc.1` distribution path is a checkout or source archive of the candidate commit. The [standalone consumer](../examples/external-consumer/README.md) verifies local installation of the three Java libraries on Java 21 and 25. The [Compose guide](./COMPOSE.md) builds the Manager API from the same source, and the [README](../README.md) covers Manager Web. GitHub Packages publication is planned separately.
 
 ## Open release gates
 
-- Add tested revision and environment details for the maintainer-confirmed rehearsals.
-- Select the release candidate and record passing CI for its exact SHA.
+- Complete the test date, revision, and environment fields for the maintainer-confirmed rehearsals.
 - Optional live BYOK rehearsal requires maintainer approval. Keep BYOK disabled for core verification. Agent tooling is post-release.
