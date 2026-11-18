@@ -4,7 +4,7 @@ This Maven project depends only on `keynest-seal`, `keynest-policy` and `keynest
 
 ## Build and run
 
-Prerequisites: Java 21+ and Maven 3.9+. From the repository root, install the current development artifacts into your local Maven repository:
+Prerequisites: Java 21+ and Maven 3.9+. From the repository root, build and install the candidate libraries into your local Maven repository:
 
 ```bash
 mvn -B -pl libs/keynest-seal,libs/keynest-policy,libs/keynest-generate -am install -DskipTests
@@ -13,7 +13,7 @@ mvn -B -f examples/external-consumer/pom.xml verify
 
 The first command selects only the libraries and their build parents, not Manager. The second is an independent Maven invocation; it compiles and executes the example during `verify`. Library tests run separately in the repository's Java CI jobs. To rerun the compiled example, use `mvn -f examples/external-consumer/pom.xml exec:java`.
 
-CI builds and runs the consumer on Java 21 and Java 25. This demonstrates local snapshot consumption; it does not claim published artifacts in Maven Central or GitHub Packages. Once release artifacts are published, change `keynest.version` and configure the documented artifact repository instead of the local install step.
+CI builds and runs the consumer on Java 21 and Java 25. The `keynest.version` property pins this example to `0.1.0-rc.1` for source-based consumption. Registry instructions will follow verified publication.
 
 ## What the executable verifies
 

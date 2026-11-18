@@ -27,13 +27,13 @@ Ship reusable password-safety libraries (seal/open, policy validate, generate, r
 
 The Manager must call the **same** public library APIs external services would. No private shortcuts.
 
-Try the [standalone Java consumer](./examples/external-consumer/README.md): it generates/validates, seals/opens and rewraps using only the three libraries, with Manager/Spring dependencies explicitly banned. Development artifacts currently require a local Maven install; published-package distribution remains release work.
+Try the [standalone Java consumer](./examples/external-consumer/README.md): it generates/validates, seals/opens and rewraps using only the three libraries, with Manager/Spring dependencies explicitly banned. Build the libraries from source and install them into your local Maven repository to try the example.
 
-### Library publication
+### Library distribution
 
-The standalone example is the supported way to try the libraries before registry publication. A successful run verifies generation and validation, sealing and opening, rewrapping, and wrong-key and wrong-context rejection using only the library dependencies.
+Keynest `0.1.0-rc.1` uses source distribution. From a checkout or source archive of the candidate revision, follow the standalone example to build and install the three libraries into your local Maven repository. A successful run verifies generation and validation, sealing and opening, rewrapping, and wrong-key and wrong-context rejection using only the library dependencies.
 
-GitHub Packages is the planned first registry. Select a release version, publish the Maven parent and the three library artifacts, and verify the standalone consumer with a clean Maven cache and no local install step. Document the verified coordinates and authentication instructions after that check. Maven Central publication remains future work. See [GitHub’s Maven registry guide](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry).
+GitHub Packages is planned as the first registry. Registry distribution requires publishing the Maven parent and the three libraries, then verifying the standalone consumer from a clean Maven cache. Maven Central publication remains future work. See [GitHub’s Maven registry guide](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry).
 
 ### Problems we solve
 
@@ -128,7 +128,7 @@ mvn test
 
 ```bash
 mvn -pl apps/manager-api -am package -DskipTests
-java -jar apps/manager-api/target/manager-api-0.1.0-SNAPSHOT.jar
+java -jar apps/manager-api/target/manager-api-0.1.0-rc.1.jar
 ```
 
 Tools endpoints:
