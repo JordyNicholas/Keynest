@@ -1,6 +1,6 @@
-# November 21 MVP release evidence
+# MVP verification and release evidence
 
-Target: Saturday, November 21, 2026 (America/Sao_Paulo). Record the release candidate SHA and evidence links before calling a gate complete. See the [canonical roadmap](./MASTER_ROADMAP.md) for execution order and acceptance criteria.
+The implementation checkpoint is November 21, 2026, and the public release target is November 28, 2026 (America/Sao_Paulo). Record the release candidate SHA and evidence links before calling a release gate complete. See the [canonical roadmap](./MASTER_ROADMAP.md) for execution order and acceptance criteria.
 
 | Gate | Evidence required |
 | --- | --- |
@@ -21,7 +21,18 @@ On November 15, [push CI](https://github.com/JordyNicholas/Keynest/actions/runs/
 
 ## Implementation baseline for manual verification
 
-On November 16, [main CI](https://github.com/JordyNicholas/Keynest/actions/runs/43889723243) passed all six jobs on `c052de639dbba1856a1bae7e76806122a1637e50`: Maven and standalone consumer on Java 21 and 25, Angular, and packaged Compose smoke. Use this revision to start manual verification. Select the release candidate after verification and any fixes.
+On November 16, [main CI](https://github.com/JordyNicholas/Keynest/actions/runs/43889723243) passed all six jobs on `c052de639dbba1856a1bae7e76806122a1637e50`: Maven and standalone consumer on Java 21 and 25, Angular, and packaged Compose smoke. This is historical evidence for the implementation baseline.
+
+On November 18, [PR #163 CI](https://github.com/JordyNicholas/Keynest/actions/runs/44399804190) passed on `d2cdf4571c11a22480f66af6ecb99c0e677b9b1d`. It passed 39 Angular browser tests, Maven and the standalone consumer on Java 21 and 25, and the packaged Compose smoke test. The squash merge [`ee77458`](https://github.com/JordyNicholas/Keynest/commit/ee774580589dd62b4683590ccc89e206d7b296f7) has the same Git tree as the tested PR revision. Record exact-SHA CI separately when the release candidate is selected.
+
+### Maintainer rehearsal results
+
+JordyNicholas confirmed the following results on November 18, 2026. The tested revisions and environment details are pending.
+
+| Rehearsal | Result | Source |
+| --- | --- | --- |
+| Full-stack browser walkthrough with AI disabled | Pass | Maintainer confirmation |
+| PostgreSQL backup and restore with the matching retained vault key | Pass | Maintainer confirmation |
 
 ### Evidence to record
 
@@ -52,6 +63,7 @@ The [unreleased changelog](../CHANGELOG.md) is in place.
 
 ## Open release gates
 
-- Full-stack rehearsal and operator backup/restore with separately retained vault key.
-- Package availability.
+- Add tested revision and environment details for the maintainer-confirmed rehearsals.
+- Select the release candidate and record passing CI for its exact SHA.
+- Confirm package availability or document the reproducible source-build path for the release.
 - Optional live BYOK rehearsal requires maintainer approval. Keep BYOK disabled for core verification. Agent tooling is post-release.
