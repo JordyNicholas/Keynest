@@ -10,13 +10,21 @@
     <button mat-stroked-button type="button" [disabled]="pending()" (click)="refreshVault()">Refresh</button>
   </div>
 
-  <ul class="vault-list">
+  <ul class="vault-list saved-items">
     @for (item of items(); track item.id) {
-      <li>
-        <div>
+      @let expiry = expiryStatus(item.expiresAt);
+      <li class="vault-card">
+        <div class="vault-card-heading">
           <strong>{{ item.label }}</strong>
-          <span>{{ item.username }} · {{ item.url }}</span>
-          <span>Expires {{ item.expiresAt ? (item.expiresAt | date:'medium') : 'never' }}</span>
+          <span class="expiry-status" [attr.data-tone]="expiry.tone">{{ expiry.label }}</span>
+        </div>
+        <div class="vault-card-details">
+          @if (item.username || item.url) {
+            <span>{{ item.username }}{{ item.username && item.url ? ' · ' : '' }}{{ item.url }}</span>
+          }
+          @if (item.expiresAt) {
+            <span>Expiry date {{ item.expiresAt | date:'medium' }}</span>
+          }
           @if (item.lastRotatedAt) {
             <span>Last rotated {{ item.lastRotatedAt | date:'medium' }}</span>
           }
@@ -28,15 +36,15 @@
             <small>Automatically concealed after {{ revealDurationSeconds }} seconds.</small>
           }
         </div>
-        <div class="row">
+        <div class="row vault-card-actions">
           @if (revealed()[item.id]) {
-            <button type="button" (click)="conceal(item.id)">Conceal</button>
+            <button mat-flat-button type="button" (click)="conceal(item.id)">Conceal</button>
           } @else {
-            <button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
+            <button mat-flat-button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
           <a mat-stroked-button [routerLink]="['/vault', 'edit', item.id]" [attr.aria-label]="'Edit ' + item.label">Edit details</a>
           <a mat-stroked-button [routerLink]="['/vault', 'rotate', item.id]" [attr.aria-label]="'Rotate password for ' + item.label">Rotate password</a>
-          <button type="button" class="danger" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
+          <button mat-stroked-button type="button" class="delete-button" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
         </div>
       </li>
     } @empty {

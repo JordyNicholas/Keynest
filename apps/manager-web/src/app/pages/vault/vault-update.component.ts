@@ -10,13 +10,12 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { confirmVaultChange } from '../confirm-vault-change';
 import { InlineErrorComponent } from '../inline-error.component';
-import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { passwordViolationMessages } from '../password-violation-messages';
 import { VaultItem } from './vault-item';
 
 @Component({
   selector: 'kn-vault-update-page',
-  imports: [FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordVisibilityDirective, RouterLink],
+  imports: [FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, RouterLink],
   templateUrl: './vault-update.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css'],
 })
@@ -41,6 +40,8 @@ export class VaultUpdatePageComponent {
   readonly noticeDays = signal<number | null>(null);
   readonly error = signal('');
   readonly details = signal<string[]>([]);
+  readonly hasReplacement = signal(false);
+  readonly copyStatus = signal('');
 
   constructor() {
     effect(() => {
@@ -53,6 +54,8 @@ export class VaultUpdatePageComponent {
       switchMap((params) => {
         const input = this.replacementInput()?.nativeElement;
         if (input) input.value = '';
+        this.hasReplacement.set(false);
+        this.copyStatus.set('');
         this.item.set(null);
         this.error.set('');
         this.details.set([]);
@@ -85,6 +88,7 @@ export class VaultUpdatePageComponent {
   generateReplacement(input: HTMLInputElement): void {
     const item = this.item();
     if (!this.rotating || !item || this.pending() || !this.sessionActive()) return;
+    this.copyStatus.set('');
     this.pending.set(true);
     this.error.set('');
     this.details.set([]);
@@ -92,12 +96,32 @@ export class VaultUpdatePageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({
         next: ({ password }) => {
-          if (this.sessionActive() && this.item() === item && input.isConnected) input.value = password;
+          if (!this.sessionActive() || this.item() !== item || !input.isConnected) return;
+          input.value = password;
+          this.replacementChanged(input);
         },
         error: () => {
           if (this.sessionActive() && this.item() === item) this.error.set('Could not generate a replacement password.');
         },
       });
+  }
+
+  replacementChanged(input: HTMLInputElement): void {
+    this.hasReplacement.set(Boolean(input.value));
+    this.copyStatus.set('');
+  }
+
+  async copyReplacement(input: HTMLInputElement): Promise<void> {
+    if (!this.sessionActive() || !input.value || this.pending()) return;
+    const password = input.value;
+    let message: string;
+    try {
+      await navigator.clipboard.writeText(password);
+      message = 'Replacement copied.';
+    } catch {
+      message = 'Could not copy the replacement. Check your browser’s clipboard permissions.';
+    }
+    if (this.sessionActive() && input.isConnected && input.value === password) this.copyStatus.set(message);
   }
 
   save(event: Event, input?: HTMLInputElement): void {
@@ -136,7 +160,10 @@ export class VaultUpdatePageComponent {
       void this.router.navigateByUrl('/vault');
       return;
     }
-    if (input) input.value = '';
+    if (input) {
+      input.value = '';
+      this.replacementChanged(input);
+    }
     this.pending.set(true);
     this.http.put(this.itemUrl(item.id), { ...changes, expiresInDays, notifyBeforeDays }, {
       headers: this.auth.authHeaders(),

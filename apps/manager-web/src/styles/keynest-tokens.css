@@ -28,7 +28,8 @@
   --kn-color-accent-ink: #0c1410;
   --kn-color-accent-hover: #d7eedc;
 
-  /* Danger */
+  /* Status */
+  --kn-color-warning: #f0d18a;
   --kn-color-danger: #f0b7a8;
   --kn-color-danger-surface: rgba(80, 24, 16, 0.35);
   --kn-color-danger-accent: #e2c6c6;
@@ -71,6 +72,7 @@
   --kn-color-accent-ink: #f2f7f3;
   --kn-color-accent-hover: #278555;
 
+  --kn-color-warning: #745312;
   --kn-color-danger: #9b3a2e;
   --kn-color-danger-surface: rgba(155, 58, 46, 0.12);
   --kn-color-danger-accent: #c4786c;

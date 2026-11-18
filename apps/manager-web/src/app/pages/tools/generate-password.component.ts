@@ -1,15 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../auth/auth.service';
 import { InlineErrorComponent } from '../inline-error.component';
-import { generateBrowserPassword } from './browser-password-generator';
-import { characterGroups, CharacterSelection, maxPasswordLength, minPasswordLength } from './password-options';
+import { PasswordGeneratorOptionsComponent } from './password-generator-options.component';
 
 @Component({
   selector: 'kn-generate-password-page',
-  imports: [InlineErrorComponent, FormsModule, MatButtonModule, RouterLink],
+  imports: [InlineErrorComponent, PasswordGeneratorOptionsComponent, MatButtonModule, RouterLink],
   templateUrl: './generate-password.component.html',
   styleUrl: '../page-shared.css',
 })
@@ -18,18 +16,13 @@ export class GeneratePasswordPageComponent {
   readonly copyStatus = signal('');
   readonly generated = signal('');
   readonly error = signal('');
-  readonly length = signal<number | null>(20);
-  readonly selection: CharacterSelection = { lower: true, upper: true, digits: true, symbols: true };
-  readonly characterGroups = characterGroups;
-  readonly minLength = minPasswordLength;
-  readonly maxLength = maxPasswordLength;
 
-  generate(event: Event, keyword: HTMLInputElement): void {
+  generate(event: Event, options: PasswordGeneratorOptionsComponent): void {
     event.preventDefault();
     this.clearGenerated();
     this.error.set('');
     try {
-      this.generated.set(generateBrowserPassword(this.length(), this.selection, keyword.value.trim()));
+      this.generated.set(options.generate());
     } catch (failure) {
       this.error.set(failure instanceof Error ? failure.message : 'Could not generate a password.');
     }

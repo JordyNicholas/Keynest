@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,10 +9,13 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
 import { passwordViolationMessages } from '../password-violation-messages';
+import { BuiltInPolicy } from '../tools/built-in-policy';
+import { PasswordGeneratorOptionsComponent } from '../tools/password-generator-options.component';
+import { maxPasswordLength, minPasswordLength } from '../tools/password-options';
 
 @Component({
   selector: 'kn-vault-create-page',
-  imports: [FormsModule, InlineErrorComponent, MatButtonModule, RouterLink],
+  imports: [FormsModule, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
   templateUrl: './vault-create.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css'],
 })
@@ -23,6 +26,23 @@ export class VaultCreatePageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly session = this.auth.token();
+  private readonly options = viewChild(PasswordGeneratorOptionsComponent);
+  private readonly policy = signal<BuiltInPolicy | null>(null);
+
+  readonly loadingPolicy = signal(false);
+  readonly policyRules = computed(() => {
+    const rules = this.policy()?.rules;
+    if (!rules) return null;
+    return {
+      minLength: Math.max(minPasswordLength, rules.minLength),
+      maxLength: Math.min(maxPasswordLength, rules.maxLength),
+      requiredGroups: {
+        lower: rules.requireLower, upper: rules.requireUpper, digits: rules.requireDigit, symbols: rules.requireSymbol,
+      },
+      minCategories: rules.minCategories,
+      excludeAmbiguous: rules.excludeAmbiguous,
+    };
+  });
 
   readonly label = signal('');
   readonly username = signal('');
@@ -42,6 +62,22 @@ export class VaultCreatePageComponent {
     });
   }
 
+  selectMode(mode: 'existing' | 'generate', passwordInput: HTMLInputElement): void {
+    this.mode.set(mode);
+    passwordInput.value = '';
+    this.error.set('');
+    this.details.set([]);
+    if (mode === 'generate') this.loadPolicy();
+  }
+
+  loadPolicy(): void {
+    if (this.policy() || this.loadingPolicy()) return;
+    this.loadingPolicy.set(true);
+    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loadingPolicy.set(false)))
+      .subscribe({ next: (policy) => this.policy.set(policy), error: () => this.policy.set(null) });
+  }
+
   save(event: Event, passwordInput: HTMLInputElement): void {
     event.preventDefault();
     if (this.saving() || !this.session || this.auth.token() !== this.session) return;
@@ -53,9 +89,21 @@ export class VaultCreatePageComponent {
       return;
     }
 
-    const generate = this.mode() === 'generate';
-    const password = generate ? undefined : passwordInput.value;
-    if (!generate && !password?.trim()) {
+    let password = passwordInput.value;
+    if (this.mode() === 'generate') {
+      const options = this.options();
+      if (!options) {
+        this.error.set('Load the Vault policy before generating a password.');
+        return;
+      }
+      try {
+        password = options.generate();
+      } catch (failure) {
+        this.error.set(failure instanceof Error ? failure.message : 'Could not generate a password.');
+        return;
+      }
+    }
+    if (!password.trim()) {
       this.error.set('Enter an existing password or choose Generate on save.');
       return;
     }
@@ -67,7 +115,7 @@ export class VaultCreatePageComponent {
       url: this.url(),
       expiresInDays: this.expiryDays(),
       notifyBeforeDays: this.noticeDays(),
-      generate,
+      generate: false,
       password,
     }, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))

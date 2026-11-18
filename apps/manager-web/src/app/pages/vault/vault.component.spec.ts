@@ -61,6 +61,31 @@ describe('VaultPageComponent', () => {
     expect(links).toEqual(['/vault/edit/item-1', '/vault/rotate/item-1']);
   });
 
+  it('labels expiry on saved cards at both thresholds and for overdue and undated passwords', () => {
+    const now = Date.parse('2026-11-12T12:00:00Z');
+    spyOn(Date, 'now').and.returnValue(now);
+    const dayMs = 86_400_000;
+    const samples = [30, 30 - 0.1, 14, 14 - 0.1, 0.5, 0, null];
+    component.items.set(samples.map((days, index) => ({
+      id: `expiry-${index}`,
+      label: 'Example login',
+      policyId: 'keynest.default.v1',
+      expiresAt: days === null ? undefined : new Date(now + days * dayMs).toISOString(),
+    })));
+    fixture.detectChanges();
+
+    const badges = fixture.nativeElement.querySelectorAll('.saved-items .expiry-status') as NodeListOf<HTMLElement>;
+    expect(Array.from(badges, (badge) => [badge.textContent?.trim(), badge.dataset['tone']])).toEqual([
+      ['30 days left', 'healthy'],
+      ['29 days left', 'warning'],
+      ['14 days left', 'warning'],
+      ['13 days left', 'urgent'],
+      ['Less than a day left', 'urgent'],
+      ['Expired', 'urgent'],
+      ['No expiry', 'neutral'],
+    ]);
+  });
+
   it('lists overdue and upcoming items in expiry order with rotation links', () => {
     spyOn(Date, 'now').and.returnValue(Date.parse('2026-11-12T12:00:00Z'));
     const item = { label: 'Example', policyId: 'keynest.default.v1', notifyBeforeDays: 7 };

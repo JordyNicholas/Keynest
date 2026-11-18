@@ -31,18 +31,19 @@
   </ng-template>
 
   @if (rotating) {
-    <form class="panel" ngNativeValidate (submit)="visibility.hide(); save($event, replacement)">
+    <form class="panel" ngNativeValidate (submit)="save($event, replacement)">
       <fieldset [disabled]="pending()">
         <legend>Replacement password</legend>
         <p>Change the password at the account’s website before saving the replacement here.</p>
         <label>New password
-          <input #replacement knPasswordVisibility #visibility="knPasswordVisibility"
-                 autocomplete="new-password" spellcheck="false" required />
+          <input #replacement type="password" autocomplete="new-password" spellcheck="false" required
+                 (input)="replacementChanged(replacement)" />
         </label>
         <div class="row">
-          <button mat-stroked-button type="button" [attr.aria-pressed]="visibility.visible()" (click)="visibility.toggle()">Show password</button>
           <button mat-stroked-button type="button" (click)="generateReplacement(replacement)">Generate replacement</button>
+          <button mat-stroked-button type="button" [disabled]="pending() || !hasReplacement()" (click)="copyReplacement(replacement)">Copy replacement</button>
         </div>
+        <div role="status">{{ copyStatus() }}</div>
       </fieldset>
       <ng-container [ngTemplateOutlet]="expiryFields" />
       <ng-container [ngTemplateOutlet]="actions" />

@@ -35,26 +35,33 @@
 }
 
 .nav {
-  flex-wrap: wrap;
   display: flex;
-  gap: 0.35rem 0.5rem;
+  overflow-x: auto;
+  gap: 0.5rem;
   margin: 1.75rem 0 0;
-  padding-bottom: 1rem;
+  padding: 4px 4px 0.75rem;
   border-bottom: 1px solid var(--kn-color-outline);
 }
 
 .nav a {
+  flex: 0 0 auto;
+  white-space: nowrap;
   font-family: var(--kn-font-body);
   color: var(--kn-color-muted);
   text-decoration: none;
   border-radius: 0.5rem;
-  padding: 0.55rem 0.75rem;
+  padding: 0.65rem 0.75rem;
 }
 
-.nav a:hover,
-.nav a.active {
+.nav a:hover {
   color: var(--kn-color-accent);
   background: var(--kn-color-surface-raised);
+}
+
+.nav a.active {
+  color: var(--kn-color-accent-ink);
+  background: var(--kn-color-accent);
+  font-weight: 600;
 }
 
 .main {

@@ -13,6 +13,16 @@ export class ShellComponent {
   readonly signedIn = inject(AuthService).signedIn;
   private transition?: Animation;
 
+  keepActiveLinkVisible(link: HTMLElement, active: boolean): void {
+    const nav = link.parentElement;
+    if (!active || !nav || nav.scrollWidth <= nav.clientWidth) return;
+    const bounds = nav.getBoundingClientRect();
+    const item = link.getBoundingClientRect();
+    const leftOverflow = Math.min(0, item.left - bounds.left - 4);
+    const rightOverflow = Math.max(0, item.right - bounds.right + 4);
+    nav.scrollBy({ left: leftOverflow + rightOverflow });
+  }
+
   animatePage(page: HTMLElement): void {
     this.transition?.cancel();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;

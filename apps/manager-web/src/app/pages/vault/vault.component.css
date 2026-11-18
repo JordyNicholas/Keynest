@@ -1,3 +1,61 @@
 :host {
   display: block;
 }
+
+.saved-items {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.vault-list .vault-card {
+  border-radius: 1rem;
+  padding: clamp(1rem, 4vw, 1.25rem);
+}
+
+.vault-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.vault-card-heading strong {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.vault-card-details {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vault-card .expiry-status {
+  flex: 0 0 auto;
+  margin-top: 0;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.expiry-status[data-tone='healthy'] {
+  color: var(--kn-color-accent);
+}
+
+.expiry-status[data-tone='warning'] {
+  color: var(--kn-color-warning);
+}
+
+.expiry-status[data-tone='urgent'] {
+  color: var(--kn-color-danger);
+}
+
+.vault-card-actions {
+  margin: 0.5rem 0 0;
+}
+
+.delete-button {
+  --mat-sys-primary: var(--kn-color-danger);
+  --mat-sys-outline: var(--kn-color-danger);
+}

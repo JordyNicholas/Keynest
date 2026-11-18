@@ -50,19 +50,49 @@ describe('VaultCreatePageComponent', () => {
     expect(component.saving()).toBeFalse();
   });
 
-  it('generates within the save request and returns to the vault after success', () => {
+  it('uses the selected options to generate locally and sends only the resulting password on save', async () => {
     const fixture = TestBed.createComponent(VaultCreatePageComponent);
-    const component = fixture.componentInstance;
-    const input = document.createElement('input');
+    const http = TestBed.inject(HttpTestingController);
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
-    component.label.set('Example login');
-    component.mode.set('generate');
-    input.value = 'discarded sample';
-    component.save(new Event('submit', { cancelable: true }), input);
-    const request = TestBed.inject(HttpTestingController).expectOne(endpoint);
-    expect(request.request.body.generate).toBeTrue();
-    expect(request.request.body.password).toBeUndefined();
-    expect(input.value).toBe('');
+    fixture.componentInstance.label.set('Example login');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
+    const mode = form.querySelector<HTMLSelectElement>('select[name=mode]')!;
+    mode.value = 'generate';
+    mode.dispatchEvent(new Event('change'));
+    http.expectOne('/api/v1/tools/policy').flush({
+      id: 'keynest.default.v1',
+      rules: { minLength: 16, maxLength: 128, requireLower: true, requireUpper: true,
+        requireDigit: true, requireSymbol: true, minCategories: 3, excludeAmbiguous: true },
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const length = form.querySelector<HTMLInputElement>('input[name=length]')!;
+    expect(length.min).toBe('16');
+    const categories = Array.from(form.querySelectorAll<HTMLInputElement>('input[type=checkbox]'));
+    expect(categories.length).toBe(4);
+    expect(categories.every((category) => category.checked && category.disabled)).toBeTrue();
+    const keyword = form.querySelector<HTMLInputElement>('#generator-keyword')!;
+    keyword.value = 'mango';
+    length.value = '22';
+    length.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+
+    const request = http.expectOne(endpoint);
+    const { password, ...fields } = request.request.body;
+    expect(fields).toEqual({
+      label: 'Example login', username: '', url: '', expiresInDays: 90, notifyBeforeDays: 14, generate: false,
+    });
+    expect(password.length).toBe(22);
+    expect(password).toMatch(/m[@a4]ngo/i);
+    expect(password).toMatch(/[a-z]/);
+    expect(password).toMatch(/[A-Z]/);
+    expect(password).toMatch(/[2-9]/);
+    expect(password).toMatch(/[^a-z0-9]/i);
+    expect(password).not.toMatch(/[0OIl1]/);
     expect(navigate).not.toHaveBeenCalled();
     request.flush({});
     expect(navigate).toHaveBeenCalledWith('/vault');
