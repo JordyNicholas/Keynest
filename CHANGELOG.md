@@ -8,8 +8,10 @@
 
 ### Manager
 
-- Create, list, reveal, update, and delete vault items. Revealed passwords are concealed automatically in Manager Web. The vault shows upcoming and overdue expiries and links to guided rotation.
-- The optional BYOK workflow explains the built-in policy. AI is disabled by default. See [BYOK policy explanations](./docs/AI_BACKEND.md) for configuration, data handling, and verification status.
+- Create, list, reveal, edit, and delete vault items. Manager Web automatically conceals revealed passwords. Vault cards show the time remaining to expiry and place secondary actions in a menu.
+- Generate passwords in the browser with optional length, character-type, and keyword settings. The policy checker shows which rules the sample meets as you type.
+- Rotate a saved password with the Vault policy or custom generation settings bounded by that policy. Show, hide, or copy a replacement before confirming the save.
+- The optional BYOK workflow opens key setup in Account settings and displays the explanation on the built-in policy page. AI is disabled by default. See [BYOK policy explanations](./docs/AI_BACKEND.md) for configuration, data handling, and verification status.
 - Local reminder rehearsals can simulate delivery without an email provider. External reminder email remains unavailable.
 
 ### Deployment and upgrades
