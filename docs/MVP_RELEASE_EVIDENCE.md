@@ -23,7 +23,7 @@ On November 15, [push CI](https://github.com/JordyNicholas/Keynest/actions/runs/
 
 On November 16, [main CI](https://github.com/JordyNicholas/Keynest/actions/runs/43889723243) passed all six jobs on `c052de639dbba1856a1bae7e76806122a1637e50`: Maven and standalone consumer on Java 21 and 25, Angular, and packaged Compose smoke. This is historical evidence for the implementation baseline.
 
-On November 18, [PR #163 CI](https://github.com/JordyNicholas/Keynest/actions/runs/44399804190) passed on `d2cdf4571c11a22480f66af6ecb99c0e677b9b1d`. It passed 39 Angular browser tests, Maven and the standalone consumer on Java 21 and 25, and the packaged Compose smoke test. The squash merge [`ee77458`](https://github.com/JordyNicholas/Keynest/commit/ee774580589dd62b4683590ccc89e206d7b296f7) has the same Git tree as the tested PR revision. Record exact-SHA CI separately when the release candidate is selected.
+On November 18, [PR #163 CI](https://github.com/JordyNicholas/Keynest/actions/runs/44399804190) passed on `d2cdf4571c11a22480f66af6ecb99c0e677b9b1d`. It passed 39 Angular browser tests, Maven and the standalone consumer on Java 21 and 25, and the packaged Compose smoke test. The squash merge [`ee77458`](https://github.com/JordyNicholas/Keynest/commit/ee774580589dd62b4683590ccc89e206d7b296f7) has the same Git tree as the tested PR revision and passed all six jobs in its own [main-branch CI run](https://github.com/JordyNicholas/Keynest/actions/runs/44401800241). Record exact-SHA CI separately when the release candidate is selected.
 
 ### Maintainer rehearsal results
 
