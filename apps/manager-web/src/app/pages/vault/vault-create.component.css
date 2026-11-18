@@ -1,24 +1,3 @@
 form {
   max-width: 36rem;
 }
-
-fieldset {
-  min-inline-size: 0;
-  margin: 0 0 1.25rem;
-  padding: 1rem;
-  border: 1px solid var(--kn-color-outline);
-  border-radius: 0.75rem;
-}
-
-legend {
-  padding-inline: 0.4rem;
-}
-
-select {
-  width: 100%;
-  padding: 0.6rem 0.7rem;
-  font: inherit;
-  color: var(--kn-color-ink);
-  background: var(--kn-color-canvas);
-  border: 1px solid var(--kn-color-outline-strong);
-}

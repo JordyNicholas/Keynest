@@ -5,13 +5,17 @@ import { API_BASE_URL } from '../../injectionTokens';
 import { CheckPasswordPageComponent } from './check-password.component';
 
 describe('CheckPasswordPageComponent', () => {
-  it('clears the sample on submit and renders violations from the API', () => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [CheckPasswordPageComponent],
       providers: [provideHttpClient(), provideHttpClientTesting(), { provide: API_BASE_URL, useValue: '/api/v1' }],
     });
+  });
+
+  it('clears the sample on submit and renders violations from the API', () => {
     const fixture = TestBed.createComponent(CheckPasswordPageComponent);
     const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/tools/policy').flush({ id: 'keynest.default.v1', rules: { bannedSubstrings: [] } });
     fixture.detectChanges();
 
     const host: HTMLElement = fixture.nativeElement;
@@ -26,6 +30,23 @@ describe('CheckPasswordPageComponent', () => {
     fixture.detectChanges();
 
     expect(host.querySelector('[role=status]')?.textContent).toContain('Use a longer password.');
+    http.verify();
+  });
+
+  it('checks custom rules without sending the sample or rules to the API', () => {
+    const fixture = TestBed.createComponent(CheckPasswordPageComponent);
+    const component = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/tools/policy').flush({ id: 'keynest.default.v1', rules: { bannedSubstrings: [] } });
+    const sample = document.createElement('input');
+    component.selectMode('custom', sample);
+    component.minimum.set(8);
+    component.required.symbols = false;
+    sample.value = 'Testword1';
+    component.validateSample(new Event('submit', { cancelable: true }), sample);
+
+    expect(sample.value).toBe('');
+    expect(component.validation()).toEqual({ valid: true, messages: [], policyId: 'custom' });
     http.verify();
   });
 });

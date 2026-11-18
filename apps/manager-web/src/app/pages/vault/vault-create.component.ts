@@ -8,12 +8,11 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
-import { PasswordVisibilityDirective } from '../password-visibility.directive';
 import { passwordViolationMessages } from '../password-violation-messages';
 
 @Component({
   selector: 'kn-vault-create-page',
-  imports: [FormsModule, InlineErrorComponent, MatButtonModule, PasswordVisibilityDirective, RouterLink],
+  imports: [FormsModule, InlineErrorComponent, MatButtonModule, RouterLink],
   templateUrl: './vault-create.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css'],
 })
