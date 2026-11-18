@@ -3,7 +3,7 @@ import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -25,6 +25,8 @@ export class CheckPasswordPageComponent {
   private readonly assessment = signal<PolicyCheck[] | null>(null);
 
   readonly signedIn = inject(AuthService).signedIn;
+  private readonly navigationInfo = inject(Router).currentNavigation()?.extras.info as { policyExplanation?: unknown } | undefined;
+  readonly explanation = typeof this.navigationInfo?.policyExplanation === 'string' ? this.navigationInfo.policyExplanation : '';
   readonly mode = signal<'built-in' | 'custom'>('built-in');
   readonly policy = signal<BuiltInPolicy | null>(null);
   readonly policyError = signal('');

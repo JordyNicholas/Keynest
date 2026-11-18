@@ -9,7 +9,8 @@ import { API_BASE_URL } from '../../injectionTokens';
 
 describe('Vault update routes', () => {
   const endpoint = '/api/v1/vault/items/item-1';
-  const item = { id: 'item-1', label: 'Example login', username: 'demo', notifyBeforeDays: 14 };
+  const policyId = 'keynest.strict.v1';
+  const item = { id: 'item-1', policyId, label: 'Example login', username: 'demo', notifyBeforeDays: 14 };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -39,7 +40,7 @@ describe('Vault update routes', () => {
     const content = harness.routeNativeElement!;
     const form = content.querySelector('form')!;
     const submit = () => form.dispatchEvent(new Event('submit', { cancelable: true }));
-    return { content, http, submit };
+    return { harness, content, http, submit };
   }
 
   it('edits details without including a password or asking for replacement confirmation', async () => {
@@ -67,7 +68,7 @@ describe('Vault update routes', () => {
   });
 
   it('opens rotation directly and only changes the password after confirmation', async () => {
-    const { content, http, submit } = await open('/vault/rotate/item-1');
+    const { harness, content, http, submit } = await open('/vault/rotate/item-1');
     expect(content.querySelector('h1')?.textContent).toContain('Rotate password');
     expect(content.querySelector('input[name=label]')).toBeNull();
     const input = content.querySelector<HTMLInputElement>('input[autocomplete=new-password]')!;
@@ -76,16 +77,42 @@ describe('Vault update routes', () => {
     const copy = Array.from(content.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('Copy replacement'))!;
     expect(copy.disabled).toBeTrue();
-    const generate = Array.from(content.querySelectorAll('button'))
-      .find((button) => button.textContent?.includes('Generate replacement'))!;
-    generate.click();
-    http.expectOne('/api/v1/tools/generate').flush({ password: 'test-replacement' });
-    expect(input.value).toBe('test-replacement');
+    const button = (text: string) => Array.from(content.querySelectorAll('button'))
+      .find((action) => action.textContent?.trim() === text)!;
+    button('Generator options').click();
+    http.expectOne(`/api/v1/tools/policy?policyId=${policyId}`).flush({
+      id: policyId,
+      rules: {
+        minLength: 18, maxLength: 40, requireUpper: true, requireLower: true,
+        requireDigit: true, requireSymbol: false, minCategories: 3, excludeAmbiguous: true,
+      },
+    });
+    harness.detectChanges();
+    await harness.fixture.whenStable();
+    const length = content.querySelector<HTMLInputElement>('input[name=length]')!;
+    expect(length.min).toBe('18');
+    expect(length.max).toBe('40');
+    expect(input.form?.id).toBe('rotation-form');
+    expect(length.form).toBeNull();
+    const categories = Array.from(content.querySelectorAll<HTMLInputElement>('input[type=checkbox]'));
+    expect(categories.map((category) => category.disabled)).toEqual([true, true, true, false]);
+    categories[3].click();
+    length.value = '24';
+    length.dispatchEvent(new Event('input'));
+    content.querySelector<HTMLInputElement>('#generator-keyword')!.value = 'mango';
+
+    button('Generate replacement').click();
+    const replacement = input.value;
+    expect(replacement.length).toBe(24);
+    expect(replacement).toMatch(/^\w+$/);
+    expect(replacement).toMatch(/m[a4]ngo/i);
+    expect(replacement).not.toMatch(/[0OIl1]/);
+    http.expectNone('/api/v1/tools/generate');
     TestBed.tick();
     expect(copy.disabled).toBeFalse();
     const writeText = spyOn(navigator.clipboard, 'writeText').and.resolveTo();
     copy.click();
-    expect(writeText).toHaveBeenCalledOnceWith('test-replacement');
+    expect(writeText).toHaveBeenCalledOnceWith(replacement);
     expect(input.type).toBe('password');
     http.expectNone(endpoint);
 
@@ -99,7 +126,7 @@ describe('Vault update routes', () => {
     const request = http.expectOne(endpoint);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
-      password: 'test-replacement', expiresInDays: null, notifyBeforeDays: 14,
+      password: replacement, expiresInDays: null, notifyBeforeDays: 14,
     });
     expect(input.value).toBe('');
     request.flush({});

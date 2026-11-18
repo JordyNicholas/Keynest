@@ -1,3 +1,5 @@
+import { maxPasswordLength, minPasswordLength } from './password-options';
+
 export type BuiltInPolicy = {
   id: string;
   rules: {
@@ -14,3 +16,18 @@ export type BuiltInPolicy = {
     bannedSubstrings: string[];
   };
 };
+
+export function generatorOptionsForPolicy(rules: BuiltInPolicy['rules']) {
+  return {
+    minLength: Math.max(minPasswordLength, rules.minLength),
+    maxLength: Math.min(maxPasswordLength, rules.maxLength),
+    requiredGroups: {
+      lower: rules.requireLower,
+      upper: rules.requireUpper,
+      digits: rules.requireDigit,
+      symbols: rules.requireSymbol,
+    },
+    minCategories: rules.minCategories,
+    excludeAmbiguous: rules.excludeAmbiguous,
+  };
+}

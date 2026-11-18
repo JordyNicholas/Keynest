@@ -32,6 +32,40 @@ describe('Manager entry routes', () => {
     TestBed.inject(HttpTestingController).expectNone('/api/v1/tools/generate');
   });
 
+  it('redirects the legacy explanation page and resumes through Account settings', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
+    const harness = await RouterTestingHarness.create('/policy-explanation');
+    const http = TestBed.inject(HttpTestingController);
+    const router = TestBed.inject(Router);
+    expect(router.url).toBe('/tools/check#why-these-rules');
+    const policy = { id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } };
+    http.expectOne('/api/v1/tools/policy').flush(policy);
+    harness.detectChanges();
+
+    const setup = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href^="/account?ai="]')!;
+    await harness.navigateByUrl(setup.getAttribute('href')!);
+    expect(router.url).toBe('/account?ai=policy-explanation#ai-settings');
+    http.expectOne('/api/v1/auth/me').flush({ email: 'demo@example.test' });
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.querySelector('details')?.open).toBeTrue();
+    http.expectNone('/api/v1/ai/policy/explain');
+
+    const input = harness.routeNativeElement!.querySelector<HTMLInputElement>('#provider-key')!;
+    input.value = 'test-provider-key';
+    input.form!.dispatchEvent(new Event('submit', { cancelable: true }));
+    expect(input.value).toBe('');
+    http.expectOne('/api/v1/ai/policy/explain').flush({ explanation: '<strong>Policy example</strong>' });
+    await harness.fixture.whenStable();
+    expect(router.url).toBe('/tools/check#why-these-rules');
+    http.expectOne('/api/v1/tools/policy').flush(policy);
+    harness.detectChanges();
+    const inline = harness.routeNativeElement!.querySelector('[aria-labelledby=why-these-rules]')!;
+    expect(inline.textContent).toContain('<strong>Policy example</strong>');
+    expect(inline.querySelector('strong')).toBeNull();
+    expect(JSON.stringify(history.state)).not.toContain('Policy example');
+    expect(JSON.stringify(history.state)).not.toContain('test-provider-key');
+  });
+
   it('opens the authenticated vault when a session is already present', async () => {
     TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
     await RouterTestingHarness.create('/');

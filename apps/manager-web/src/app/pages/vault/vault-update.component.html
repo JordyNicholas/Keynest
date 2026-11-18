@@ -31,23 +31,45 @@
   </ng-template>
 
   @if (rotating) {
-    <form class="panel" ngNativeValidate (submit)="save($event, replacement)">
+    <section class="panel">
       <fieldset [disabled]="pending()">
         <legend>Replacement password</legend>
         <p>Change the password at the account’s website before saving the replacement here.</p>
         <label>New password
-          <input #replacement type="password" autocomplete="new-password" spellcheck="false" required
+          <input #replacement type="password" form="rotation-form" autocomplete="new-password" spellcheck="false"
+                 required [disabled]="pending()"
                  (input)="replacementChanged(replacement)" />
         </label>
         <div class="row">
-          <button mat-stroked-button type="button" (click)="generateReplacement(replacement)">Generate replacement</button>
+          <button mat-stroked-button type="button" [attr.aria-expanded]="generatorOpen()"
+                  (click)="toggleGenerator()">Generator options</button>
           <button mat-stroked-button type="button" [disabled]="pending() || !hasReplacement()" (click)="copyReplacement(replacement)">Copy replacement</button>
         </div>
         <div role="status">{{ copyStatus() }}</div>
+        @if (generatorOpen()) {
+          <fieldset>
+            <legend>Generate a replacement</legend>
+            @if (policyRules(); as rules) {
+              <kn-password-generator-options #options [minLength]="rules.minLength" [maxLength]="rules.maxLength"
+                [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
+                [excludeAmbiguous]="rules.excludeAmbiguous" />
+              <div class="row">
+                <button mat-flat-button type="button" (click)="generateReplacement(replacement, options)">Generate replacement</button>
+              </div>
+            } @else if (loadingPolicy()) {
+              <p role="status">Loading the item’s password rules…</p>
+            } @else {
+              <p>Could not load the item’s password rules.</p>
+              <button mat-stroked-button type="button" (click)="loadPolicy()">Retry loading rules</button>
+            }
+          </fieldset>
+        }
       </fieldset>
-      <ng-container [ngTemplateOutlet]="expiryFields" />
-      <ng-container [ngTemplateOutlet]="actions" />
-    </form>
+      <form id="rotation-form" ngNativeValidate (submit)="save($event, replacement)">
+        <ng-container [ngTemplateOutlet]="expiryFields" />
+        <ng-container [ngTemplateOutlet]="actions" />
+      </form>
+    </section>
   } @else {
     <form class="panel" ngNativeValidate (submit)="save($event)">
       <fieldset [disabled]="pending()">

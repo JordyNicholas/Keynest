@@ -30,7 +30,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/vault/vault.component').then((page) => page.VaultPageComponent),
         canActivate: [authGuard],
       },
-      { path: 'policy-explanation', loadComponent: () => import('./pages/policy-explanation/policy-explanation.component').then((page) => page.PolicyExplanationComponent), canActivate: [authGuard] },
+      { path: 'policy-explanation', pathMatch: 'full', redirectTo: '/tools/check#why-these-rules' },
       {
         path: 'account',
         loadComponent: () => import('./pages/account/account.component').then((page) => page.AccountPageComponent),
