@@ -73,12 +73,22 @@ describe('Vault update routes', () => {
     expect(content.querySelector('input[name=label]')).toBeNull();
     const input = content.querySelector<HTMLInputElement>('input[autocomplete=new-password]')!;
     expect(input.type).toBe('password');
-    expect(content.textContent).not.toContain('Show password');
     const copy = Array.from(content.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('Copy replacement'))!;
     expect(copy.disabled).toBeTrue();
     const button = (text: string) => Array.from(content.querySelectorAll('button'))
       .find((action) => action.textContent?.trim() === text)!;
+    const visibility = button('Show password');
+    expect(visibility.disabled).toBeTrue();
+    input.value = 'manually-typed-sample';
+    input.dispatchEvent(new Event('input'));
+    harness.detectChanges();
+    visibility.click();
+    harness.detectChanges();
+    expect(visibility.textContent?.trim()).toBe('Hide password');
+    expect(input.type).toBe('text');
+    expect(input.value).toBe('manually-typed-sample');
+
     const generator = content.querySelector('details')!;
     const toggleGenerator = (open: boolean) => {
       generator.open = open;
@@ -104,6 +114,9 @@ describe('Vault update routes', () => {
     button('Generate replacement').click();
     expect(input.value.length).toBe(22);
     expect(input.value).not.toMatch(/[0OIl1]/);
+    harness.detectChanges();
+    expect(input.type).toBe('password');
+    expect(visibility.textContent?.trim()).toBe('Show password');
 
     generationMode.value = 'custom';
     generationMode.dispatchEvent(new Event('change'));
@@ -130,6 +143,13 @@ describe('Vault update routes', () => {
     http.expectNone('/api/v1/tools/generate');
     TestBed.tick();
     expect(copy.disabled).toBeFalse();
+    visibility.click();
+    harness.detectChanges();
+    expect(input.type).toBe('text');
+    expect(input.value).toBe(replacement);
+    visibility.click();
+    harness.detectChanges();
+    expect(input.type).toBe('password');
     const writeText = spyOn(navigator.clipboard, 'writeText').and.resolveTo();
     copy.click();
     expect(writeText).toHaveBeenCalledOnceWith(replacement);
@@ -149,7 +169,12 @@ describe('Vault update routes', () => {
     http.expectNone(endpoint);
     confirm.and.returnValue(true);
     const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
+    visibility.click();
+    harness.detectChanges();
+    expect(input.type).toBe('text');
     submit();
+    harness.detectChanges();
+    expect(input.type).toBe('password');
 
     const request = http.expectOne(endpoint);
     expect(request.request.method).toBe('PUT');

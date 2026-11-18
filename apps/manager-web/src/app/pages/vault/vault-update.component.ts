@@ -47,6 +47,7 @@ export class VaultUpdatePageComponent {
   readonly error = signal('');
   readonly details = signal<string[]>([]);
   readonly hasReplacement = signal(false);
+  readonly replacementVisible = signal(false);
   readonly copyStatus = signal('');
   readonly generatorOpen = signal(false);
   readonly generationMode = signal<'policy' | 'custom'>('policy');
@@ -73,6 +74,7 @@ export class VaultUpdatePageComponent {
         const input = this.replacementInput()?.nativeElement;
         if (input) input.value = '';
         this.hasReplacement.set(false);
+        this.replacementVisible.set(false);
         this.copyStatus.set('');
         this.generatorOpen.set(false);
         this.generationMode.set('policy');
@@ -148,6 +150,7 @@ export class VaultUpdatePageComponent {
       input.value = custom && options
         ? options.generate()
         : generateBrowserPassword(rules.defaultLength, defaultCharacterSelection, '', rules);
+      this.replacementVisible.set(false);
       this.replacementChanged(input);
       this.copyStatus.set('Replacement generated.');
     } catch (failure) {
@@ -157,6 +160,7 @@ export class VaultUpdatePageComponent {
 
   replacementChanged(input: HTMLInputElement): void {
     this.hasReplacement.set(Boolean(input.value));
+    if (!input.value) this.replacementVisible.set(false);
     this.copyStatus.set('');
   }
 
