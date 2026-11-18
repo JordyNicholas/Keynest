@@ -6,6 +6,7 @@ import { AuthService } from './auth/auth.service';
 import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
 import { ToolsPageComponent } from './pages/tools/tools.component';
+import { VaultCreatePageComponent } from './pages/vault/vault-create.component';
 import { VaultPageComponent } from './pages/vault/vault.component';
 import { AccountPageComponent } from './pages/account/account.component';
 import { authGuard } from './auth/auth.guard';
@@ -25,6 +26,7 @@ export const routes: Routes = [
       { path: 'tools/generate', component: GeneratePasswordPageComponent },
       { path: 'tools/check', component: CheckPasswordPageComponent },
       { path: 'status', component: ApiHealthPageComponent },
+      { path: 'vault/new', component: VaultCreatePageComponent, canActivate: [authGuard] },
       { path: 'vault/rotate/:itemId', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'policy-explanation', component: PolicyExplanationComponent, canActivate: [authGuard] },
