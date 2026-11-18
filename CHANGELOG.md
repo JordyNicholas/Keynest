@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased — first MVP
+## 0.1.0-rc.1
+
+First Keynest MVP release candidate. Build Manager and the Java libraries from source.
 
 ### Libraries
 

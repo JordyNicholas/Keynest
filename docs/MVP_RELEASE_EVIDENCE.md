@@ -61,9 +61,12 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 
 The [unreleased changelog](../CHANGELOG.md) is in place.
 
+## Candidate distribution
+
+The `0.1.0-rc.1` distribution path is a checkout or source archive of the candidate commit. The [standalone consumer](../examples/external-consumer/README.md) verifies local installation of the three Java libraries on Java 21 and 25. The [Compose guide](./COMPOSE.md) builds the Manager API from the same source, and the [README](../README.md) covers Manager Web. GitHub Packages publication is planned separately.
+
 ## Open release gates
 
 - Add tested revision and environment details for the maintainer-confirmed rehearsals.
 - Select the release candidate and record passing CI for its exact SHA.
-- Confirm package availability or document the reproducible source-build path for the release.
 - Optional live BYOK rehearsal requires maintainer approval. Keep BYOK disabled for core verification. Agent tooling is post-release.
