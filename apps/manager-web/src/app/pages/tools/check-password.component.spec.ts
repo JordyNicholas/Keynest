@@ -104,7 +104,9 @@ describe('CheckPasswordPageComponent', () => {
     const sample = 'Abcdefgh23456789';
     type(sample);
     expect(status('Include a symbol')).toContain('Not met');
-    const symbols = host.querySelector<HTMLInputElement>('input[name=symbols]')!;
+    const symbolOption = Array.from(host.querySelectorAll('fieldset label'))
+      .find((label) => label.textContent?.trim() === 'Symbols')!;
+    const symbols = symbolOption.querySelector('input')!;
     await fixture.whenStable();
     symbols.click();
     fixture.detectChanges();
