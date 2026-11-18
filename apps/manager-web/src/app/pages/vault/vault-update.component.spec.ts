@@ -79,18 +79,38 @@ describe('Vault update routes', () => {
     expect(copy.disabled).toBeTrue();
     const button = (text: string) => Array.from(content.querySelectorAll('button'))
       .find((action) => action.textContent?.trim() === text)!;
-    button('Generator options').click();
+    const generator = content.querySelector('details')!;
+    const toggleGenerator = (open: boolean) => {
+      generator.open = open;
+      generator.dispatchEvent(new Event('toggle'));
+      harness.detectChanges();
+    };
+    expect(generator.open).toBeFalse();
+    expect(content.querySelector('select[name=generationMode]')).toBeNull();
+    http.expectNone(`/api/v1/tools/policy?policyId=${policyId}`);
+    toggleGenerator(true);
     http.expectOne(`/api/v1/tools/policy?policyId=${policyId}`).flush({
       id: policyId,
       rules: {
-        minLength: 18, maxLength: 40, requireUpper: true, requireLower: true,
+        minLength: 22, maxLength: 40, requireUpper: true, requireLower: true,
         requireDigit: true, requireSymbol: false, minCategories: 3, excludeAmbiguous: true,
       },
     });
     harness.detectChanges();
     await harness.fixture.whenStable();
+    const generationMode = content.querySelector<HTMLSelectElement>('select[name=generationMode]')!;
+    expect(generationMode.value).toBe('policy');
+    expect(content.querySelector('input[name=length]')).toBeNull();
+    button('Generate replacement').click();
+    expect(input.value.length).toBe(22);
+    expect(input.value).not.toMatch(/[0OIl1]/);
+
+    generationMode.value = 'custom';
+    generationMode.dispatchEvent(new Event('change'));
+    harness.detectChanges();
+    await harness.fixture.whenStable();
     const length = content.querySelector<HTMLInputElement>('input[name=length]')!;
-    expect(length.min).toBe('18');
+    expect(length.min).toBe('22');
     expect(length.max).toBe('40');
     expect(input.form?.id).toBe('rotation-form');
     expect(length.form).toBeNull();
@@ -115,6 +135,14 @@ describe('Vault update routes', () => {
     expect(writeText).toHaveBeenCalledOnceWith(replacement);
     expect(input.type).toBe('password');
     http.expectNone(endpoint);
+
+    toggleGenerator(false);
+    expect(generator.querySelector('input')).toBeNull();
+    toggleGenerator(true);
+    await harness.fixture.whenStable();
+    expect(content.querySelector<HTMLSelectElement>('select[name=generationMode]')?.value).toBe('policy');
+    expect(content.querySelector('#generator-keyword')).toBeNull();
+    expect(input.value).toBe(replacement);
 
     const confirm = spyOn(window, 'confirm').and.returnValue(false);
     submit();

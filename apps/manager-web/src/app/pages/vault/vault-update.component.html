@@ -41,20 +41,30 @@
                  (input)="replacementChanged(replacement)" />
         </label>
         <div class="row">
-          <button mat-stroked-button type="button" [attr.aria-expanded]="generatorOpen()"
-                  (click)="toggleGenerator()">Generator options</button>
           <button mat-stroked-button type="button" [disabled]="pending() || !hasReplacement()" (click)="copyReplacement(replacement)">Copy replacement</button>
         </div>
         <div role="status">{{ copyStatus() }}</div>
-        @if (generatorOpen()) {
-          <fieldset>
-            <legend>Generate a replacement</legend>
+        <details #generator class="rotation-generator" [open]="generatorOpen()"
+                 (toggle)="setGeneratorOpen(generator.open)">
+          <summary>Generator options</summary>
+          @if (generatorOpen()) {
             @if (policyRules(); as rules) {
-              <kn-password-generator-options #options [minLength]="rules.minLength" [maxLength]="rules.maxLength"
-                [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
-                [excludeAmbiguous]="rules.excludeAmbiguous" />
+              <label>Generation settings
+                <select name="generationMode" [ngModel]="generationMode()" (ngModelChange)="generationMode.set($event)">
+                  <option value="policy">Use Vault policy</option>
+                  <option value="custom">Customize generation</option>
+                </select>
+              </label>
+              @if (generationMode() === 'custom') {
+                <kn-password-generator-options [minLength]="rules.minLength" [maxLength]="rules.maxLength"
+                  [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
+                  [excludeAmbiguous]="rules.excludeAmbiguous" />
+              } @else {
+                <p>Generate a {{ rules.defaultLength }}-character password using
+                  {{ selected.policyId === 'keynest.default.v1' ? 'the Keynest default policy' : selected.policyId }}.</p>
+              }
               <div class="row">
-                <button mat-flat-button type="button" (click)="generateReplacement(replacement, options)">Generate replacement</button>
+                <button mat-flat-button type="button" (click)="generateReplacement(replacement)">Generate replacement</button>
               </div>
             } @else if (loadingPolicy()) {
               <p role="status">Loading the item’s password rules…</p>
@@ -62,8 +72,8 @@
               <p>Could not load the item’s password rules.</p>
               <button mat-stroked-button type="button" (click)="loadPolicy()">Retry loading rules</button>
             }
-          </fieldset>
-        }
+          }
+        </details>
       </fieldset>
       <form id="rotation-form" ngNativeValidate (submit)="save($event, replacement)">
         <ng-container [ngTemplateOutlet]="expiryFields" />

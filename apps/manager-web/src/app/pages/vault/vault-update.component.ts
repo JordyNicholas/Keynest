@@ -11,15 +11,17 @@ import { API_BASE_URL } from '../../injectionTokens';
 import { confirmVaultChange } from '../confirm-vault-change';
 import { InlineErrorComponent } from '../inline-error.component';
 import { passwordViolationMessages } from '../password-violation-messages';
+import { generateBrowserPassword } from '../tools/browser-password-generator';
 import { BuiltInPolicy, generatorOptionsForPolicy } from '../tools/built-in-policy';
 import { PasswordGeneratorOptionsComponent } from '../tools/password-generator-options.component';
+import { defaultCharacterSelection, defaultPasswordLength } from '../tools/password-options';
 import { VaultItem } from './vault-item';
 
 @Component({
   selector: 'kn-vault-update-page',
   imports: [FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
   templateUrl: './vault-update.component.html',
-  styleUrls: ['../page-shared.css', './vault-create.component.css'],
+  styleUrls: ['../page-shared.css', './vault-create.component.css', './vault-update.component.css'],
 })
 export class VaultUpdatePageComponent {
   private readonly http = inject(HttpClient);
@@ -30,6 +32,7 @@ export class VaultUpdatePageComponent {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly session = this.auth.token();
   private readonly policy = signal<BuiltInPolicy | null>(null);
+  private readonly generatorOptions = viewChild(PasswordGeneratorOptionsComponent);
   private readonly replacementInput = viewChild<ElementRef<HTMLInputElement>>('replacement');
 
   readonly rotating = this.route.snapshot.data['rotate'] === true;
@@ -46,10 +49,16 @@ export class VaultUpdatePageComponent {
   readonly hasReplacement = signal(false);
   readonly copyStatus = signal('');
   readonly generatorOpen = signal(false);
+  readonly generationMode = signal<'policy' | 'custom'>('policy');
   readonly loadingPolicy = signal(false);
   readonly policyRules = computed(() => {
     const rules = this.policy()?.rules;
-    return rules ? generatorOptionsForPolicy(rules) : null;
+    if (!rules) return null;
+    const settings = generatorOptionsForPolicy(rules);
+    return {
+      ...settings,
+      defaultLength: defaultPasswordLength(settings.minLength, settings.maxLength),
+    };
   });
 
   constructor() {
@@ -66,6 +75,7 @@ export class VaultUpdatePageComponent {
         this.hasReplacement.set(false);
         this.copyStatus.set('');
         this.generatorOpen.set(false);
+        this.generationMode.set('policy');
         this.loadingPolicy.set(false);
         this.policy.set(null);
         this.item.set(null);
@@ -97,9 +107,13 @@ export class VaultUpdatePageComponent {
     });
   }
 
-  toggleGenerator(): void {
-    this.generatorOpen.update((open) => !open);
-    if (this.generatorOpen()) this.loadPolicy();
+  setGeneratorOpen(open: boolean): void {
+    this.generatorOpen.set(open);
+    if (open) {
+      this.loadPolicy();
+    } else {
+      this.generationMode.set('policy');
+    }
   }
 
   loadPolicy(): void {
@@ -120,14 +134,22 @@ export class VaultUpdatePageComponent {
       });
   }
 
-  generateReplacement(input: HTMLInputElement, options: PasswordGeneratorOptionsComponent): void {
-    if (!this.rotating || !this.item() || this.pending() || !this.sessionActive()) return;
+  generateReplacement(input: HTMLInputElement): void {
+    const rules = this.policyRules();
+    if (!this.rotating || !this.item() || !rules || this.pending() || !this.sessionActive()) return;
+
+    const options = this.generatorOptions();
+    const custom = this.generationMode() === 'custom';
+    if (custom && !options) return;
     this.copyStatus.set('');
     this.error.set('');
     this.details.set([]);
     try {
-      input.value = options.generate();
+      input.value = custom && options
+        ? options.generate()
+        : generateBrowserPassword(rules.defaultLength, defaultCharacterSelection, '', rules);
       this.replacementChanged(input);
+      this.copyStatus.set('Replacement generated.');
     } catch (failure) {
       this.error.set(failure instanceof Error ? failure.message : 'Could not generate a replacement password.');
     }

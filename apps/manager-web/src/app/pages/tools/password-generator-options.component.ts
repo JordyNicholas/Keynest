@@ -1,7 +1,7 @@
 import { Component, ElementRef, input, linkedSignal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { generateBrowserPassword } from './browser-password-generator';
-import { characterGroups, CharacterSelection, maxPasswordLength, minPasswordLength } from './password-options';
+import { characterGroups, CharacterSelection, defaultCharacterSelection, defaultPasswordLength, maxPasswordLength, minPasswordLength } from './password-options';
 
 @Component({
   selector: 'kn-password-generator-options',
@@ -16,8 +16,8 @@ export class PasswordGeneratorOptionsComponent {
   readonly requiredGroups = input<CharacterSelection>();
   readonly minCategories = input(1);
   readonly excludeAmbiguous = input(false);
-  readonly length = linkedSignal<number | null>(() => Math.min(this.maxLength(), Math.max(20, this.minLength())));
-  readonly selection: CharacterSelection = { lower: true, upper: true, digits: true, symbols: true };
+  readonly length = linkedSignal<number | null>(() => defaultPasswordLength(this.minLength(), this.maxLength()));
+  readonly selection: CharacterSelection = { ...defaultCharacterSelection };
   readonly characterGroups = characterGroups;
   readonly minimumRandomLength = minPasswordLength;
 

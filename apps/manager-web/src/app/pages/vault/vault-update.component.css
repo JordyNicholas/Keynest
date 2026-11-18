@@ -1,0 +1,17 @@
+summary {
+  width: fit-content;
+  min-block-size: 44px;
+  padding: 0.65rem 0.25rem;
+  border-radius: 0.5rem;
+  color: var(--kn-color-accent);
+  cursor: pointer;
+}
+
+summary:focus-visible {
+  outline: 2px solid var(--kn-color-accent);
+  outline-offset: 2px;
+}
+
+.rotation-generator[open] > summary {
+  margin-bottom: 0.5rem;
+}
