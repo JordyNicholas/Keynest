@@ -68,6 +68,15 @@ curl -i -X OPTIONS http://127.0.0.1:8080/api/v1/auth/login \
   -H 'Access-Control-Request-Headers: content-type'
 ```
 
+For Windows PowerShell, set the variable in the same window that runs Compose. Use `curl.exe` and keep the preflight on one line. The `printenv` command displays only the running API's CORS allowlist.
+
+```powershell
+$env:KEYNEST_PREVIEW_ORIGIN = 'https://your-preview.vercel.app'
+docker compose -p keynest-local -f deploy/docker-compose.yml -f compose.preview.yml up -d --no-deps manager-api
+docker compose -p keynest-local -f deploy/docker-compose.yml -f compose.preview.yml exec -T manager-api printenv KEYNEST_CORS_ALLOWED_ORIGINS
+curl.exe -i -X OPTIONS "http://127.0.0.1:8080/api/v1/auth/login" -H "Origin: $env:KEYNEST_PREVIEW_ORIGIN" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type"
+```
+
 Expect a 2xx response and `Access-Control-Allow-Origin` equal to the preview origin. If that works, confirm that Edge DevTools shows requests to `http://127.0.0.1:8080/api/v1` from your preview. Open the preview directly and allow local network access if Edge prompts you. Drop the override and recreate the API using your usual Compose command when the rehearsal ends.
 
 ### Reverse proxies and rate-limit identity
