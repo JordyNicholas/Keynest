@@ -1,7 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { VaultPageComponent } from './vault.component';
@@ -57,35 +57,8 @@ describe('VaultPageComponent', () => {
     expect(row.textContent).toContain('demo-user');
     expect(row.textContent).toContain('https://example.com');
     expect(row.querySelector('output.secret')).toBeNull();
-  });
-
-  it('generates a replacement and saves it only after explicit submission', () => {
-    const item = { id: 'item-1', label: 'Example', policyId: 'keynest.default.v1', notifyBeforeDays: 14 };
-    component.items.set([item]);
-    component.openEditor(item);
-    fixture.detectChanges();
-    const input: HTMLInputElement = fixture.nativeElement.querySelector('input[autocomplete=new-password]');
-    component.generateReplacement(input);
-    http.expectOne('/api/v1/tools/generate').flush({ password: 'test-replacement' });
-    http.expectNone('/api/v1/vault/items/item-1');
-    expect(input.value).toBe('test-replacement');
-
-    component.expiryDays.set(30);
-    const confirm = spyOn(window, 'confirm').and.returnValue(false);
-    component.saveItem(item, input);
-    http.expectNone('/api/v1/vault/items/item-1');
-    confirm.and.returnValue(true);
-    component.saveItem(item, input);
-    const request = http.expectOne('/api/v1/vault/items/item-1');
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
-    expect(request.request.body).toEqual({
-      password: 'test-replacement', expiresInDays: 30, notifyBeforeDays: 14,
-    });
-    request.flush({ ...item, lastRotatedAt: '2026-11-12T12:00:00Z' });
-    expect(input.value).toBe('');
-    expect(component.editing()).toBeNull();
-    expect(component.items()[0].lastRotatedAt).toBe('2026-11-12T12:00:00Z');
+    const links = Array.from(row.querySelectorAll('a'), (link) => link.getAttribute('href'));
+    expect(links).toEqual(['/vault/edit/item-1', '/vault/rotate/item-1']);
   });
 
   it('lists overdue and upcoming items in expiry order with rotation links', () => {
@@ -126,24 +99,6 @@ describe('VaultPageComponent', () => {
     request.flush(null, { status: 204, statusText: 'No Content' });
     expect(component.items()).toEqual([]);
     expect(component.pending()).toBeFalse();
-  });
-
-  it('saves changed metadata without replacing the password', () => {
-    const item = { id: 'item-1', label: 'Old label', username: 'demo', policyId: 'keynest.default.v1' };
-    component.items.set([item]);
-    component.openEditor(item);
-    component.editLabel.set(' New label ');
-    component.editUsername.set('');
-
-    component.saveItem(item, document.createElement('input'));
-
-    const request = http.expectOne('/api/v1/vault/items/item-1');
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.body.label).toBe('New label');
-    expect(request.request.body.username).toBe('');
-    expect(request.request.body.password).toBeUndefined();
-    request.flush({ ...item, label: 'New label', username: null });
-    expect(component.items()[0].label).toBe('New label');
   });
 
   it('discards a vault list response after sign-out', () => {
@@ -227,32 +182,4 @@ describe('VaultPageComponent', () => {
     expect(component.revealed()['item-1']).toBeUndefined();
     tick(15_000);
   }));
-});
-
-describe('Vault rotation links', () => {
-  it('opens the matching item from the authenticated list without revealing or updating it', () => {
-    sessionStorage.setItem('keynest.token', 'session-token');
-    TestBed.configureTestingModule({
-      providers: [
-        provideRouter([]),
-        provideHttpClient(),
-        provideHttpClientTesting(),
-        { provide: API_BASE_URL, useValue: '/api/v1' },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ itemId: 'target' }) } } },
-      ],
-    });
-    const fixture = TestBed.createComponent(VaultPageComponent);
-    const http = TestBed.inject(HttpTestingController);
-    const request = http.expectOne('/api/v1/vault/items');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer session-token');
-    request.flush([
-      { id: 'other', label: 'Other', policyId: 'keynest.default.v1' },
-      { id: 'target', label: 'Target', policyId: 'keynest.default.v1' },
-    ]);
-
-    expect(fixture.componentInstance.editing()).toBe('target');
-    http.verify();
-    fixture.destroy();
-    TestBed.inject(AuthService).clearSession();
-  });
 });

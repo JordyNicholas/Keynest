@@ -1,0 +1,70 @@
+<h1 class="page-title">{{ rotating ? 'Rotate password' : 'Edit vault item' }}</h1>
+<kn-inline-error [message]="error()" [details]="details()" />
+
+@if (loading()) {
+  <p role="status">Loading vault item…</p>
+} @else if (item(); as selected) {
+  <p class="page-lede">{{ selected.label }}</p>
+
+  <ng-template #expiryFields>
+    <fieldset [disabled]="pending()">
+      <legend>Expiry</legend>
+      <label>New expiry in days (optional)
+        <input type="number" min="1" max="2147483647" step="1"
+               [ngModel]="expiryDays()" (ngModelChange)="expiryDays.set($event)" [ngModelOptions]="{standalone: true}" />
+      </label>
+      <p>Leave blank to keep the current expiry.</p>
+      <label>Notify before expiry (days)
+        <input type="number" min="0" max="2147483647" step="1"
+               [ngModel]="noticeDays()" (ngModelChange)="noticeDays.set($event)" [ngModelOptions]="{standalone: true}" />
+      </label>
+    </fieldset>
+  </ng-template>
+
+  <ng-template #actions>
+    <div class="row">
+      <button mat-flat-button type="submit" [disabled]="pending()">{{ rotating ? 'Save replacement' : 'Save changes' }}</button>
+      @if (!pending()) {
+        <a mat-stroked-button routerLink="/vault">Cancel</a>
+      }
+    </div>
+  </ng-template>
+
+  @if (rotating) {
+    <form class="panel" ngNativeValidate (submit)="visibility.hide(); save($event, replacement)">
+      <fieldset [disabled]="pending()">
+        <legend>Replacement password</legend>
+        <p>Change the password at the account’s website before saving the replacement here.</p>
+        <label>New password
+          <input #replacement knPasswordVisibility #visibility="knPasswordVisibility"
+                 autocomplete="new-password" spellcheck="false" required />
+        </label>
+        <div class="row">
+          <button mat-stroked-button type="button" [attr.aria-pressed]="visibility.visible()" (click)="visibility.toggle()">Show password</button>
+          <button mat-stroked-button type="button" (click)="generateReplacement(replacement)">Generate replacement</button>
+        </div>
+      </fieldset>
+      <ng-container [ngTemplateOutlet]="expiryFields" />
+      <ng-container [ngTemplateOutlet]="actions" />
+    </form>
+  } @else {
+    <form class="panel" ngNativeValidate (submit)="save($event)">
+      <fieldset [disabled]="pending()">
+        <legend>Login details</legend>
+        <label>Label
+          <input type="text" required maxlength="200" name="label" [ngModel]="label()" (ngModelChange)="label.set($event)" />
+        </label>
+        <label>Username (optional)
+          <input type="text" maxlength="320" name="username" [ngModel]="username()" (ngModelChange)="username.set($event)" />
+        </label>
+        <label>Website URL (optional)
+          <input type="text" inputmode="url" maxlength="2000" name="url" [ngModel]="url()" (ngModelChange)="url.set($event)" />
+        </label>
+      </fieldset>
+      <ng-container [ngTemplateOutlet]="expiryFields" />
+      <ng-container [ngTemplateOutlet]="actions" />
+    </form>
+  }
+} @else {
+  <a mat-stroked-button routerLink="/vault">Back to Vault</a>
+}
