@@ -67,6 +67,25 @@ describe('Vault update routes', () => {
     expect(navigate).toHaveBeenCalledWith('/vault');
   });
 
+  it('aligns replacement actions at phone width and stacks them on narrower layouts', async () => {
+    const { content } = await open('/vault/rotate/item-1');
+    const actions = content.querySelector<HTMLElement>('.replacement-actions')!;
+    const [show, copy] = actions.querySelectorAll('button');
+
+    content.style.inlineSize = '320px';
+    const showBounds = show.getBoundingClientRect();
+    const copyBounds = copy.getBoundingClientRect();
+    expect(showBounds.top).toBe(copyBounds.top);
+    expect(showBounds.width).toBeCloseTo(copyBounds.width, 1);
+    expect(showBounds.height).toBeGreaterThanOrEqual(44);
+    expect(copyBounds.height).toBeGreaterThanOrEqual(44);
+    expect(showBounds.right).toBeLessThan(copyBounds.left);
+    expect(copyBounds.right).toBeLessThanOrEqual(actions.getBoundingClientRect().right);
+
+    content.style.inlineSize = '240px';
+    expect(show.getBoundingClientRect().bottom).toBeLessThan(copy.getBoundingClientRect().top);
+  });
+
   it('opens rotation directly and only changes the password after confirmation', async () => {
     const { harness, content, http, submit } = await open('/vault/rotate/item-1');
     expect(content.querySelector('h1')?.textContent).toContain('Rotate password');

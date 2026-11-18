@@ -41,7 +41,7 @@
                  autocapitalize="none" autocorrect="off" required [disabled]="pending()"
                  (input)="replacementChanged(replacement)" />
         </label>
-        <div class="row">
+        <div class="replacement-actions">
           <button mat-stroked-button type="button" aria-controls="rotation-password"
                   [disabled]="pending() || !hasReplacement()" (click)="replacementVisible.set(!replacementVisible())">
             {{ replacementVisible() ? 'Hide password' : 'Show password' }}
