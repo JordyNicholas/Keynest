@@ -31,7 +31,7 @@ JordyNicholas confirmed both results on November 18, 2026. The test dates, revis
 
 | Rehearsal | Test date | Tested revision | Environment | Result |
 | --- | --- | --- | --- | --- |
-| Full-stack browser walkthrough with AI disabled | Pending | Manager Web and API revisions pending | OS, browser version, and Web/API deployment topology pending | Pass, maintainer-confirmed |
+| Full-stack browser walkthrough with AI disabled | Pending | Manager Web and API revisions pending | Microsoft Edge on a local workstation. OS, browser version, and Web/API deployment topology pending | Pass, maintainer-confirmed |
 | PostgreSQL backup and restore with the matching retained vault key | Pending | Manager API revision or image digest pending | Host/runtime, PostgreSQL version, and restore-target details pending | Pass, maintainer-confirmed |
 
 ### Operator environment captured November 18, 2026
