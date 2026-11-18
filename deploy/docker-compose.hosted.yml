@@ -1,0 +1,48 @@
+# Use a different Compose project and private env file for each environment.
+# The host's HTTPS ingress forwards /api/v1 to the selected loopback port.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keynest
+      POSTGRES_USER: keynest
+      POSTGRES_PASSWORD: ${KEYNEST_DB_PASSWORD:?Set a database password in this environment's private env file}
+    volumes:
+      - keynest_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keynest -d keynest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  manager-api:
+    image: ${KEYNEST_API_IMAGE:?Set the verified Manager API image reference}
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Native Argon2/JNA loads a shared library from /tmp.
+    tmpfs:
+      - /tmp:size=64m,mode=1777,nosuid,nodev,exec
+    mem_limit: 1g
+    cpus: 2.0
+    pids_limit: 256
+    ulimits:
+      core: 0
+    ports:
+      - "127.0.0.1:${KEYNEST_API_PORT:?Set a loopback port for this environment}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker,prod
+      KEYNEST_DB_HOST: postgres
+      KEYNEST_DB_PASSWORD: ${KEYNEST_DB_PASSWORD:?Set a database password in this environment's private env file}
+      KEYNEST_CORS_ALLOWED_ORIGINS: ${KEYNEST_CORS_ALLOWED_ORIGINS:?Set the exact Manager Web origins for this environment}
+      KEYNEST_RATE_LIMIT_TRUSTED_PROXIES: ${KEYNEST_RATE_LIMIT_TRUSTED_PROXIES:-}
+      KEYNEST_VAULT_KEY_HEX: ${KEYNEST_VAULT_KEY_HEX:?Set a distinct vault key for this environment}
+      KEYNEST_VAULT_KEY_ID: ${KEYNEST_VAULT_KEY_ID:?Set the stable ID for this environment's vault key}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  keynest_pg:

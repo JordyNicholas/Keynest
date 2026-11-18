@@ -4,6 +4,7 @@ import json
 import re
 import subprocess
 import sys
+from argparse import ArgumentParser
 
 
 def output(*command):
@@ -18,10 +19,15 @@ def check(condition, name):
     raise RuntimeError(name)
 
 
+parser = ArgumentParser(description=__doc__)
+parser.add_argument('--compose-file', default='deploy/docker-compose.yml')
+parser.add_argument('--diagnostics', action='store_true')
+args = parser.parse_args()
+
 try:
-  container = output('docker', 'compose', '-f', 'deploy/docker-compose.yml', 'ps', '-q', 'manager-api')
+  container = output('docker', 'compose', '-f', args.compose_file, 'ps', '-q', 'manager-api')
   check(bool(re.fullmatch(r'[a-f0-9]{12,64}', container)), 'expected one running API container')
-  if '--diagnostics' in sys.argv:
+  if args.diagnostics:
     state = json.loads(output('docker', 'inspect', '--format', '{{json .State}}', container))
     logs = subprocess.run(['docker', 'logs', container], capture_output=True, text=True, check=False)
     combined = logs.stdout + logs.stderr
