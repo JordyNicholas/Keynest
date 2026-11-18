@@ -44,7 +44,10 @@
 }
 
 .nav a {
+  display: inline-flex;
   flex: 0 0 auto;
+  align-items: center;
+  min-block-size: 44px;
   white-space: nowrap;
   font-family: var(--kn-font-body);
   color: var(--kn-color-muted);
@@ -72,6 +75,17 @@
 .mark:focus-visible {
   outline: 2px solid var(--kn-color-accent);
   outline-offset: 2px;
+}
+
+@media (max-width: 30rem) {
+  .nav {
+    gap: 0.25rem;
+  }
+
+  .nav a {
+    font-size: 0.875rem;
+    padding-inline: 0.5rem;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

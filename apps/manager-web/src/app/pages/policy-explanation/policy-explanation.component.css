@@ -1,0 +1,9 @@
+#provider-disclosure {
+  margin: 0.75rem 0;
+  color: var(--kn-color-muted);
+  font-size: 0.95rem;
+}
+
+input {
+  width: min(100%, 28rem);
+}

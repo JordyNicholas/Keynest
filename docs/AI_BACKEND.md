@@ -2,6 +2,10 @@
 
 The Manager API and web workflow implement [ADR-0010](./ADR-0010-ephemeral-byok-policy-explanation.md). AI explanations are disabled by default. Existing vault, tools and readiness routes do not invoke a provider.
 
+## Manager Web
+
+Open **AI settings → OpenAI setup** in Account settings, or follow **Explain the built-in policy** from the password-policy tool. Both use the same one-request credential flow. Closing the account setup clears any unsubmitted key and cancels the browser’s pending request.
+
 ## Contract
 
 `POST /api/v1/ai/policy/explain` requires the existing Manager session bearer in `Authorization` and a per-invocation provider key in `X-Keynest-AI-Key`. Its only JSON fields are:

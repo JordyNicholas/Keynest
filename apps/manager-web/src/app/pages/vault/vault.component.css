@@ -2,8 +2,9 @@
   display: block;
 }
 
-.saved-items {
+.vault-list {
   grid-template-columns: minmax(0, 1fr);
+  overflow-wrap: anywhere;
 }
 
 .vault-list .vault-card {
@@ -52,10 +53,17 @@
 }
 
 .vault-card-actions {
-  margin: 0.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.vault-card-actions > button {
+  min-block-size: 44px;
 }
 
 .delete-button {
-  --mat-sys-primary: var(--kn-color-danger);
-  --mat-sys-outline: var(--kn-color-danger);
+  --mat-menu-item-label-text-color: var(--kn-color-danger);
 }
