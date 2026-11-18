@@ -77,6 +77,8 @@ describe('Vault update routes', () => {
     const copyBounds = copy.getBoundingClientRect();
     expect(showBounds.top).toBe(copyBounds.top);
     expect(showBounds.width).toBeCloseTo(copyBounds.width, 1);
+    expect(showBounds.height).toBeGreaterThanOrEqual(44);
+    expect(copyBounds.height).toBeGreaterThanOrEqual(44);
     expect(showBounds.right).toBeLessThan(copyBounds.left);
     expect(copyBounds.right).toBeLessThanOrEqual(actions.getBoundingClientRect().right);
 
