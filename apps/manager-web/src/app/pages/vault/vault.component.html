@@ -1,7 +1,7 @@
 <h1 class="page-title">Vault</h1>
 <p class="page-lede">Manage passwords and expiry dates for your saved accounts.</p>
 
-<kn-inline-error [message]="error()" [details]="policyViolations()" />
+<kn-inline-error [message]="error()" />
 
 <section class="panel" aria-labelledby="vault-heading">
   <h2 id="vault-heading">Saved items</h2>
@@ -34,43 +34,10 @@
           } @else {
             <button type="button" [disabled]="pending()" (click)="reveal(item.id)">Reveal for {{ revealDurationSeconds }}s</button>
           }
-          <button type="button" [disabled]="pending()" (click)="openEditor(item)">Edit item</button>
+          <a mat-stroked-button [routerLink]="['/vault', 'edit', item.id]" [attr.aria-label]="'Edit ' + item.label">Edit details</a>
+          <a mat-stroked-button [routerLink]="['/vault', 'rotate', item.id]" [attr.aria-label]="'Rotate password for ' + item.label">Rotate password</a>
           <button type="button" class="danger" [disabled]="pending()" [attr.aria-label]="'Delete ' + item.label" (click)="remove(item.id)">Delete</button>
         </div>
-        @if (editing() === item.id) {
-          <section [attr.aria-label]="'Edit vault item ' + item.label">
-            <p>Change the password at the account's website before saving the replacement here.
-              Leave the replacement blank to keep the current password.</p>
-            <label>
-              Label
-              <input type="text" maxlength="200" [disabled]="pending()" [ngModel]="editLabel()" (ngModelChange)="editLabel.set($event)" />
-            </label>
-            <label>
-              Username
-              <input type="text" maxlength="320" [disabled]="pending()" [ngModel]="editUsername()" (ngModelChange)="editUsername.set($event)" />
-            </label>
-            <label>
-              URL
-              <input type="url" maxlength="2000" [disabled]="pending()" [ngModel]="editUrl()" (ngModelChange)="editUrl.set($event)" />
-            </label>
-            <label>
-              Replacement password
-              <input #replacement knPasswordVisibility #replacementVisibility="knPasswordVisibility" autocomplete="new-password" spellcheck="false" [disabled]="pending()" />
-            </label>
-            <button type="button" [disabled]="pending()" [attr.aria-pressed]="replacementVisibility.visible()" (click)="replacementVisibility.toggle()">Show replacement password</button>
-            <button type="button" [disabled]="pending()" (click)="generateReplacement(replacement)">Generate replacement</button>
-            <label>
-              New expiry in days (leave blank to keep current expiry)
-              <input type="number" min="1" [disabled]="pending()" [ngModel]="expiryDays()" (ngModelChange)="expiryDays.set($event)" />
-            </label>
-            <label>
-              Notify before expiry (days)
-              <input type="number" min="0" [disabled]="pending()" [ngModel]="notifyDays()" (ngModelChange)="notifyDays.set($event)" />
-            </label>
-            <button type="button" [disabled]="pending()" (click)="replacementVisibility.hide(); saveItem(item, replacement)">Save changes</button>
-            <button type="button" [disabled]="pending()" (click)="replacement.value = ''; editing.set(null)">Cancel</button>
-          </section>
-        }
       </li>
     } @empty {
       <li class="empty">No vault items yet.</li>
@@ -78,7 +45,7 @@
   </ul>
 </section>
 
-@if (showUpcomingExpiry && vaultLoaded()) {
+@if (vaultLoaded()) {
   <section class="panel" aria-labelledby="upcoming-expiry-heading">
     <h2 id="upcoming-expiry-heading">Upcoming and overdue expiry</h2>
     <ul class="vault-list">

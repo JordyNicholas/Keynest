@@ -7,6 +7,7 @@ import { Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
 import { ToolsPageComponent } from './pages/tools/tools.component';
 import { VaultCreatePageComponent } from './pages/vault/vault-create.component';
+import { VaultUpdatePageComponent } from './pages/vault/vault-update.component';
 import { VaultPageComponent } from './pages/vault/vault.component';
 import { AccountPageComponent } from './pages/account/account.component';
 import { authGuard } from './auth/auth.guard';
@@ -27,7 +28,8 @@ export const routes: Routes = [
       { path: 'tools/check', component: CheckPasswordPageComponent },
       { path: 'status', component: ApiHealthPageComponent },
       { path: 'vault/new', component: VaultCreatePageComponent, canActivate: [authGuard] },
-      { path: 'vault/rotate/:itemId', component: VaultPageComponent, canActivate: [authGuard] },
+      { path: 'vault/edit/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard] },
+      { path: 'vault/rotate/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard], data: { rotate: true } },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
       { path: 'policy-explanation', component: PolicyExplanationComponent, canActivate: [authGuard] },
       { path: 'account', component: AccountPageComponent },

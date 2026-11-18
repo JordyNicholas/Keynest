@@ -1,32 +1,20 @@
 import { confirmVaultChange } from '../confirm-vault-change';
 import { InlineErrorComponent } from '../inline-error.component';
-import { PasswordVisibilityDirective } from '../password-visibility.directive';
-import { passwordViolationMessages } from '../password-violation-messages';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 import { Component, computed, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatButtonModule } from '@angular/material/button';
-import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 
-type VaultItem = {
-  id: string;
-  label: string;
-  url?: string;
-  username?: string;
-  policyId: string;
-  expiresAt?: string;
-  lastRotatedAt?: string;
-  notifyBeforeDays?: number;
-};
+import { VaultItem } from './vault-item';
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [InlineErrorComponent, PasswordVisibilityDirective, DatePipe, FormsModule, RouterLink, MatButtonModule],
+  imports: [InlineErrorComponent, DatePipe, RouterLink, MatButtonModule],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css'],
 })
@@ -37,8 +25,6 @@ export class VaultPageComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
   private readonly auth = inject(AuthService);
-  private rotationTarget = inject(ActivatedRoute, { optional: true })?.snapshot.paramMap.get('itemId');
-  readonly showUpcomingExpiry = !this.rotationTarget;
   readonly vaultLoaded = signal(false);
   private readonly revealRequests = new Map<string, symbol>();
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -57,14 +43,7 @@ export class VaultPageComponent implements OnDestroy {
       .map(({ item }) => item);
   });
   readonly revealed = signal<Record<string, string>>({});
-  readonly editLabel = signal('');
-  readonly editUsername = signal('');
-  readonly editUrl = signal('');
-  readonly editing = signal<string | null>(null);
-  readonly expiryDays = signal<number | null>(null);
-  readonly notifyDays = signal<number | null>(null);
   readonly pending = signal(false);
-  readonly policyViolations = signal<string[]>([]);
   readonly error = signal('');
   readonly revealDurationSeconds = VaultPageComponent.REVEAL_DURATION_MS / 1000;
 
@@ -76,7 +55,6 @@ export class VaultPageComponent implements OnDestroy {
         session = token;
         this.items.set([]);
         this.concealAll();
-        this.editing.set(null);
         this.vaultLoaded.set(false);
       }
     });
@@ -94,104 +72,12 @@ export class VaultPageComponent implements OnDestroy {
         if (this.auth.token() !== token) return;
         this.items.set(body);
         this.vaultLoaded.set(true);
-        this.policyViolations.set([]);
         this.error.set('');
-        if (this.rotationTarget) {
-          const item = body.find(({ id }) => id === this.rotationTarget);
-          this.rotationTarget = null;
-          if (item && this.auth.signedIn()) {
-            this.openEditor(item);
-          } else {
-            this.error.set('Vault item unavailable for rotation.');
-          }
-        }
       },
       error: () => {
         if (this.auth.token() === token) this.error.set('Vault list failed — sign in again');
       },
     });
-  }
-
-  openEditor(item: VaultItem): void {
-    this.conceal(item.id);
-    this.editLabel.set(item.label);
-    this.editUsername.set(item.username ?? '');
-    this.editUrl.set(item.url ?? '');
-    this.expiryDays.set(null);
-    this.notifyDays.set(item.notifyBeforeDays ?? null);
-    this.policyViolations.set([]);
-    this.error.set('');
-    this.editing.set(item.id);
-  }
-
-  generateReplacement(input: HTMLInputElement): void {
-    this.pending.set(true);
-    this.policyViolations.set([]);
-    this.error.set('');
-    this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {})
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
-      .subscribe({
-        next: ({ password }) => {
-          if (input.isConnected && this.auth.signedIn()) input.value = password;
-        },
-        error: () => this.error.set('Could not generate a replacement password'),
-      });
-  }
-
-  saveItem(item: VaultItem, input: HTMLInputElement): void {
-    if (this.pending() || !this.validDays(this.expiryDays(), this.notifyDays())) return;
-    const password = input.value || undefined;
-    if (password && !password.trim()) {
-      this.error.set('Enter a replacement password or leave it blank.');
-      return;
-    }
-    const label = this.editLabel().trim();
-    const username = this.editUsername().trim();
-    const url = this.editUrl().trim();
-    if (!label || label.length > 200 || username.length > 320 || url.length > 2000) {
-      this.error.set('Enter a label and keep the metadata within the field limits.');
-      return;
-    }
-    const metadata: { label?: string; username?: string; url?: string } = {};
-    if (label !== item.label) metadata.label = label;
-    if (username !== (item.username ?? '')) metadata.username = username;
-    if (url !== (item.url ?? '')) metadata.url = url;
-    const expiresInDays = this.expiryDays();
-    const notifyBeforeDays = this.notifyDays();
-    if (!Object.keys(metadata).length && !password && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) return;
-    if (password && !confirmVaultChange('replace-password')) return;
-    this.pending.set(true);
-    this.policyViolations.set([]);
-    this.error.set('');
-    this.conceal(item.id);
-    this.http.put<VaultItem>(`${this.apiBaseUrl}/vault/items/${item.id}`,
-      { ...metadata, password, expiresInDays, notifyBeforeDays },
-      { headers: this.auth.authHeaders() },
-    ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
-      .subscribe({
-        next: (updated) => {
-          input.value = '';
-          this.items.update((items) => items.map((entry) => entry.id === updated.id ? updated : entry));
-          this.editing.set(null);
-        },
-        error: (response) => this.showSaveError(response.error, 'Could not save the vault item.'),
-      });
-  }
-
-  private showSaveError(body: { code?: string; violations?: unknown } | null, fallback: string): void {
-    const rejected = body?.code === 'VAULT_PASSWORD_POLICY' && Array.isArray(body.violations);
-    this.policyViolations.set(rejected
-      ? passwordViolationMessages(body.violations)
-      : []);
-    this.error.set(rejected ? 'The password does not meet the vault policy.' : fallback);
-  }
-
-  private validDays(expiry: number | null, notice: number | null): boolean {
-    const valid = (value: number | null, min: number) =>
-      value === null || (Number.isInteger(value) && value >= min && value <= 2_147_483_647);
-    if (valid(expiry, 1) && valid(notice, 0)) return true;
-    this.error.set('Enter whole days. Expiry must be at least 1 and notice at least 0.');
-    return false;
   }
 
   reveal(id: string): void {
@@ -217,7 +103,6 @@ export class VaultPageComponent implements OnDestroy {
             id,
             setTimeout(() => this.conceal(id), VaultPageComponent.REVEAL_DURATION_MS)
           );
-          this.policyViolations.set([]);
           this.error.set('');
         },
         error: () => {
@@ -248,14 +133,12 @@ export class VaultPageComponent implements OnDestroy {
   remove(id: string): void {
     if (this.pending() || !confirmVaultChange('delete')) return;
     this.pending.set(true);
-    this.policyViolations.set([]);
     this.error.set('');
     this.conceal(id);
     this.http.delete(`${this.apiBaseUrl}/vault/items/${id}`, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({
         next: () => {
-          if (this.editing() === id) this.editing.set(null);
           this.items.update((items) => items.filter((item) => item.id !== id));
         },
         error: () => this.error.set('Delete failed'),
