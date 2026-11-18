@@ -41,7 +41,8 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 4. Open **Edit details**, change the label or username, and save. Open **Rotate password** for the same item, generate a replacement, copy it from the masked input, then confirm saving it for the synthetic account. Verify the rotation timestamp changes. Reveal once to check the replacement, then conceal it.
 5. Cancel a deletion and verify the item remains. Confirm deletion and verify the item disappears.
 6. Sign out and revisit Vault and the rotation link. Verify both require sign-in. Repeat key navigation with the browser's reduced-motion preference enabled.
-7. Record the tested SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
+7. Open **Check password policy**. Type a synthetic sample and verify the meter and checklist update without a validation request. Confirm the built-in check with **Check password**, then switch to custom rules and verify changing a rule updates the result without sending the sample.
+8. Record the tested SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
 
 ## Governance evidence
 

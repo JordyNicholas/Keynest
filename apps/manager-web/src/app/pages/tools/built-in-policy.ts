@@ -10,6 +10,7 @@ export type BuiltInPolicy = {
     minCategories: number;
     excludeAmbiguous: boolean;
     forbidWhitespace: boolean;
+    forbidUsernameSubstring: boolean;
     bannedSubstrings: string[];
   };
 };
