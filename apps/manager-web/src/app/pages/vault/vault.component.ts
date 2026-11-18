@@ -12,6 +12,8 @@ import { AuthService } from '../../auth/auth.service';
 
 import { VaultItem } from './vault-item';
 
+const DAY_MS = 86_400_000;
+
 @Component({
   selector: 'kn-vault-page',
   imports: [InlineErrorComponent, DatePipe, RouterLink, MatButtonModule],
@@ -32,12 +34,11 @@ export class VaultPageComponent implements OnDestroy {
   readonly items = signal<VaultItem[]>([]);
   readonly upcomingExpiry = computed(() => {
     const now = Date.now();
-    const dayMs = 86_400_000;
     return this.items()
       .flatMap((item) => {
         const expiry = item.expiresAt ? Date.parse(item.expiresAt) : NaN;
         const notice = Math.max(0, item.notifyBeforeDays ?? 0);
-        return expiry <= now + notice * dayMs ? [{ item, expiry }] : [];
+        return expiry <= now + notice * DAY_MS ? [{ item, expiry }] : [];
       })
       .sort((left, right) => left.expiry - right.expiry)
       .map(({ item }) => item);
@@ -59,6 +60,18 @@ export class VaultPageComponent implements OnDestroy {
       }
     });
     this.refreshVault();
+  }
+
+  expiryStatus(expiresAt: VaultItem['expiresAt']): { tone: string; label: string } {
+    const expiry = expiresAt ? Date.parse(expiresAt) : NaN;
+    if (!Number.isFinite(expiry)) return { tone: 'neutral', label: 'No expiry' };
+
+    const remaining = expiry - Date.now();
+    if (remaining <= 0) return { tone: 'urgent', label: 'Expired' };
+    const days = Math.floor(remaining / DAY_MS);
+    const tone = days >= 30 ? 'healthy' : days >= 14 ? 'warning' : 'urgent';
+    if (days === 0) return { tone, label: 'Less than a day left' };
+    return { tone, label: days === 1 ? '1 day left' : `${days} days left` };
   }
 
   refreshVault(): void {

@@ -1,4 +1,4 @@
-import { characterGroups, CharacterSelection, minPasswordLength, validPasswordLength } from './password-options';
+import { characterGroups, CharacterSelection, maxPasswordLength, minPasswordLength, validPasswordLength } from './password-options';
 
 const substitutions: Readonly<Partial<Record<string, string>>> = {
   a: '@4',
@@ -23,14 +23,21 @@ function randomCharacter(characters: string): string {
   return characters[randomIndex(characters.length)];
 }
 
-export function generateBrowserPassword(length: number | null, selection: CharacterSelection, keyword: string): string {
-  if (!validPasswordLength(length)) {
-    throw new Error('Choose a length between 8 and 128.');
+export function generateBrowserPassword(
+  length: number | null,
+  selection: CharacterSelection,
+  keyword: string,
+  { minLength = minPasswordLength, maxLength = maxPasswordLength, excludeAmbiguous = false } = {},
+): string {
+  if (!validPasswordLength(length) || length < minLength || length > maxLength) {
+    throw new Error(`Choose a length between ${minLength} and ${maxLength}.`);
   }
 
-  const groups = characterGroups.filter(({ id }) => selection[id]);
+  const groups = characterGroups
+    .filter(({ id }) => selection[id])
+    .map(({ characters }) => excludeAmbiguous ? characters.replace(/[0OIl1]/g, '') : characters);
   if (!groups.length) throw new Error('Choose at least one character type.');
-  const pool = groups.map(({ characters }) => characters).join('');
+  const pool = groups.join('');
 
   if (!/^[a-z0-9]*$/i.test(keyword)) {
     throw new Error('Use letters and numbers in the keyword.');
@@ -48,7 +55,7 @@ export function generateBrowserPassword(length: number | null, selection: Charac
     return randomCharacter(available);
   }).join('');
 
-  const random = groups.map(({ characters }) => randomCharacter(characters));
+  const random = groups.map(randomCharacter);
   while (random.length < randomLength) {
     random.push(randomCharacter(pool));
   }

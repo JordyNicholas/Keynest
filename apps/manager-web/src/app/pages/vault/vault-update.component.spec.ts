@@ -71,11 +71,22 @@ describe('Vault update routes', () => {
     expect(content.querySelector('h1')?.textContent).toContain('Rotate password');
     expect(content.querySelector('input[name=label]')).toBeNull();
     const input = content.querySelector<HTMLInputElement>('input[autocomplete=new-password]')!;
+    expect(input.type).toBe('password');
+    expect(content.textContent).not.toContain('Show password');
+    const copy = Array.from(content.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('Copy replacement'))!;
+    expect(copy.disabled).toBeTrue();
     const generate = Array.from(content.querySelectorAll('button'))
       .find((button) => button.textContent?.includes('Generate replacement'))!;
     generate.click();
     http.expectOne('/api/v1/tools/generate').flush({ password: 'test-replacement' });
     expect(input.value).toBe('test-replacement');
+    TestBed.tick();
+    expect(copy.disabled).toBeFalse();
+    const writeText = spyOn(navigator.clipboard, 'writeText').and.resolveTo();
+    copy.click();
+    expect(writeText).toHaveBeenCalledOnceWith('test-replacement');
+    expect(input.type).toBe('password');
     http.expectNone(endpoint);
 
     const confirm = spyOn(window, 'confirm').and.returnValue(false);

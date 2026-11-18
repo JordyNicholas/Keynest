@@ -5,11 +5,14 @@
   </header>
 
   <nav class="nav" aria-label="Primary">
-    <a routerLink="/tools" routerLinkActive="active" ariaCurrentWhenActive="page">Password tools</a>
+    <a #tools routerLink="/tools" routerLinkActive="active" ariaCurrentWhenActive="page"
+       (isActiveChange)="keepActiveLinkVisible(tools, $event)">Password tools</a>
     @if (signedIn()) {
-      <a routerLink="/vault" routerLinkActive="active" ariaCurrentWhenActive="page">Vault</a>
+      <a #vault routerLink="/vault" routerLinkActive="active" ariaCurrentWhenActive="page"
+       (isActiveChange)="keepActiveLinkVisible(vault, $event)">Vault</a>
     }
-    <a routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page">{{ signedIn() ? 'Account settings' : 'Sign in' }}</a>
+    <a #account routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page"
+       (isActiveChange)="keepActiveLinkVisible(account, $event)">{{ signedIn() ? 'Account settings' : 'Sign in' }}</a>
   </nav>
 
   <main #page class="main">

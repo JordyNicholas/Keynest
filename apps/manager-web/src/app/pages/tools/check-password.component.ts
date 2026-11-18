@@ -11,20 +11,7 @@ import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
 import { passwordViolationMessages } from '../password-violation-messages';
 
-type BuiltInPolicy = {
-  id: string;
-  rules: {
-    minLength: number;
-    maxLength: number;
-    requireUpper: boolean;
-    requireLower: boolean;
-    requireDigit: boolean;
-    requireSymbol: boolean;
-    excludeAmbiguous: boolean;
-    forbidWhitespace: boolean;
-    bannedSubstrings: string[];
-  };
-};
+import { BuiltInPolicy } from './built-in-policy';
 
 @Component({
   selector: 'kn-check-password-page',

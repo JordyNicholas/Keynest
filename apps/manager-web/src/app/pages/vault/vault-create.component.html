@@ -18,7 +18,7 @@
   <fieldset [disabled]="saving()">
     <legend>Password</legend>
     <label>
-      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); password.value = ''" name="mode" aria-label="Password source">
+      <select [ngModel]="mode()" (ngModelChange)="selectMode($event, password)" name="mode" aria-label="Password source">
         <option value="existing">Enter an existing password</option>
         <option value="generate">Generate on save</option>
       </select>
@@ -31,7 +31,18 @@
       </label>
     </div>
     @if (mode() === 'generate') {
-      <p>Keynest generates and saves the password when you submit. You can reveal it from Vault.</p>
+      @if (policyRules(); as rules) {
+        <p>Keynest generates the password in this browser when you save. You can reveal it from Vault.</p>
+        <kn-password-generator-options
+          [minLength]="rules.minLength" [maxLength]="rules.maxLength"
+          [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
+          [excludeAmbiguous]="rules.excludeAmbiguous" />
+      } @else if (loadingPolicy()) {
+        <p role="status">Loading Vault password rules…</p>
+      } @else {
+        <p>Could not load the Vault password rules.</p>
+        <button mat-stroked-button type="button" (click)="loadPolicy()">Retry loading rules</button>
+      }
     }
   </fieldset>
 
@@ -46,7 +57,7 @@
   </fieldset>
 
   <div class="row">
-    <button mat-flat-button type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save item' }}</button>
+    <button mat-flat-button type="submit" [disabled]="saving() || (mode() === 'generate' && !policyRules())">{{ saving() ? 'Saving…' : 'Save item' }}</button>
     @if (!saving()) {
       <a mat-stroked-button routerLink="/vault">Cancel</a>
     }
