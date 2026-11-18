@@ -62,6 +62,7 @@
 
 .vault-card-actions > button {
   min-block-size: 44px;
+  padding-inline: 0.75rem;
 }
 
 .delete-button {
