@@ -1,41 +1,38 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { HttpClient } from '@angular/common/http';
+import { Component, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AuthService } from '../../auth/auth.service';
 import { MatButtonModule } from '@angular/material/button';
-import { finalize } from 'rxjs';
-import { API_BASE_URL } from '../../injectionTokens';
+import { AuthService } from '../../auth/auth.service';
 import { InlineErrorComponent } from '../inline-error.component';
+import { generateBrowserPassword } from './browser-password-generator';
+import { characterGroups, CharacterSelection, maxPasswordLength, minPasswordLength } from './password-options';
 
 @Component({
   selector: 'kn-generate-password-page',
-  imports: [InlineErrorComponent, MatButtonModule, RouterLink],
+  imports: [InlineErrorComponent, FormsModule, MatButtonModule, RouterLink],
   templateUrl: './generate-password.component.html',
   styleUrl: '../page-shared.css',
 })
 export class GeneratePasswordPageComponent {
-  private readonly apiBaseUrl = inject(API_BASE_URL);
-  private readonly http = inject(HttpClient);
-  private readonly destroyRef = inject(DestroyRef);
-
   readonly signedIn = inject(AuthService).signedIn;
   readonly copyStatus = signal('');
   readonly generated = signal('');
-  readonly generating = signal(false);
   readonly error = signal('');
+  readonly length = signal<number | null>(20);
+  readonly selection: CharacterSelection = { lower: true, upper: true, digits: true, symbols: true };
+  readonly characterGroups = characterGroups;
+  readonly minLength = minPasswordLength;
+  readonly maxLength = maxPasswordLength;
 
-  generate(): void {
-    if (this.generating()) return;
+  generate(event: Event, keyword: HTMLInputElement): void {
+    event.preventDefault();
     this.clearGenerated();
     this.error.set('');
-    this.generating.set(true);
-    this.http.post<{ password: string }>(`${this.apiBaseUrl}/tools/generate`, {})
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.generating.set(false)))
-      .subscribe({
-        next: ({ password }) => this.generated.set(password),
-        error: () => this.error.set('Could not generate a password. Try again.'),
-      });
+    try {
+      this.generated.set(generateBrowserPassword(this.length(), this.selection, keyword.value.trim()));
+    } catch (failure) {
+      this.error.set(failure instanceof Error ? failure.message : 'Could not generate a password.');
+    }
   }
 
   async copyGenerated(): Promise<void> {

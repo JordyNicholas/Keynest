@@ -1,11 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
+import { InlineErrorComponent } from '../inline-error.component';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 
 @Component({
+  imports: [InlineErrorComponent, MatButtonModule, RouterLink],
   templateUrl: './policy-explanation.component.html',
   styleUrl: '../page-shared.css',
 })

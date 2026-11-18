@@ -1,7 +1,7 @@
 <h1 class="page-title">Add vault item</h1>
 <kn-inline-error [message]="error()" [details]="details()" />
 
-<form ngNativeValidate class="panel" (submit)="visibility.hide(); save($event, password)">
+<form ngNativeValidate class="panel" (submit)="save($event, password)">
   <fieldset [disabled]="saving()">
     <legend>Login details</legend>
     <label>Label
@@ -18,18 +18,17 @@
   <fieldset [disabled]="saving()">
     <legend>Password</legend>
     <label>
-      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); password.value = ''; visibility.hide()" name="mode" aria-label="Password source">
+      <select [ngModel]="mode()" (ngModelChange)="mode.set($event); password.value = ''" name="mode" aria-label="Password source">
         <option value="existing">Enter an existing password</option>
         <option value="generate">Generate on save</option>
       </select>
     </label>
     <div [hidden]="mode() === 'generate'">
       <label>Existing password
-        <input #password knPasswordVisibility #visibility="knPasswordVisibility"
+        <input #password type="password"
                autocomplete="new-password" spellcheck="false" [required]="mode() === 'existing'"
                [disabled]="mode() === 'generate'" />
       </label>
-      <button mat-stroked-button type="button" [attr.aria-pressed]="visibility.visible()" (click)="visibility.toggle()">Show password</button>
     </div>
     @if (mode() === 'generate') {
       <p>Keynest generates and saves the password when you submit. You can reveal it from Vault.</p>

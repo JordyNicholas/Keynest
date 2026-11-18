@@ -1,23 +1,26 @@
-<h1>Policy explanation</h1>
-<p>OpenAI receives the built-in password policy ({{ policyId }}) and instructions to explain it.
-  Your OpenAI key authenticates this request and provider charges may apply.</p>
+<a routerLink="/tools/check">Back to Check password policy</a>
+<h1 class="page-title">Explain the built-in password policy</h1>
+<p class="page-lede">Get a plain-language explanation of why Keynest’s default rules exist. Your Keynest administrator must enable this optional feature.</p>
 
-<form (submit)="explain($event, providerKey)">
+<form class="panel" (submit)="explain($event, providerKey)">
+  <p id="provider-disclosure">OpenAI receives the built-in policy rules and instructions to explain them. Your API key authorizes the request and provider charges may apply.</p>
   <label for="provider-key">OpenAI API key</label>
-  <input #providerKey id="provider-key" type="password" autocomplete="off"
+  <input #providerKey id="provider-key" type="password" autocomplete="off" aria-describedby="provider-disclosure"
     spellcheck="false" maxlength="4096" required [disabled]="pending()" />
-  <button type="submit" [disabled]="pending()">Send to OpenAI</button>
+  <div class="row">
+    <button mat-flat-button type="submit" [disabled]="pending()">Explain with OpenAI</button>
+    @if (pending()) {
+      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+    }
+  </div>
   @if (pending()) {
-    <button type="button" (click)="cancel()">Cancel</button>
     <p role="status">Requesting an explanation…</p>
   }
 </form>
 
-@if (error()) {
-  <p role="alert">{{ error() }}</p>
-}
+<kn-inline-error [message]="error()" />
 @if (explanation()) {
-  <section aria-labelledby="explanation-heading" aria-live="polite">
+  <section class="panel" aria-labelledby="explanation-heading" aria-live="polite" animate.enter="kn-enter">
     <h2 id="explanation-heading">Explanation</h2>
     <p>{{ explanation() }}</p>
   </section>

@@ -1,5 +1,3 @@
-import { ApiHealthPageComponent } from './pages/tools/api-health.component';
-import { CheckPasswordPageComponent } from './pages/tools/check-password.component';
 import { GeneratePasswordPageComponent } from './pages/tools/generate-password.component';
 import { inject } from '@angular/core';
 import { AuthService } from './auth/auth.service';
@@ -11,7 +9,6 @@ import { VaultUpdatePageComponent } from './pages/vault/vault-update.component';
 import { VaultPageComponent } from './pages/vault/vault.component';
 import { AccountPageComponent } from './pages/account/account.component';
 import { authGuard } from './auth/auth.guard';
-import { PolicyExplanationComponent } from './pages/policy-explanation/policy-explanation.component';
 
 export const routes: Routes = [
   {
@@ -25,13 +22,13 @@ export const routes: Routes = [
       },
       { path: 'tools', component: ToolsPageComponent },
       { path: 'tools/generate', component: GeneratePasswordPageComponent },
-      { path: 'tools/check', component: CheckPasswordPageComponent },
-      { path: 'status', component: ApiHealthPageComponent },
+      { path: 'tools/check', loadComponent: () => import('./pages/tools/check-password.component').then((page) => page.CheckPasswordPageComponent) },
+      { path: 'status', loadComponent: () => import('./pages/tools/api-health.component').then((page) => page.ApiHealthPageComponent) },
       { path: 'vault/new', component: VaultCreatePageComponent, canActivate: [authGuard] },
       { path: 'vault/edit/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard] },
       { path: 'vault/rotate/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard], data: { rotate: true } },
       { path: 'vault', component: VaultPageComponent, canActivate: [authGuard] },
-      { path: 'policy-explanation', component: PolicyExplanationComponent, canActivate: [authGuard] },
+      { path: 'policy-explanation', loadComponent: () => import('./pages/policy-explanation/policy-explanation.component').then((page) => page.PolicyExplanationComponent), canActivate: [authGuard] },
       { path: 'account', component: AccountPageComponent },
     ],
   },

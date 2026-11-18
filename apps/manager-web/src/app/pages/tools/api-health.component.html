@@ -3,11 +3,22 @@
 <kn-inline-error [message]="error()" />
 
 <section class="panel" aria-labelledby="health-heading">
-  <button mat-flat-button type="button" [disabled]="checking()" (click)="refreshHealth()">Refresh health</button>
   @if (checking()) {
     <p role="status">Checking API health…</p>
   }
   @if (health(); as result) {
-    <pre aria-label="API health response">{{ result | json }}</pre>
+    <div animate.enter="kn-enter">
+      <p role="status">{{ result.status === 'ok' ? 'Connected to Manager API' : 'Manager API reported a problem' }}</p>
+      <dl class="data-list">
+        <dt>Service</dt>
+        <dd>{{ result.product }}</dd>
+        <dt>Default policy</dt>
+        <dd>{{ result.policyId }}</dd>
+      </dl>
+    </div>
   }
+  <div class="row">
+    <button mat-flat-button type="button" [disabled]="checking()" (click)="refreshHealth()">Refresh health</button>
+    <button mat-stroked-button type="button" (click)="back()">Back</button>
+  </div>
 </section>
