@@ -7,6 +7,8 @@
   },
   "scripts": {
     "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web",
-    "start": "npm --prefix apps/manager-web start"
+    "start-web": "npm --prefix apps/manager-web start",
+    "start-api": "mvn -pl apps/manager-api -am package -DskipTests && java -jar apps/manager-api/target/manager-api-0.1.0-SNAPSHOT.jar",
+    "start-container": "docker compose -f deploy/docker-compose.yml up --build"
   }
 }
