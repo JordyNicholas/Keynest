@@ -25,6 +25,8 @@ After the original review, Keynest added [ephemeral BYOK policy explanation](./A
 
 Manager sends `Cache-Control: no-store` with successful registration and login responses to keep bearer tokens out of compliant browser and intermediary HTTP caches. The packaged Compose smoke checks both headers. Risks from JavaScript reading the bearer remain tracked under T02.
 
+The rate limiter uses Spring's application-relative path matching and counts requests by configured route and resolved client. This keeps throttling consistent when Keynest runs under a servlet context path. The deployment limits under T09 and T13 still apply.
+
 Evidence reviewed for #43:
 
 - application configuration, controllers, services, repositories, filters, and crypto-library paths at the snapshot above;

@@ -35,6 +35,11 @@ class RateLimitFilterTest {
           .content(body))
         .andExpect(status().isOk());
     }
+    mockMvc.perform(post("/keynest" + ApiPaths.TOOLS_VALIDATE)
+        .contextPath("/keynest")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(body))
+      .andExpect(status().isTooManyRequests());
     mockMvc.perform(post(ApiPaths.TOOLS_VALIDATE)
         .contentType(MediaType.APPLICATION_JSON)
         .content(body))

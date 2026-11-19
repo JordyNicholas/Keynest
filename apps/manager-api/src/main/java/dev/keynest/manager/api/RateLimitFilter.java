@@ -7,11 +7,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ServletRequestPathUtils;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,6 +27,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
+
+  private static final List<PathPattern> RATE_LIMITED_PATHS = ApiPaths.RATE_LIMITED_POSTS.stream()
+    .map(PathPatternParser.defaultInstance::parse)
+    .toList();
 
   private final RateLimitProperties properties;
   private final ClientIpResolver clientIpResolver;
@@ -38,13 +47,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) {
-    if (!properties.isEnabled()) {
-      return true;
-    }
-    if (!HttpMethod.POST.matches(request.getMethod())) {
-      return true;
-    }
-    return !ApiPaths.RATE_LIMITED_POSTS.contains(request.getRequestURI());
+    return !properties.isEnabled() || !HttpMethod.POST.matches(request.getMethod());
   }
 
   @Override
@@ -53,7 +56,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     HttpServletResponse response,
     FilterChain filterChain
   ) throws ServletException, IOException {
-    String key = clientIpResolver.resolve(request) + "|" + request.getRequestURI();
+    PathContainer path = ServletRequestPathUtils.parseAndCache(request).pathWithinApplication();
+    PathPattern route = RATE_LIMITED_PATHS.stream()
+      .filter(pattern -> pattern.matches(path))
+      .findFirst()
+      .orElse(null);
+    if (route == null) {
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    String key = clientIpResolver.resolve(request) + "|" + route.getPatternString();
     long nowMs = System.currentTimeMillis();
     long windowMs = properties.getWindowSeconds() * 1000L;
 
