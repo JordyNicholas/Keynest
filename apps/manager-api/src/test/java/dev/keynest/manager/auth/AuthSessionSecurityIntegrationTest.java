@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -41,6 +42,27 @@ class AuthSessionSecurityIntegrationTest {
     mockMvc.perform(post(ApiPaths.AUTH_ME)
         .header("Authorization", "Bearer " + registered.token()))
       .andExpect(status().isOk());
+  }
+
+  @Test
+  void rejectsMalformedRegistrationEmail() throws Exception {
+    mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+          {"email":"not-an-email","password":"SyntheticTestPassword!42"}
+          """))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void rejectsSignInWithoutAPassword() throws Exception {
+    RegisteredSession registered = register();
+    mockMvc.perform(post(ApiPaths.AUTH_LOGIN)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+          {"email":"%s"}
+          """.formatted(registered.email())))
+      .andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -108,18 +130,20 @@ class AuthSessionSecurityIntegrationTest {
     MvcResult result = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
-          {"email":"%s","password":"MasterPassphrase!42"}
+          {"email":" %s ","password":"MasterPassphrase!42"}
           """.formatted(email)))
       .andExpect(status().isOk())
+      .andExpect(jsonPath("$.email").value(email))
       .andReturn();
 
     String response = result.getResponse().getContentAsString();
     return new RegisteredSession(
         JsonPath.read(response, "$.token"),
-        UUID.fromString(JsonPath.read(response, "$.userId"))
+        UUID.fromString(JsonPath.read(response, "$.userId")),
+        email
     );
   }
 
-  private record RegisteredSession(String token, UUID userId) {
+  private record RegisteredSession(String token, UUID userId, String email) {
   }
 }

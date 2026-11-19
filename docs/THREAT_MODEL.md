@@ -25,6 +25,8 @@ After the original review, Keynest added [ephemeral BYOK policy explanation](./A
 
 Manager sends `Cache-Control: no-store` with successful registration and login responses to keep bearer tokens out of compliant browser and intermediary HTTP caches. The packaged Compose smoke checks both headers. Risks from JavaScript reading the bearer remain tracked under T02.
 
+Registration validates email syntax and the normalized address length before creating an account. Sign-in rejects missing credentials with the generic authentication response. See T01 for the remaining account enumeration and rate-limit considerations.
+
 The rate limiter uses Spring's application-relative path matching and counts requests by configured route and resolved client. This keeps throttling consistent when Keynest runs under a servlet context path. The deployment limits under T09 and T13 still apply.
 
 The public password verification tool checks the Argon2id format and bounds the requested work before calling the native verifier. The bound is per request. See T13 for the remaining request-size and concurrency considerations.
