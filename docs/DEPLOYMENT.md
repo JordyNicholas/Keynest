@@ -12,6 +12,8 @@ Run production on a dedicated Docker host. Prefer a second Docker host for test.
 
 A Vercel page using `localhost` or `127.0.0.1` contacts the machine running that browser. The browser can apply local-network permission rules even after a command-line CORS check succeeds. A hosted deployment needs an HTTPS address reachable by its users. Keep the existing local [development instructions](../README.md#run-api) for development on one machine.
 
+For local development, choose one API runner. `npm run start-api` starts the standalone Java API, and `npm run start-container` starts the local Compose API with PostgreSQL. Both use port 8080 by default. Use the hosted Compose commands below for production-profile startup.
+
 ## Verify and publish an image
 
 CI builds and starts the Manager API with the hosted Compose definition and a disposable PostgreSQL instance. It verifies that the configured origin can send bearer and JSON requests, an unlisted origin is rejected, and the packaged API supports sign-in, Vault operations and tenant isolation.
