@@ -1,6 +1,6 @@
 package dev.keynest.manager.auth;
 
-import dev.keynest.seal.PasswordHasher;
+import dev.keynest.manager.security.PasswordHashingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +21,17 @@ public class AuthService {
 
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
-    private final PasswordHasher passwordHasher;
+    private final PasswordHashingService passwords;
     private final SecureRandom random = new SecureRandom();
 
     public AuthService(
             UserAccountRepository users,
             AuthSessionRepository sessions,
-            PasswordHasher passwordHasher
+            PasswordHashingService passwords
     ) {
         this.users = users;
         this.sessions = sessions;
-        this.passwordHasher = passwordHasher;
+        this.passwords = passwords;
     }
 
     @Transactional
@@ -50,7 +50,7 @@ public class AuthService {
         if (users.existsByEmailIgnoreCase(normalized)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already registered");
         }
-        String hash = passwordHasher.hashPassword(password.toCharArray());
+        String hash = passwords.hash(password);
         UserAccount user = new UserAccount(UUID.randomUUID(), normalized, hash, Instant.now());
         users.save(user);
         return issueSession(user);
@@ -64,7 +64,7 @@ public class AuthService {
         }
         UserAccount user = users.findByEmailIgnoreCase(normalized)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
-        if (!passwordHasher.verifyPassword(password.toCharArray(), user.getPasswordHash())) {
+        if (!passwords.verify(password, user.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
         return issueSession(user);

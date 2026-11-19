@@ -34,6 +34,7 @@ services:
       - "127.0.0.1:${KEYNEST_API_PORT:?Set a loopback port for this environment}:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker,prod
+      KEYNEST_PASSWORD_HASHING_MAX_CONCURRENT: ${KEYNEST_PASSWORD_HASHING_MAX_CONCURRENT:-4}
       KEYNEST_DB_HOST: postgres
       KEYNEST_DB_PASSWORD: ${KEYNEST_DB_PASSWORD:?Set a database password in this environment's private env file}
       KEYNEST_CORS_ALLOWED_ORIGINS: ${KEYNEST_CORS_ALLOWED_ORIGINS:?Set the exact Manager Web origins for this environment}
