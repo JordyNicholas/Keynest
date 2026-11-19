@@ -27,6 +27,8 @@ Manager sends `Cache-Control: no-store` with successful registration and login r
 
 The rate limiter uses Spring's application-relative path matching and counts requests by configured route and resolved client. This keeps throttling consistent when Keynest runs under a servlet context path. The deployment limits under T09 and T13 still apply.
 
+The public password verification tool checks the Argon2id format and bounds the requested work before calling the native verifier. The bound is per request. See T13 for the remaining request-size and concurrency considerations.
+
 Evidence reviewed for #43:
 
 - application configuration, controllers, services, repositories, filters, and crypto-library paths at the snapshot above;

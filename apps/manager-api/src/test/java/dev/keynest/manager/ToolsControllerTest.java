@@ -1,6 +1,8 @@
 package dev.keynest.manager;
 
+import com.jayway.jsonpath.JsonPath;
 import dev.keynest.manager.api.ApiPaths;
+import dev.keynest.seal.PasswordHasher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +51,27 @@ class ToolsControllerTest {
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.valid", is(true)))
       .andExpect(jsonPath("$.password").isString());
+  }
+
+  @Test
+  void verifiesGeneratedHashesWithinTheHttpWorkBudget() throws Exception {
+    String password = "SyntheticToolPassword!42";
+    MvcResult hashed = mockMvc.perform(post(ApiPaths.TOOLS_HASH_PASSWORD)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"password\":\"%s\"}".formatted(password)))
+      .andExpect(status().isOk())
+      .andReturn();
+    String defaultHash = JsonPath.read(hashed.getResponse().getContentAsString(), "$.hash");
+    // This small fixture is inexpensive but uses one iteration above the HTTP policy.
+    String customHash = new PasswordHasher(4, 8192, 1).hashPassword(password.toCharArray());
+
+    for (String hash : new String[] {defaultHash, customHash, "invalid"}) {
+      mockMvc.perform(post(ApiPaths.TOOLS_VERIFY_PASSWORD)
+          .contentType(MediaType.APPLICATION_JSON)
+          .content("{\"password\":\"%s\",\"hash\":\"%s\"}".formatted(password, hash)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.valid", is(hash.equals(defaultHash))));
+    }
   }
 
   @Test
