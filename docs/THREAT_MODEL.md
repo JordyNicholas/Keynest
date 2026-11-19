@@ -27,6 +27,8 @@ Manager sends `Cache-Control: no-store` with successful registration and login r
 
 Registration validates email syntax and the normalized address length before creating an account. Sign-in rejects missing credentials with the generic authentication response. See T01 for the remaining account enumeration and rate-limit considerations.
 
+New Manager accounts require at least 15 Unicode code points in the master password, following the minimum for password-only sign-in. Existing accounts keep their current passwords. The Vault item password policy applies separately. [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html#passwordver)
+
 The rate limiter uses Spring's application-relative path matching and counts requests by configured route and resolved client. This keeps throttling consistent when Keynest runs under a servlet context path. The deployment limits under T09 and T13 still apply.
 
 The public password verification tool checks the Argon2id format and bounds the requested work before calling the native verifier. The bound is per request. See T13 for the remaining request-size and concurrency considerations.

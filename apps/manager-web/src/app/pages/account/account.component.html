@@ -35,8 +35,9 @@
     </label>
     <label>
       Master password
-      <input type="password" name="password" autocomplete="current-password" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
+      <input type="password" name="password" autocomplete="current-password" aria-describedby="master-password-requirement" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
     </label>
+    <p id="master-password-requirement">New accounts require at least {{ minimumMasterPasswordLength }} characters.</p>
     <div class="row">
       <button mat-flat-button type="submit">Sign in</button>
       <button mat-stroked-button type="button" (click)="register()">Create account</button>
