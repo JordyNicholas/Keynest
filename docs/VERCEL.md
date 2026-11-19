@@ -50,9 +50,11 @@ For Vercel or another build service, set `KEYNEST_API_BASE_URL` in that project'
 
 For separate web/API origins, run the deployed API with Spring profiles `docker,prod` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to the exact web origin (comma-separated if needed). Supply a randomly generated 32-byte hex `KEYNEST_VAULT_KEY_HEX` and a stable `KEYNEST_VAULT_KEY_ID`; keep `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false. Local default remains `http://localhost:4200` → `http://localhost:8080`. Key requirements and recovery implications are documented in [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
 
-### Vercel Preview with a local Docker API
+### Optional same-host CORS diagnostic
 
-Use an isolated test database and open the preview in a browser on the Docker host. In Vercel, set `KEYNEST_API_BASE_URL=http://127.0.0.1:8080/api/v1` for the Preview branch and redeploy it. Use the origin of the preview you actually open. Copy its scheme and hostname without a path or trailing slash.
+For a browser-reachable test API, follow the [hosted test setup](DEPLOYMENT.md#deploy-and-verify-hosted-test) or the [temporary HTTPS walkthrough](DEPLOYMENT.md#test-vercel-preview-with-a-local-api). The loopback diagnostic below applies to a browser running on the Docker host and depends on that browser's local-network permissions.
+
+Use an isolated test database. Set `KEYNEST_API_BASE_URL=http://127.0.0.1:8080/api/v1` for the Preview branch and redeploy. Use the origin of the preview you open, including its scheme and hostname without a path or trailing slash.
 
 With the existing test PostgreSQL service running, recreate the API using the preview override. Use the same Compose project name you used to start the test stack.
 
