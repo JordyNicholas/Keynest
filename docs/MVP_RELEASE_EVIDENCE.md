@@ -2,6 +2,8 @@
 
 The implementation checkpoint is November 21, 2026, and the public release target is November 28, 2026 (America/Sao_Paulo). Record the release candidate SHA and evidence links before calling a release gate complete. See the [canonical roadmap](./MASTER_ROADMAP.md) for execution order and acceptance criteria.
 
+The maintainer has deferred public deployment. The current goal is to verify that the same code can be deployed across hosting providers. Validate the portable deployment locally and in CI. Rehearse HTTPS ingress, secrets configuration, and recovery on the selected host before an eventual public launch.
+
 | Gate | Evidence required |
 | --- | --- |
 | Clean install | Fresh packaged Compose startup against PostgreSQL, followed by the local API smoke workflow. |
@@ -43,6 +45,12 @@ JordyNicholas confirmed both results on November 18, 2026. The test dates, revis
 | `postgres --version` in the Compose PostgreSQL service | `postgres (PostgreSQL) 16.16` |
 
 The checkout SHA matches the frozen candidate. Attribution of this checkout and environment to the historical walkthrough and restore is pending.
+
+### Deployment portability
+
+The maintainer reported successful testing with both local instances. The exact test revisions are pending. A Vercel browser run against the local Docker API remains optional for internal verification.
+
+[Main-branch CI](https://github.com/JordyNicholas/Keynest/actions/runs/44432591629) passed all seven verification jobs on `cbffb909162f5cc01b9726c53872dba005cf4241`. It exercised both local and production-profile Docker Compose with PostgreSQL, including the hosted profile's allowed and denied CORS checks. Angular built with both a relative API path and a configured HTTPS API URL. This run verifies the portable deployment configuration on `main`. The frozen candidate has its own CI evidence below.
 
 ### Evidence to record
 
