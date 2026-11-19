@@ -39,6 +39,9 @@ public class AuthService {
         if (normalized.isEmpty() || password == null || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email and password required");
         }
+        if (normalized.length() > UserAccount.EMAIL_MAX_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is too long");
+        }
         if (users.existsByEmailIgnoreCase(normalized)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already registered");
         }
@@ -51,6 +54,9 @@ public class AuthService {
     @Transactional
     public AuthResponse login(String email, String password) {
         String normalized = email == null ? "" : email.trim().toLowerCase();
+        if (normalized.isEmpty() || password == null || password.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+        }
         UserAccount user = users.findByEmailIgnoreCase(normalized)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
         if (!passwordHasher.verifyPassword(password.toCharArray(), user.getPasswordHash())) {

@@ -12,10 +12,12 @@ import java.util.UUID;
 @Table(name = "users")
 public class UserAccount {
 
+    static final int EMAIL_MAX_LENGTH = 320;
+
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 320)
+    @Column(nullable = false, unique = true, length = EMAIL_MAX_LENGTH)
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
