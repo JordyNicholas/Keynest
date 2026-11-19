@@ -6,7 +6,7 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AccountPageComponent } from './account.component';
 
-describe('AccountPageComponent AI settings', () => {
+describe('AccountPageComponent', () => {
   const endpoint = '/api/v1/ai/policy/explain';
 
   beforeEach(() => {
@@ -24,6 +24,24 @@ describe('AccountPageComponent AI settings', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.inject(AuthService).clearSession();
+  });
+
+  it('applies the minimum password length only when creating an account', () => {
+    const fixture = TestBed.createComponent(AccountPageComponent);
+    const account = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    const password = '🔑'.repeat(14);
+    account.formEmail.set('existing@example.com');
+    account.formPassword.set(password);
+
+    account.register();
+    http.expectNone('/api/v1/auth/register');
+    expect(account.error()).toContain('15 characters');
+
+    account.login();
+    const login = http.expectOne('/api/v1/auth/login');
+    expect(login.request.body.password).toBe(password);
+    login.flush({}, { status: 401, statusText: 'Unauthorized' });
   });
 
   it('keeps AI setup behind sign-in', () => {

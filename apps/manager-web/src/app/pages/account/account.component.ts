@@ -24,6 +24,7 @@ export class AccountPageComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
+  readonly minimumMasterPasswordLength = 15;
   readonly formEmail = signal('');
   readonly formPassword = signal('');
   readonly error = signal('');
@@ -52,10 +53,15 @@ export class AccountPageComponent {
   }
 
   register(): void {
+    const password = this.formPassword();
+    if ([...password].length < this.minimumMasterPasswordLength) {
+      this.error.set(`Use at least ${this.minimumMasterPasswordLength} characters to create an account.`);
+      return;
+    }
     this.http
       .post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, {
         email: this.formEmail(),
-        password: this.formPassword(),
+        password,
       })
       .subscribe({
         next: (body) => this.onAuth(body),

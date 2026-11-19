@@ -17,6 +17,7 @@ import java.util.UUID;
 public class AuthService {
 
     private static final int SESSION_DAYS = 7;
+    private static final int MIN_MASTER_PASSWORD_LENGTH = 15;
 
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
@@ -41,6 +42,10 @@ public class AuthService {
         }
         if (normalized.length() > UserAccount.EMAIL_MAX_LENGTH) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email is too long");
+        }
+        if (password.codePointCount(0, password.length()) < MIN_MASTER_PASSWORD_LENGTH) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "master password must be at least " + MIN_MASTER_PASSWORD_LENGTH + " characters");
         }
         if (users.existsByEmailIgnoreCase(normalized)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email already registered");

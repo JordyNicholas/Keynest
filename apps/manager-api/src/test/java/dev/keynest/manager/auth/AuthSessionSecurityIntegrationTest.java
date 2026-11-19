@@ -2,6 +2,7 @@ package dev.keynest.manager.auth;
 
 import com.jayway.jsonpath.JsonPath;
 import dev.keynest.manager.api.ApiPaths;
+import dev.keynest.seal.PasswordHasher;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,12 @@ class AuthSessionSecurityIntegrationTest {
   @Autowired
   AuthSessionRepository sessions;
 
+  @Autowired
+  UserAccountRepository users;
+
+  @Autowired
+  PasswordHasher passwordHasher;
+
   @Test
   void storesOnlyDigestAndAuthenticatesWithRawBearer() throws Exception {
     RegisteredSession registered = register();
@@ -42,6 +49,32 @@ class AuthSessionSecurityIntegrationTest {
     mockMvc.perform(post(ApiPaths.AUTH_ME)
         .header("Authorization", "Bearer " + registered.token()))
       .andExpect(status().isOk());
+  }
+
+  @Test
+  void rejectsRegistrationBelowTheMinimumByCodePoint() throws Exception {
+    mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+          {"email":"short-password@example.com","password":"%s"}
+          """.formatted("🔑".repeat(14))))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void existingAccountCanSignInWithAShorterPassword() throws Exception {
+    UUID userId = UUID.randomUUID();
+    String email = "existing-" + userId + "@example.com";
+    String password = "test fixture";
+    users.save(new UserAccount(userId, email, passwordHasher.hashPassword(password.toCharArray()), Instant.now()));
+
+    mockMvc.perform(post(ApiPaths.AUTH_LOGIN)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("""
+          {"email":"%s","password":"%s"}
+          """.formatted(email, password)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.userId").value(userId.toString()));
   }
 
   @Test
@@ -130,7 +163,7 @@ class AuthSessionSecurityIntegrationTest {
     MvcResult result = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
         .contentType(MediaType.APPLICATION_JSON)
         .content("""
-          {"email":" %s ","password":"MasterPassphrase!42"}
+          {"email":" %s ","password":"test passphrase"}
           """.formatted(email)))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.email").value(email))
