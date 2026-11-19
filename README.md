@@ -131,6 +131,8 @@ mvn -pl apps/manager-api -am package -DskipTests
 java -jar apps/manager-api/target/manager-api-0.1.0-rc.1.jar
 ```
 
+The standalone API listens on `127.0.0.1:8080` by default. Use the [hosted Compose guide](./docs/DEPLOYMENT.md) for a deployment that serves other machines.
+
 Tools endpoints:
 
 | Method | Path | Notes |
