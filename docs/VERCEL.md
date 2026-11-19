@@ -50,6 +50,37 @@ For Vercel or another build service, set `KEYNEST_API_BASE_URL` in that project'
 
 For separate web/API origins, run the deployed API with Spring profiles `docker,prod` and set `KEYNEST_CORS_ALLOWED_ORIGINS` to the exact web origin (comma-separated if needed). Supply a randomly generated 32-byte hex `KEYNEST_VAULT_KEY_HEX` and a stable `KEYNEST_VAULT_KEY_ID`; keep `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false. Local default remains `http://localhost:4200` → `http://localhost:8080`. Key requirements and recovery implications are documented in [ADR-0006](./ADR-0006-manager-vault-key-and-aad.md).
 
+### Vercel Preview with a local Docker API
+
+Use an isolated test database and open the preview in a browser on the Docker host. In Vercel, set `KEYNEST_API_BASE_URL=http://127.0.0.1:8080/api/v1` for the Preview branch and redeploy it. Use the origin of the preview you actually open. Copy its scheme and hostname without a path or trailing slash.
+
+With the existing test PostgreSQL service running, recreate the API using the preview override. Use the same Compose project name you used to start the test stack.
+
+```bash
+export KEYNEST_PREVIEW_ORIGIN=https://your-preview.vercel.app
+docker compose -p keynest-local -f deploy/docker-compose.yml -f compose.preview.yml up -d --no-deps manager-api
+```
+
+Check whether the local API accepts the preview origin with a login preflight. This request uses no credentials.
+
+```bash
+curl -i -X OPTIONS http://127.0.0.1:8080/api/v1/auth/login \
+  -H "Origin: $KEYNEST_PREVIEW_ORIGIN" \
+  -H 'Access-Control-Request-Method: POST' \
+  -H 'Access-Control-Request-Headers: content-type'
+```
+
+For Windows PowerShell, set the variable in the same window that runs Compose. Use `curl.exe` and keep the preflight on one line. The `printenv` command displays only the running API's CORS allowlist.
+
+```powershell
+$env:KEYNEST_PREVIEW_ORIGIN = 'https://your-preview.vercel.app'
+docker compose -p keynest-local -f deploy/docker-compose.yml -f compose.preview.yml up -d --no-deps manager-api
+docker compose -p keynest-local -f deploy/docker-compose.yml -f compose.preview.yml exec -T manager-api printenv KEYNEST_CORS_ALLOWED_ORIGINS
+curl.exe -i -X OPTIONS "http://127.0.0.1:8080/api/v1/auth/login" -H "Origin: $env:KEYNEST_PREVIEW_ORIGIN" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: content-type"
+```
+
+Expect a 2xx response and `Access-Control-Allow-Origin` equal to the preview origin. If that works, confirm that Edge DevTools shows requests to `http://127.0.0.1:8080/api/v1` from your preview. Open the preview directly and allow local network access if Edge prompts you. Drop the override and recreate the API using your usual Compose command when the rehearsal ends.
+
 ### Reverse proxies and rate-limit identity
 
 Keynest ignores `X-Forwarded-For` by default and rate-limits the direct peer. For a hosted API behind a reverse proxy, set `KEYNEST_RATE_LIMIT_TRUSTED_PROXIES` only to IP/CIDR ranges the hosting provider documents as the direct proxy network. Keynest validates those ranges at startup and walks multi-hop chains from right to left. Do not configure all-address ranges such as `0.0.0.0/0` or `::/0`: that would allow direct callers to select their own limiter identity.
