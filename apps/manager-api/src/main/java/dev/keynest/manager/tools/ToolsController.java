@@ -3,13 +3,13 @@ package dev.keynest.manager.tools;
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.manager.api.ApiPaths;
 import dev.keynest.manager.config.ToolsDemoProperties;
+import dev.keynest.manager.security.PasswordHashingService;
 import dev.keynest.policy.PasswordPolicy;
 import dev.keynest.policy.PolicyOperation;
 import dev.keynest.policy.ValidationResult;
 import dev.keynest.policy.lifecycle.PasswordStandards;
 import dev.keynest.policy.schema.PasswordPolicyDocument;
 import dev.keynest.seal.KeynestSeal;
-import dev.keynest.seal.PasswordHasher;
 import dev.keynest.seal.SealEnvelope;
 import jakarta.validation.constraints.NotBlank;
 
@@ -49,7 +49,7 @@ public class ToolsController {
   private final PasswordStandards passwordStandards;
   private final PasswordGenerator generator;
   private final KeynestSeal seal;
-  private final PasswordHasher passwordHasher;
+  private final PasswordHashingService passwords;
   private final ToolsDemoProperties demoProperties;
   private final byte[] demoKey;
   
@@ -58,14 +58,14 @@ public class ToolsController {
     PasswordStandards passwordStandards,
     PasswordGenerator generator,
     KeynestSeal seal,
-    PasswordHasher passwordHasher,
+    PasswordHashingService passwords,
     ToolsDemoProperties demoProperties
   ) {
     this.defaultPolicy = defaultPolicy;
     this.passwordStandards = passwordStandards;
     this.generator = generator;
     this.seal = seal;
-    this.passwordHasher = passwordHasher;
+    this.passwords = passwords;
     this.demoProperties = demoProperties;
     // Parse demo DEK only when the gate is on — docker/prod leave enabled=false with no key.
     this.demoKey = this.setKey();
@@ -178,14 +178,14 @@ public class ToolsController {
   
   @PostMapping("/hash-password")
   public Map<String, Object> hashPassword(@RequestBody HashRequest request) {
-    String hash = passwordHasher.hashPassword(request.password().toCharArray());
+    String hash = passwords.hash(request.password());
     return Map.of("hash", hash, "algorithm", "argon2id");
   }
   
   @PostMapping("/verify-password")
   public Map<String, Object> verifyPassword(@RequestBody VerifyRequest request) {
     boolean ok = request.password() != null && isSupportedPasswordHash(request.hash())
-      && passwordHasher.verifyPassword(request.password().toCharArray(), request.hash());
+      && passwords.verify(request.password(), request.hash());
     return Map.of("valid", ok);
   }
 
