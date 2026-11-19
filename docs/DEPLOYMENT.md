@@ -2,7 +2,7 @@
 
 Manager Web works from a local browser or Vercel. Manager API and PostgreSQL run in Docker in each environment. Set the web build's public `KEYNEST_API_BASE_URL` for its target environment. Vercel Preview and Production use distinct HTTPS API origins, with a separate database volume, database password and vault key for each Compose project.
 
-Run production on a dedicated Docker host. Prefer a second Docker host for test. If a test host is unavailable, [run the test stack locally](#local-test-fallback) and continue verification there. A hosted Preview walkthrough requires a reachable test API.
+Run production on a dedicated Docker host. Prefer a second Docker host for test. If a test host is unavailable, [run the test stack locally](#local-test-fallback). To include Vercel Preview in that test, [create a temporary HTTPS URL for the local API](#test-vercel-preview-with-a-local-api).
 
 | Environment | Manager Web | Manager API | Compose project |
 | --- | --- | --- | --- |
@@ -55,7 +55,56 @@ The readiness check retries while Spring starts. On Linux, supply the private en
 
 Use Docker Desktop with Linux containers on Windows. Use the same hosted Compose file and test image digest. Set the local test env file's `KEYNEST_API_PORT` to `8080` and `KEYNEST_CORS_ALLOWED_ORIGINS` to `http://localhost:4200`. Use local test credentials and a new vault key. Port 8080 must be available. If the development stack is using it, stop that API from the repository root with `docker compose -p keynest-local -f deploy/docker-compose.yml stop manager-api`.
 
-Run the test commands above using `-p keynest-test-local` and the local test env file, and probe port 8080 instead of 8081. From `apps/manager-web`, run `npm ci` and `npm start`, then open `http://localhost:4200`. Record this as local verification. Use a hosted test API for the Vercel browser check when it becomes available.
+Run the test commands above using `-p keynest-test-local` and the local test env file, and probe port 8080 instead of 8081. From `apps/manager-web`, run `npm ci` and `npm start`, then open `http://localhost:4200`. Record this as local verification.
+
+## Test Vercel Preview with a local API
+
+Use this PowerShell walkthrough when you need to test a Vercel Preview and have only Docker Desktop available. The tunnel URL is public while the tunnel runs. Use a fresh `keynest-test-local` stack with disposable accounts, vault entries and credentials. Keep the test on a dedicated Preview branch and use its stable web origin throughout.
+
+1. Follow the [local test fallback](#local-test-fallback). In its private env file, set `KEYNEST_CORS_ALLOWED_ORIGINS` to your exact Preview web origin, such as `https://keynest-test.example.com`. You can include `http://localhost:4200` as a comma-separated second origin if you are also running the local frontend. Apply the env file with the same `docker compose … up -d --wait` command and check the API readiness endpoint on port 8080.
+2. Start a temporary Caddy proxy on the test Compose network. It forwards `/api/v1` requests, keeps Actuator behind loopback, and marks API responses `no-store`.
+
+   ```powershell
+   $caddyfile = (New-TemporaryFile).FullName
+   @'
+   :8080 {
+     @api path /api/v1 /api/v1/*
+     handle @api {
+       reverse_proxy manager-api:8080 {
+         header_down Cache-Control no-store
+       }
+     }
+     handle {
+       respond 404
+     }
+   }
+   '@ | Set-Content -LiteralPath $caddyfile -Encoding Ascii
+
+   docker run --rm --detach --name keynest-preview-proxy --network keynest-test-local_default --publish 127.0.0.1:18080:8080 --mount "type=bind,source=$caddyfile,target=/etc/caddy/Caddyfile,readonly" caddy:2-alpine
+   if ($LASTEXITCODE -ne 0) { throw 'Preview proxy could not start' }
+   curl.exe --fail --silent --show-error --retry 5 --retry-connrefused http://127.0.0.1:18080/api/v1/tools/health
+   if ($LASTEXITCODE -ne 0) { throw 'Preview proxy cannot reach the test API' }
+   ```
+
+3. Install [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/) and start a [Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) in a second terminal. Keep it running and copy the `https://….trycloudflare.com` address it prints.
+
+   ```powershell
+   cloudflared tunnel --url http://127.0.0.1:18080
+   ```
+
+4. In the first terminal, substitute the tunnel address and the exact Preview web origin. Check for API JSON, a `404` on Actuator, and a successful `OPTIONS` response with `Access-Control-Allow-Origin` equal to your Preview origin.
+
+   ```powershell
+   $tunnel = 'https://your-assigned-subdomain.trycloudflare.com'
+   $previewOrigin = 'https://keynest-test.example.com'
+   $api = "$tunnel/api/v1"
+   curl.exe --fail --silent --show-error "$api/tools/health"
+   curl.exe -s -o NUL -w "%{http_code}\n" "$tunnel/actuator/health"
+   curl.exe -i -X OPTIONS "$api/vault/items" -H "Origin: $previewOrigin" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization, content-type"
+   ```
+
+5. In Vercel, set `KEYNEST_API_BASE_URL` for **Preview** on the test branch to the value of `$api`, including `/api/v1`. Redeploy that branch and open `/status` on its stable Preview URL. In DevTools, verify that the health request goes to the tunnel URL and returns JSON. Then verify sign-in and a Vault operation with disposable data. A new Quick Tunnel gives you a new URL, which requires another Preview build.
+6. Stop the tunnel with **Ctrl+C**, then run `docker stop keynest-preview-proxy` and `Remove-Item -LiteralPath $caddyfile` in the first terminal. Remove the temporary Vercel branch override or restore its previous value. Redeploy the test branch if it should point to the restored API, and restore the local test stack’s previous CORS setting.
 
 ## Promote to production
 
