@@ -5,6 +5,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.autoconfigure.ServerProperties;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -13,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import javax.sql.DataSource;
 import java.sql.SQLNonTransientConnectionException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -27,8 +29,16 @@ class HealthEndpointIntegrationTest {
   @Autowired
   MockMvc mockMvc;
 
+  @Autowired
+  ServerProperties serverProperties;
+
   @MockitoSpyBean
   DataSource dataSource;
+
+  @Test
+  void defaultServerAddressIsLoopback() {
+    assertThat(serverProperties.getAddress().getHostAddress()).isEqualTo("127.0.0.1");
+  }
 
   @ParameterizedTest
   @ValueSource(strings = {"/actuator/health/liveness", "/actuator/health/readiness"})
