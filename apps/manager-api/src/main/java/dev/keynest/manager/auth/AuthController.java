@@ -3,7 +3,9 @@ package dev.keynest.manager.auth;
 import dev.keynest.manager.api.ApiPaths;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -23,13 +25,17 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public AuthService.AuthResponse register(@RequestBody CredentialsRequest request) {
-        return authService.register(request.email(), request.password());
+    public ResponseEntity<AuthService.AuthResponse> register(@RequestBody CredentialsRequest request) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(authService.register(request.email(), request.password()));
     }
 
     @PostMapping("/login")
-    public AuthService.AuthResponse login(@RequestBody CredentialsRequest request) {
-        return authService.login(request.email(), request.password());
+    public ResponseEntity<AuthService.AuthResponse> login(@RequestBody CredentialsRequest request) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(authService.login(request.email(), request.password()));
     }
 
     @PostMapping("/logout")

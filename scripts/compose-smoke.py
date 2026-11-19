@@ -101,9 +101,11 @@ def run(cors_origin):
 
   email = 'compose-' + secrets.token_hex(12) + '@example.com'
   password = secrets.token_urlsafe(32) + 'Aa1!'
-  _, registered = expect('POST', API + '/auth/register', {'email': email, 'password': password})
+  headers, registered = expect('POST', API + '/auth/register', {'email': email, 'password': password})
+  check(headers.get('Cache-Control') == 'no-store', 'registration must be no-store')
   token = registered['token']
-  _, logged_in = expect('POST', API + '/auth/login', {'email': email, 'password': password})
+  headers, logged_in = expect('POST', API + '/auth/login', {'email': email, 'password': password})
+  check(headers.get('Cache-Control') == 'no-store', 'login must be no-store')
   login_token = logged_in['token']
   _, me = expect('POST', API + '/auth/me', token=login_token)
   check(me['userId'] == registered['userId'], 'login must authenticate the registered account')

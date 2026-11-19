@@ -23,6 +23,8 @@ In scope:
 
 After the original review, Keynest added [ephemeral BYOK policy explanation](./AI_BACKEND.md) and [local reminder simulation](./EXPIRY_REMINDER_REHEARSAL.md). Both are off by default. Agent/MCP tools, external reminder delivery, MFA, organization RBAC, recovery keys, and client-side zero-knowledge open remain outside the MVP.
 
+Manager sends `Cache-Control: no-store` with successful registration and login responses to keep bearer tokens out of compliant browser and intermediary HTTP caches. The packaged Compose smoke checks both headers. Risks from JavaScript reading the bearer remain tracked under T02.
+
 Evidence reviewed for #43:
 
 - application configuration, controllers, services, repositories, filters, and crypto-library paths at the snapshot above;
