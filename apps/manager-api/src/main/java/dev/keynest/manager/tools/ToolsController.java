@@ -28,6 +28,7 @@ import java.util.Base64;
 import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
 * Thin HTTP façade over Keynest libs — Manager dogfoods the same tools external services will use.
@@ -35,6 +36,14 @@ import java.util.Map;
 @RestController
 @RequestMapping(path = ApiPaths.TOOLS, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ToolsController {
+
+  // Keep public verification within the work budget of a Manager-generated hash.
+  private static final int MAX_VERIFY_MEMORY_KIB = 64 * 1024;
+  private static final int MAX_VERIFY_ITERATIONS = 3;
+  private static final int MAX_VERIFY_PARALLELISM = 1;
+  private static final Pattern ARGON2ID_HASH = Pattern.compile(
+    "\\$argon2id\\$(?:v=(?:16|19)\\$)?m=([1-9][0-9]{0,4}),t=([1-9][0-9]?),p=([1-9][0-9]?)"
+      + "\\$[A-Za-z0-9+/]{11,86}\\$[A-Za-z0-9+/]{6,86}");
   
   private final PasswordPolicy defaultPolicy;
   private final PasswordStandards passwordStandards;
@@ -175,8 +184,20 @@ public class ToolsController {
   
   @PostMapping("/verify-password")
   public Map<String, Object> verifyPassword(@RequestBody VerifyRequest request) {
-    boolean ok = passwordHasher.verifyPassword(request.password().toCharArray(), request.hash());
+    boolean ok = request.password() != null && isSupportedPasswordHash(request.hash())
+      && passwordHasher.verifyPassword(request.password().toCharArray(), request.hash());
     return Map.of("valid", ok);
+  }
+
+  private static boolean isSupportedPasswordHash(String hash) {
+    if (hash == null) {
+      return false;
+    }
+    var costs = ARGON2ID_HASH.matcher(hash);
+    return costs.matches()
+      && Integer.parseInt(costs.group(1)) <= MAX_VERIFY_MEMORY_KIB
+      && Integer.parseInt(costs.group(2)) <= MAX_VERIFY_ITERATIONS
+      && Integer.parseInt(costs.group(3)) <= MAX_VERIFY_PARALLELISM;
   }
   
   public record ValidateRequest(@NotBlank String password, String usernameOrEmail, String policyId) {

@@ -142,6 +142,8 @@ Tools endpoints:
 | `POST` | `/api/v1/tools/seal` / `open` | **Local demo only** — gated (see below) |
 | `POST` | `/api/v1/tools/hash-password` / `verify-password` | Argon2id |
 
+The HTTP verification tool accepts Argon2id hashes within a per-request budget of 64 MiB, three iterations and one lane. It returns `valid: false` for unsupported hashes. Use the Java library when you need to verify hashes created with a different work factor.
+
 **Tools demo seal/open (#16):** Local `application.properties` sets `keynest.tools.demo.enabled=true` with a fixed hex DEK for dogfooding. The `docker` profile sets `enabled=false` by default and does **not** ship a demo key — seal/open return **403**. Override only for intentional non-prod demos: `KEYNEST_TOOLS_DEMO_ENABLED=true` plus `keynest.tools.demo.key-hex` / `key-id`.
 
 **Manager vault key (#30):** The API fails startup unless the vault key is valid 32-byte hex. The public demo value is accepted only with the explicit development setting `keynest.vault.allow-demo-key=true`; `prod`/`production` profiles always reject it. Local Compose sets `KEYNEST_ALLOW_DEMO_VAULT_KEY=true` visibly for demonstration. Any deployed environment must provide a randomly generated `KEYNEST_VAULT_KEY_HEX`, leave `KEYNEST_ALLOW_DEMO_VAULT_KEY` unset/false, set a stable `KEYNEST_VAULT_KEY_ID`, and activate `prod` alongside its database profile. Preserve and back up that key: changing or losing it makes existing envelopes unreadable. See [ADR-0006](./docs/ADR-0006-manager-vault-key-and-aad.md).
