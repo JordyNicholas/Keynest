@@ -36,6 +36,8 @@ public final class ApiPaths {
    */
   public static final Set<String> RATE_LIMITED_POSTS = Set.of(
     TOOLS_VALIDATE,
+    TOOLS_HASH_PASSWORD,
+    TOOLS_VERIFY_PASSWORD,
     AUTH_REGISTER,
     AUTH_LOGIN
   );
