@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+Changes on `main` after the frozen `0.1.0-rc.1` candidate. These changes do not retag that candidate.
+
+- Select default or custom account password rules shared by generation, checking, new Vault items and rotation. The V6 migration retains default rules for existing accounts and keeps saved secrets readable. See [account password policy](./docs/ACCOUNT_PASSWORD_POLICY.md).
+- Apply ambiguity, blocked-string and repeated-character rules to browser generation, including transformed keywords.
+- Clarify account validation and API failures, display dismissible viewport error notifications, explain policy restrictions, and show a live reveal countdown.
+- Reduce login-form heuristics on the sample checker. Edge password-manager behavior and the other affected human checks remain pending in [release evidence](./docs/MVP_RELEASE_EVIDENCE.md#november-20-policy-and-ux-fix-checkpoint).
+
 ## 0.1.0-rc.1
 
 First Keynest MVP release candidate. Build Manager and the Java libraries from source.

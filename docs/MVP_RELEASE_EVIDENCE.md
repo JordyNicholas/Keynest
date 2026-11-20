@@ -66,6 +66,25 @@ The run also identified defects tracked in [#192](https://github.com/JordyNichol
 
 **Follow-up validation pending:** exercise both account policies end to end, keyword generation followed by Vault save, authentication feedback, viewport notifications, checker password-manager behavior in Edge, and timed/manual concealment. Recheck migration and restore after V6. Keep release verification open until fixes have passing CI and the affected human checks are recorded. Historical successful checks remain evidence for their tested revision.
 
+### November 20 policy and UX fix checkpoint
+
+The maintainer approved both changes in chat on November 20. [PR #194](https://github.com/JordyNicholas/Keynest/pull/194) merged the API and V6 account policy migration as `f471507b0a78939d5e488772e599bd11f4e6bb31`. [PR #195](https://github.com/JordyNicholas/Keynest/pull/195) merged the complete browser workflow and UX fixes as **`edd2876d7c3854dc6ff4deaf6b4e092bab8569bb`**.
+
+Before merging, all seven verification jobs passed on each approved PR head. [The complete workflow run](https://github.com/JordyNicholas/Keynest/actions/runs/44746480788) tested `921cb260b1876d1f5b0b210ad7fb944ab3043e90`, including 46 browser tests, 29 API URL configuration tests, Maven and independent library consumers on Java 21/25, PostgreSQL migration/restore tests, and packaged/hosted Compose smoke tests. The merged code has the same Git tree, `853978c6d6085a95c583c1efd9ef01fcbb2517f3`, verified by a clean Git diff. [Exact merged-revision CI](https://github.com/JordyNicholas/Keynest/actions/runs/44754783163) passed all seven verification jobs. Its first attempt encountered a Maven Central plugin-resolution failure in the Java 25 consumer job; the subsequent attempt passed. Vercel also reported success on this merged revision. The Angular build reports a nonblocking initial bundle warning of about 572 kB against its 500 kB warning threshold.
+
+| Targeted human recheck on the merged revision | Result |
+| --- | --- |
+| Default policy: standalone keyword generation → check → Vault save → reveal | Pending |
+| Custom account policy: generate, check, create and rotate use the saved selection | Pending |
+| Changing account policy preserves older secrets; an open stale form reports the changed selection | Pending |
+| Invalid email, short master password and incorrect sign-in show useful feedback | Pending |
+| Mobile error notification is visible without scrolling and can be dismissed | Pending |
+| Edge checker avoids unwanted save-password prompts | Pending |
+| Reveal countdown decreases and clears on automatic/manual concealment and navigation | Pending |
+| V6 upgrade and retained-key restore preserve sign-in, account policy and readable secrets | Pending |
+
+Record the actual tested revision and environment for this follow-up. The November 20 morning rehearsal remains valid evidence for its original revision. This checkpoint does not create a new candidate, waive human checks or enable public deployment or AI expansion.
+
 ### Operator environment captured November 18, 2026
 
 | Command | Reported output |
