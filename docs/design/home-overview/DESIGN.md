@@ -41,7 +41,7 @@ Source: [`keynest-tokens.css`](../../../apps/manager-web/src/styles/keynest-toke
 
 Retain the wordmark and palette. Introduce clearer surface elevation, generous section spacing, a restrained serif display heading and compact sans-serif operational text. Proposed surfaces `#152019` and `#1c2b22`, healthy expiry `#8fbf9f`, neutral expiry `#8b9b99`, panel radii 15–20px, and a 4/8px spacing scale are choices for review, not existing extracted tokens.
 
-Public content is capped near 1200px. Operational overview content can expand with a desktop navigation rail; forms retain readable widths. The prototype is framework-free and uses installed font fallbacks; it is not a pixel-identical Angular Material implementation. Production should reuse Keynest tokens and Material buttons, dialogs, focus handling and notifications.
+Public content is capped near 1200px. Operational overview content can expand with a desktop navigation rail; forms retain readable widths. Primary operational labels and notes use proposed 12–14px type, body content 14–16px, and larger primary values; incidental snapshot/section markers use 10–11px. At phone widths summary cards become readable horizontal rows rather than squeezing the labels into tiny cards. The prototype is framework-free and uses installed font fallbacks; it is not a pixel-identical Angular Material implementation. Production should reuse Keynest tokens and Material buttons, dialogs, focus handling and notifications.
 
 The imagery is original HTML/CSS UI composition with synthetic labels, not an image asset or actual account screenshot. No reference-site artwork or remote image/font dependency is included in the prototype.
 
