@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Keynest · Home and overview design proposal</title>
+  <style>
+:root { color-scheme: dark; --canvas:#0c1410; --surface:#152019; --raised:#1c2b22; --ink:#e8f0ea; --muted:#b7c8bc; --subtle:#9bb5a4; --mint:#c6e2cf; --line:rgba(232,240,234,.14); --danger:#f0b7a8; --warning:#f0d18a; --later:#8fbf9f; --neutral:#8b9b99; font-family:'IBM Plex Sans',system-ui,sans-serif; background:#080e0b; color:var(--ink); }
+* { box-sizing:border-box; } body { margin:0; } button,input,select { font:inherit; } button,a,select { -webkit-tap-highlight-color:transparent; } button { cursor:pointer; } a { color:inherit; } [hidden] { display:none!important; } :focus-visible { outline:2px solid var(--mint); outline-offset:4px; } h1,h2,h3,p { margin-top:0; } p { line-height:1.65; } .skip { position:fixed; top:-100px; left:1rem; z-index:40; padding:.8rem; background:var(--mint); color:var(--canvas); }.skip:focus { top:1rem; }
+.review-bar { display:flex; gap:1rem; justify-content:space-between; align-items:center; padding:12px 24px; border-bottom:1px solid #46564b; background:#202a24; font-size:12px; }.review-bar b { font-size:11px; letter-spacing:.1em; }.review-description { display:block; margin-top:4px; color:#c3cec7; }.review-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }.review-controls label { display:flex; align-items:center; gap:6px; }.review-controls select,.review-controls button { background:#111a14; color:#e8f0ea; border:1px solid #63796b; border-radius:7px; padding:9px; }.review-controls button[aria-pressed=true] { background:var(--mint); color:var(--canvas); }
+.frame { container-type:inline-size; background:radial-gradient(ellipse at 90% 8%,#203c2b55,transparent 45%),var(--canvas); min-height:100vh; max-width:1600px; margin:auto; }.frame.phone { width:min(390px,100%); margin:24px auto; border:1px solid #506456; border-radius:24px; overflow:hidden; }.container { width:calc(100% - 96px); max-width:1200px; margin-inline:auto; }.wordmark { font-family:'Fraunces',Georgia,serif; font-size:36px; letter-spacing:-1.5px; font-weight:600; text-decoration:none; }.brand-dot { color:var(--mint); }.public-header { display:flex; align-items:center; justify-content:space-between; gap:20px; min-height:104px; }.public-header nav { display:flex; gap:30px; font-size:14px; }.public-header nav a { text-decoration:none; color:var(--muted); }.button { display:inline-flex; align-items:center; justify-content:center; gap:18px; min-height:48px; padding:12px 23px; border:1px solid var(--line); border-radius:100px; text-decoration:none; font-weight:600; font-size:14px; }.primary { background:var(--mint); color:var(--canvas); border-color:var(--mint); }.primary:hover { background:#d7eedc; }.secondary { background:transparent; color:var(--ink); }.secondary:hover { background:var(--raised); }.actions { display:flex; flex-wrap:wrap; gap:12px; }.hero { display:grid; grid-template-columns:1.05fr 1fr; gap:64px; align-items:center; padding-block:72px 92px; }.eyebrow { color:var(--subtle); font-size:10px; font-weight:600; letter-spacing:.16em; line-height:1.6; margin-bottom:18px; }.live-dot { display:inline-block; height:7px; width:7px; background:var(--mint); border-radius:50%; margin-right:8px; }.hero h1 { font-family:'Fraunces',Georgia,serif; font-size:clamp(48px,6.5cqw,82px); font-weight:500; line-height:1.05; letter-spacing:-.045em; margin-bottom:26px; }.hero h1 em { font-weight:400; color:var(--mint); }.lede { font-size:18px; color:var(--muted); line-height:1.65; max-width:480px; margin-bottom:28px; }.quiet { color:var(--muted); font-size:14px; }.hero .quiet { font-size:12px; margin-top:18px; }.hero-visual { position:relative; padding:34px 10px 48px; }.orbit { position:absolute; border:1px solid #75968122; border-radius:50%; inset:-15px; pointer-events:none; }.orbit-two { inset:18px -32px; transform:rotate(-16deg); }.preview-window { position:relative; border:1px solid #91b39c44; border-radius:20px; background:linear-gradient(130deg,#22382b,#111d16); box-shadow:0 28px 70px #0005; transform:rotate(-3deg); }.window-top { display:flex; justify-content:space-between; align-items:center; padding:17px 22px; border-bottom:1px solid var(--line); color:var(--subtle); font-size:11px; }.sample-tag { font-size:9px; border:1px solid var(--line); padding:4px 7px; border-radius:20px; }.preview-heading { padding:25px 24px 0; }.preview-heading .eyebrow { font-size:9px; margin-bottom:10px; }.preview-heading h2 { font:500 25px/1.25 'Fraunces',Georgia,serif; max-width:230px; }.preview-metrics { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 24px 24px; }.preview-metrics div { display:grid; gap:5px; padding:16px; border:1px solid var(--line); border-radius:12px; }.preview-metrics b { font-size:32px; font-weight:500; }.preview-metrics span { color:var(--muted); font-size:11px; }.preview-line { display:flex; align-items:center; gap:10px; margin:0 24px; padding:15px 0; border-top:1px solid var(--line); font-size:12px; }.preview-line .badge { margin-left:auto; }.preview-note { padding:14px 24px 22px; color:var(--subtle); font-size:10px; line-height:1.5; }.floating-note { display:flex; gap:12px; align-items:center; position:absolute; right:-10px; bottom:16px; background:var(--mint); color:var(--canvas); border-radius:12px; padding:15px 20px; font-size:11px; line-height:1.6; box-shadow:0 10px 30px #0003; }.floating-note>span:first-child { font-size:28px; }.principles { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; padding-block:25px; border-block:1px solid var(--line); font-size:12px; color:var(--muted); }.section { padding-block:88px; }.section h2 { font:500 clamp(30px,3.4cqw,46px)/1.15 'Fraunces',Georgia,serif; letter-spacing:-.025em; }.section-intro { max-width:630px; margin-bottom:40px; }.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:32px; }.steps article { padding-top:25px; border-top:1px solid var(--line); }.step-number { display:block; color:var(--subtle); font-size:12px; margin-bottom:26px; }.steps h3,.security-facts h3 { font-size:19px; font-weight:500; margin-bottom:12px; }.steps p,.security-facts p { font-size:14px; color:var(--muted); }.security-section { display:grid; grid-template-columns:1fr 1fr; gap:80px; border-block:1px solid var(--line); }.security-facts article+article { border-top:1px solid var(--line); padding-top:22px; margin-top:22px; }.text-link,.text-button { padding:10px 0; background:none; border:none; color:var(--mint); font-size:13px; text-decoration:none; min-height:44px; }.text-link:hover,.text-button:hover { text-decoration:underline; }.faq { max-width:850px; }.faq details { border-bottom:1px solid var(--line); padding:18px 0; }.faq summary { cursor:pointer; padding-block:10px; font-size:17px; }.faq details p { color:var(--muted); font-size:14px; padding-right:30px; margin-block:12px; }.public-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:20px; border-top:1px solid var(--line); padding-block:32px; }.public-footer p,.public-footer>a:last-child { font-size:12px; color:var(--muted); margin:0; }
+.app-layout { display:grid; grid-template-columns:222px minmax(0,1fr); min-height:calc(100vh - 70px); }.sidebar { background:#101b14; border-right:1px solid var(--line); padding:30px 18px 20px; display:flex; flex-direction:column; }.sidebar .wordmark { padding-left:14px; }.sidebar-caption { font-size:8px; letter-spacing:.15em; color:var(--subtle); padding-left:16px; margin-top:12px; }.app-nav { display:grid; gap:8px; margin-top:34px; }.app-nav a { display:flex; gap:14px; align-items:center; min-height:48px; padding:10px 15px; border-radius:10px; text-decoration:none; font-size:14px; color:var(--muted); }.app-nav a span { width:16px; font-size:19px; }.app-nav a.active { background:var(--mint); color:var(--canvas); font-weight:600; }.app-nav a:hover:not(.active) { background:var(--raised); }.sidebar-bottom { margin-top:auto; padding:50px 5px 0; display:flex; align-items:center; gap:9px; font-size:10px; }.sidebar-bottom small { display:block; color:var(--subtle); font-size:9px; margin-top:4px; }.avatar { background:var(--raised); border:1px solid var(--line); width:30px; height:30px; border-radius:50%; display:grid; place-items:center; }.icon-button { background:none; color:var(--muted); border:1px solid var(--line); border-radius:50%; width:44px; height:44px; font-size:20px; }.sidebar-bottom .icon-button { margin-left:auto; width:32px; height:32px; }.workspace { padding:24px clamp(24px,3.5cqw,54px) 60px; min-width:0; }.workspace-top { display:flex; justify-content:space-between; align-items:center; padding-bottom:28px; }.breadcrumb { font-size:9px; color:var(--subtle); letter-spacing:.12em; }.page-heading { display:flex; justify-content:space-between; align-items:center; gap:22px; }.page-heading .eyebrow { margin-bottom:9px; }.page-heading h1 { font:500 clamp(30px,3.6cqw,45px)/1.2 'Fraunces',Georgia,serif; letter-spacing:-.03em; margin-bottom:10px; }.page-heading .quiet { margin-bottom:0; }.page-heading>.button { flex:0 0 auto; }.sample-caption { font-size:10px; color:var(--subtle); margin-block:20px 28px; }.summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }.metric-card { display:flex; flex-direction:column; text-align:left; gap:16px; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:15px; padding:21px; transition:border-color 160ms,background 160ms; }.metric-card:hover { border-color:#9bb5a499; background:var(--raised); }.metric-card.attention { background:linear-gradient(115deg,#40322b66,var(--surface)); }.metric-label { display:flex; justify-content:space-between; font-size:9px; letter-spacing:.1em; color:var(--muted); }.metric-label>span { font-size:15px; }.metric-value { display:flex; align-items:center; flex-wrap:wrap; gap:14px; font-size:43px; font-weight:500; letter-spacing:-1px; line-height:1; }.metric-value>small { font-size:22px; font-weight:400; }.metric-note { font-size:10px; color:var(--muted); line-height:1.5; }.badge { display:inline-block; width:max-content; border:1px solid currentColor; border-radius:30px; padding:4px 8px; font-size:10px; line-height:1.3; font-weight:500; letter-spacing:0; white-space:nowrap; }.badge.danger { color:var(--danger); background:#57312633; }.badge.warning { color:var(--warning); background:#57482022; }.badge.mint { color:var(--mint); background:#739e7630; }.status-dot { display:inline-block; flex:0 0 auto; width:6px; height:6px; border-radius:50%; background:currentColor; }.danger { color:var(--danger); }.warning { color:var(--warning); }.overview-grid { display:grid; grid-template-columns:1.25fr 1fr; gap:22px; }.panel { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:24px; }.panel h2 { font-size:21px; font-weight:500; letter-spacing:-.04em; margin-bottom:0; }.panel .eyebrow { font-size:8px; margin-bottom:8px; }.panel-heading { display:flex; justify-content:space-between; align-items:center; gap:14px; margin-bottom:15px; }.panel-heading .text-button { flex:0 0 auto; font-size:11px; }.small { font-size:11px; }.item-row { display:flex; align-items:center; gap:12px; padding-block:16px; border-top:1px solid var(--line); }.item-avatar { width:35px; height:35px; border-radius:10px; background:var(--raised); border:1px solid var(--line); display:grid; place-items:center; color:var(--subtle); flex-shrink:0; font-size:12px; }.item-info { flex:1; min-width:0; }.item-info b { display:block; font-size:12px; font-weight:500; overflow-wrap:anywhere; }.item-info small { display:block; color:var(--muted); font-size:10px; margin-top:5px; }.item-row .text-button { padding:0; font-size:11px; }.distribution { display:flex; gap:24px; align-items:center; padding-block:15px 20px; }.donut { width:126px; height:126px; border-radius:50%; flex-shrink:0; background:conic-gradient(var(--danger) 0 8.333%,var(--warning) 8.333% 20.833%,#b2bd85 20.833% 41.666%,var(--later) 41.666% 91.666%,var(--neutral) 91.666% 100%); display:grid; place-items:center; }.donut>span { width:100px; height:100px; border-radius:50%; background:#152019; display:grid; place-content:center; text-align:center; gap:5px; }.donut b { font-size:34px; font-weight:500; }.donut small { color:var(--muted); font-size:10px; }.legend { display:grid; flex:1; gap:3px; }.legend button { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:9px 0; min-height:36px; border:none; background:none; color:var(--muted); font-size:10px; text-align:left; }.legend button:hover { color:var(--ink); text-decoration:underline; }.legend span { display:flex; align-items:center; gap:7px; }.legend i { width:6px; height:6px; border-radius:50%; background:var(--key); }.legend b { color:var(--ink); font-weight:500; }.recent-row { display:flex; align-items:center; gap:12px; padding-block:14px; border-top:1px solid var(--line); }.recent-row>span:nth-child(2) { flex:1; }.recent-row b { display:block; font-weight:500; font-size:12px; }.recent-row small { display:block; margin-top:5px; color:var(--muted); font-size:10px; }.activity-mark { border:1px solid var(--line); border-radius:50%; width:30px; height:30px; display:grid; place-items:center; color:var(--subtle); }.recent-row .text-button { font-size:11px; }.policy-panel .badge { margin-top:22px; }.policy-panel>p:not(.eyebrow) { color:var(--muted); font-size:12px; margin-block:18px 8px; }.filter-chips { display:flex; flex-wrap:wrap; gap:8px; padding-block:10px 12px; }.filter-chips button { min-height:40px; border-radius:22px; border:1px solid var(--line); color:var(--muted); background:none; padding:8px 13px; font-size:11px; }.filter-chips button[aria-pressed=true] { background:var(--mint); border-color:var(--mint); color:var(--canvas); }.state-panel { padding:55px 25px; text-align:center; border:1px solid var(--line); border-radius:16px; background:var(--surface); }.state-panel h2 { font:500 30px/1.2 'Fraunces',Georgia,serif; margin:22px 0 15px; }.state-panel p { color:var(--muted); font-size:14px; }.state-panel .button { margin:8px; }.state-mark { display:grid; place-items:center; width:44px; height:44px; border:1px solid currentColor; border-radius:50%; margin:auto; color:var(--danger); }.empty-nest { width:80px; height:80px; border:1px solid #799b8733; outline:1px solid #799b871a; outline-offset:12px; border-radius:50%; display:grid; place-items:center; margin:10px auto 42px; color:var(--mint); font-size:30px; }.empty .text-button { display:block; margin:6px auto; }.skeleton-row { display:flex; gap:20px; }.skeleton-row div { height:120px; flex:1; border-radius:12px; background:#30443555; }.skeleton-large { margin-top:25px; height:250px; background:#30443533; border-radius:12px; }
+dialog { width:min(450px,calc(100% - 32px)); padding:36px; background:var(--surface); color:var(--ink); border:1px solid #8fb49b66; border-radius:20px; }dialog::backdrop { background:#050c08bb; backdrop-filter:blur(5px); }dialog h2 { font:500 32px 'Fraunces',Georgia,serif; padding-right:20px; }dialog p { color:var(--muted); font-size:14px; }.dialog-close { position:absolute; right:14px; top:14px; }
+@media (max-width:760px) { .review-bar { align-items:flex-start; flex-direction:column; padding:12px 16px; }.review-controls { gap:8px; }.review-description { font-size:10px; }.frame.phone { margin:0 auto; border-radius:0; } }
+@container (max-width:1100px) { .container { width:calc(100% - 64px); }.hero { gap:35px; }.app-layout { grid-template-columns:190px minmax(0,1fr); }.workspace { padding-inline:25px; }.overview-grid { grid-template-columns:1fr; }.distribution { justify-content:flex-start; max-width:440px; }.metric-card { padding:17px; }.metric-value { font-size:36px; }.sidebar { padding-inline:12px; }.public-header nav { gap:18px; } }
+@container (max-width:760px) { .container { width:calc(100% - 40px); }.public-header { min-height:86px; }.public-header nav { display:none; }.wordmark { font-size:32px; }.hero { grid-template-columns:1fr; padding-block:44px 55px; gap:34px; }.hero h1 { font-size:58px; }.hero .lede { font-size:16px; }.hero-copy { max-width:550px; }.hero-visual { max-width:460px; margin:auto; width:100%; padding-inline:10px; }.floating-note { right:0; }.hero-visual .orbit { inset:0; }.principles { gap:20px; display:grid; grid-template-columns:1fr 1fr; font-size:11px; }.section { padding-block:56px; }.steps { grid-template-columns:1fr; gap:15px; }.step-number { margin-bottom:15px; }.security-section { grid-template-columns:1fr; gap:28px; }.section h2 { font-size:36px; }.public-footer { align-items:flex-start; flex-direction:column; }.app-layout { grid-template-columns:1fr; }.sidebar { border-right:0; border-bottom:1px solid var(--line); padding:20px 16px 0; }.sidebar .wordmark { padding-left:4px; }.sidebar-caption,.sidebar-bottom { display:none; }.app-nav { display:flex; overflow-x:auto; margin-top:20px; gap:5px; padding:4px 0 14px; }.app-nav a { flex:0 0 auto; white-space:nowrap; font-size:12px; min-height:44px; padding:10px 12px; gap:8px; }.app-nav a span { display:none; }.workspace { padding:12px 18px 40px; }.workspace-top { padding-bottom:22px; }.page-heading { display:block; }.page-heading h1 { font-size:33px; }.page-heading>.button { margin-top:22px; }.page-heading .quiet { font-size:13px; }.sample-caption { font-size:9px; margin-block:18px 22px; }.summary-grid { gap:10px; grid-template-columns:1fr 1fr; }.metric-card { padding:17px; gap:14px; }.metric-card:last-child { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; align-items:center; }.metric-card:last-child .metric-label { grid-column:1; }.metric-card:last-child .metric-value { grid-column:2; grid-row:1/3; justify-content:flex-end; }.metric-card:last-child .metric-note { grid-column:1; }.metric-label { font-size:8px; gap:8px; }.metric-value { font-size:35px; gap:7px; }.metric-value .badge { font-size:8px; }.metric-note { font-size:9px; }.overview-grid { gap:16px; }.panel { padding:20px; }.panel h2 { font-size:20px; }.panel-heading { align-items:flex-start; gap:10px; }.panel-heading .text-button { font-size:10px; }.distribution { gap:18px; }.donut { width:112px; height:112px; }.donut>span { width:88px; height:88px; }.legend button { font-size:9px; }.item-row { gap:9px; }.item-row .item-avatar { width:30px; height:30px; }.item-info b { font-size:11px; }.item-row .badge { font-size:9px; }.item-row .text-button { font-size:10px; }.state-panel { padding:42px 18px; }.state-panel h2 { font-size:28px; }.skeleton-row { gap:10px; }.skeleton-row div { height:90px; } }
+@container (max-width:340px) { .hero h1 { font-size:48px; }.actions>.button { width:100%; }.summary-grid { grid-template-columns:1fr; }.metric-card:last-child { grid-column:auto; }.distribution { flex-direction:column; }.legend { width:100%; }.preview-line { flex-wrap:wrap; }.floating-note { font-size:9px; }.public-header .button { padding-inline:14px; } }
+@media (prefers-reduced-motion:no-preference) { .panel,.metric-card,.state-panel { animation:appear 180ms ease-out both; }.button,.app-nav a { transition:background 160ms ease-out,color 160ms ease-out; } @keyframes appear { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } } }
+/* Operational copy stays readable at both widths; miniature hero UI is illustrative. */
+.breadcrumb,.sample-caption { font-size:11px; line-height:1.6; }
+.metric-label { font-size:11px; }
+.metric-note { font-size:12px; }
+.metric-value .badge { font-size:11px; }
+.panel .eyebrow { font-size:10px; }
+.small { font-size:13px; }
+.panel-heading .text-button,.item-row .text-button,.recent-row .text-button { font-size:12px; }
+.item-info b,.recent-row b { font-size:14px; }
+.item-info small,.recent-row small { font-size:12px; }
+.legend button { min-height:44px; font-size:12px; }
+.policy-panel>p:not(.eyebrow) { font-size:14px; }
+.app-nav a { font-size:14px; }
+@container (max-width:760px) {
+  .summary-grid { grid-template-columns:1fr; }
+  .metric-card { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px 16px; }
+  .metric-card .metric-label,.metric-card:last-child .metric-label { grid-column:1; }
+  .metric-card .metric-value,.metric-card:last-child .metric-value { grid-column:2; grid-row:1/3; justify-content:flex-end; }
+  .metric-card .metric-note,.metric-card:last-child .metric-note { grid-column:1; }
+  .metric-value { flex-direction:column; gap:8px; }
+  .metric-value>small { font-size:16px; }
+  .item-row { flex-wrap:wrap; }
+  .item-info { min-width:120px; }
+  .item-row .badge { margin-left:44px; }
+  .item-row .text-button { margin-left:auto; }
+  .distribution { flex-direction:column; align-items:stretch; }
+  .donut { align-self:center; }
+  .legend { width:100%; }
+}
+</style>
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <div class="review-bar" aria-label="Prototype controls">
+    <span><b>KEYNEST / DESIGN 01</b><span class="review-description">Interactive proposal · synthetic data · no API calls</span></span>
+    <div class="review-controls">
+      <label>Screen <select id="screen"><option value="public">Public homepage</option><option value="overview">Account overview</option><option value="vault">Vault destination</option></select></label>
+      <label>State <select id="state"><option value="normal">Populated</option><option value="empty">Empty account</option><option value="loading">Loading</option><option value="error">Connection failure</option></select></label>
+      <button id="phone" type="button" aria-pressed="false">Phone width</button>
+    </div>
+  </div>
+  <div class="frame" id="frame">
+    <section id="public-view">
+      <header class="public-header container">
+        <a href="#" class="wordmark" data-screen="public">Keynest<span class="brand-dot">.</span></a>
+        <nav aria-label="Public navigation"><a href="#how">How it works</a><a href="#security">Security</a><a href="https://github.com/JordyNicholas/Keynest#readme" target="_blank" rel="noopener">Documentation ↗</a></nav>
+        <button class="button secondary" data-signin>Sign in <span aria-hidden="true">↗</span></button>
+      </header>
+      <main id="content" tabindex="-1">
+        <section class="hero container">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="live-dot"></span> OPEN SOURCE. YOUR ENVIRONMENT.</p>
+            <h1>Your passwords.<br>Your rules.<br><em>Your Keynest.</em></h1>
+            <p class="lede">Generate, store and manage passwords with a policy you control. An open-source manager you can host yourself.</p>
+            <div class="actions"><button class="button primary" data-signin>Start your vault <span aria-hidden="true">→</span></button><button class="button secondary" data-destination="generator">Try the generator</button></div>
+            <p class="quiet">A dedicated place for every task. AI is optional.</p>
+          </div>
+          <div class="hero-visual" aria-label="Illustrative preview of the proposed account overview">
+            <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+            <div class="preview-window">
+              <div class="window-top"><span>Keynest / Overview</span><span class="sample-tag">SAMPLE</span></div>
+              <div class="preview-heading"><span class="eyebrow">A CLEARER PICTURE</span><h2>A little more peace of mind.</h2></div>
+              <div class="preview-metrics"><div><b>24</b><span>Vault items</span></div><div><b>5</b><span>Need attention</span></div></div>
+              <div class="preview-line"><span class="status-dot danger"></span><span>Sandbox mail</span><span class="badge danger">Expired</span></div>
+              <div class="preview-line"><span class="status-dot warning"></span><span>Developer portal</span><span class="badge warning">2 days left</span></div>
+              <div class="preview-note">Expiry status helps plan rotation.<br>It is not a password strength score.</div>
+            </div>
+            <div class="floating-note"><span aria-hidden="true">⌘</span><span>One policy.<br><b>Consistent across your tools.</b></span></div>
+          </div>
+        </section>
+        <div class="principles container"><span>Apache-2.0 / open source</span><span>Self-hostable deployment</span><span>Account-controlled rules</span><span>Works with AI disabled</span></div>
+        <section class="section container" id="how">
+          <div class="section-intro"><p class="eyebrow">FROM GENERATION TO ROTATION</p><h2>Everything has its place.</h2><p class="quiet">Simple steps. Separate workflows. The same selected policy throughout.</p></div>
+          <div class="steps">
+            <article><span class="step-number">01</span><h3>Make it yours</h3><p>Use Keynest's default password policy or save your own account rules.</p></article>
+            <article><span class="step-number">02</span><h3>Generate and save</h3><p>Generate in your browser, or enter an existing password. The Manager validates and encrypts it when you save.</p></article>
+            <article><span class="step-number">03</span><h3>Keep an overview</h3><p>See upcoming expiry dates and open the right workflow when a password needs replacing.</p></article>
+          </div>
+        </section>
+        <section class="section container security-section" id="security">
+          <div><p class="eyebrow">UNDERSTAND THE BOUNDARIES</p><h2>Security explained.<br>Trust you can inspect.</h2><p class="quiet">Know how passwords are handled before you entrust them to a deployment.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/THREAT_MODEL.md" target="_blank" rel="noopener">Read the security model ↗</a></div>
+          <div class="security-facts"><article><h3>Encrypted password storage</h3><p>Vault passwords are encrypted with AES-256-GCM. The server decrypts them for authorized reveals. Keynest is not currently a zero-knowledge system.</p></article><article><h3>Control your deployment</h3><p>Choose where to run Keynest. Your operator manages deployment security, the vault key and recoverable backups. Item labels, URLs and usernames are currently plaintext metadata.</p></article><article><h3>AI is a choice</h3><p>Core workflows work without AI. The current optional BYOK feature explains the built-in policy; it does not receive Vault passwords.</p></article></div>
+        </section>
+        <section class="section container faq"><p class="eyebrow">BEFORE YOU BEGIN</p><h2>A few useful answers.</h2><details><summary>Do I need an account to generate a password?</summary><p>The generator is available without an account using default rules. Sign in to use saved custom account rules. It loads the rules from the API, then generates locally.</p></details><details><summary>Does Keynest change passwords on other websites?</summary><p>No. Rotation is guided: change the password at the external service, then save the replacement in Keynest. Keynest cannot confirm which password an external service currently accepts.</p></details><details><summary>Is Keynest independently audited?</summary><p>Keynest does not claim an independent audit or certification. Review its source, documented security model and release evidence.</p></details></section>
+        <footer class="container public-footer"><a class="wordmark" href="#" data-screen="public">Keynest.</a><p>Your passwords, with a clearer place to land.</p><a href="https://github.com/JordyNicholas/Keynest" target="_blank" rel="noopener">Explore the repository ↗</a></footer>
+      </main>
+    </section>
+
+    <section id="account-view" hidden>
+      <div class="app-layout">
+        <aside class="sidebar">
+          <a class="wordmark" href="#" data-screen="overview">Keynest<span class="brand-dot">.</span></a><p class="sidebar-caption">YOUR PASSWORD WORKSPACE</p>
+          <nav class="app-nav" aria-label="Account navigation"><a href="#" data-screen="overview" data-nav="overview"><span aria-hidden="true">◫</span> Overview</a><a href="#" data-screen="vault" data-nav="vault"><span aria-hidden="true">▤</span> Vault</a><a href="#" data-destination="tools"><span aria-hidden="true">⌘</span> Password tools</a><a href="#" data-destination="account"><span aria-hidden="true">⚙</span> Account</a></nav>
+          <div class="sidebar-bottom"><span class="avatar">S</span><span>Synthetic account<small>Design preview</small></span><button class="icon-button" data-screen="public" aria-label="Preview sign out">↗</button></div>
+        </aside>
+        <main class="workspace" id="account-content" tabindex="-1">
+          <div class="workspace-top"><span class="breadcrumb" id="breadcrumb">WORKSPACE / OVERVIEW</span><button class="text-button" id="refresh">↻ Refresh</button></div>
+          <header class="page-heading"><div><p class="eyebrow">A CLEARER PICTURE</p><h1 id="page-title">Your vault, at a glance.</h1><p class="quiet" id="page-subtitle">A calm place to see what needs your attention.</p></div><button class="button primary" data-destination="create">Add Vault item <span aria-hidden="true">＋</span></button></header>
+          <p class="sample-caption">Synthetic sample · 20 November 2026 · This prototype never connects to an account.</p>
+          <div id="loading-state" class="state-panel" hidden aria-busy="true"><p role="status">Loading your overview…</p><div class="skeleton-row"><div></div><div></div><div></div></div><div class="skeleton-large"></div></div>
+          <div id="error-state" class="state-panel" hidden><span class="state-mark" aria-hidden="true">!</span><h2>We couldn't load this overview.</h2><p>Your saved items have not been removed. Check your connection and try again.</p><button class="button primary" id="retry">Try again</button><button class="button secondary" data-destination="health">Connection help</button></div>
+          <div id="empty-state" class="state-panel empty" hidden><div class="empty-nest" aria-hidden="true">＋</div><p class="eyebrow">A NEW PLACE TO START</p><h2>Your first item belongs here.</h2><p>Add a login to begin organizing your passwords.<br>Your account policy will guide generation and saving.</p><button class="button primary" data-destination="create">Add your first item →</button><button class="text-button" data-destination="policy">Review my policy</button></div>
+          <div id="overview-content">
+            <section class="summary-grid" aria-label="Account summary">
+              <button class="metric-card" data-filter="all"><span class="metric-label">VAULT ITEMS <span aria-hidden="true">↗</span></span><span class="metric-value">24</span><span class="metric-note">All items currently stored</span></button>
+              <button class="metric-card attention" data-filter="attention"><span class="metric-label">NEED ATTENTION <span aria-hidden="true">↗</span></span><span class="metric-value">5 <span class="badge danger">2 expired</span></span><span class="metric-note">Expired or less than 14 days left</span></button>
+              <button class="metric-card" data-filter="soon"><span class="metric-label">NEXT EXPIRY <span aria-hidden="true">↗</span></span><span class="metric-value">2 <small>days</small></span><span class="metric-note">Developer portal · open item group</span></button>
+            </section>
+            <div class="overview-grid">
+              <section class="panel attention-panel"><div class="panel-heading"><div><p class="eyebrow">YOUR NEXT STEPS</p><h2>Give these a look.</h2></div><button class="text-button" data-filter="attention">View all 5 →</button></div><p class="quiet small">The earliest deadlines come first. Open an item to plan its replacement.</p><div id="attention-list"></div></section>
+              <section class="panel expiry-panel"><div class="panel-heading"><div><p class="eyebrow">THE BIGGER PICTURE</p><h2>Expiry distribution</h2></div></div><div class="distribution"><div class="donut" role="img" aria-label="24 sample items: 2 expired, 3 with less than 14 days, 5 with 14 to less than 30 days, 12 with 30 days or more, and 2 without an expiry."><span><b>24</b><small>Vault items</small></span></div><div id="legend" class="legend"></div></div><p class="quiet small">Expiry status supports maintenance.<br>It doesn't measure password strength or breach exposure.</p></section>
+              <section class="panel recent-panel"><div class="panel-heading"><div><p class="eyebrow">KEEP YOUR BEARINGS</p><h2>Recent item changes</h2></div></div><div class="recent-row"><span class="activity-mark" aria-hidden="true">↻</span><span><b>Development account</b><small>Details updated · sample timestamp</small></span><button class="text-button" data-destination="item">Open →</button></div><div class="recent-row"><span class="activity-mark" aria-hidden="true">＋</span><span><b>Example service</b><small>Created · sample timestamp</small></span><button class="text-button" data-destination="item">Open →</button></div><p class="quiet small">A snapshot of current item timestamps, not a complete activity history.</p></section>
+              <section class="panel policy-panel"><p class="eyebrow">CONSISTENT BY DESIGN</p><h2>Your account policy</h2><span class="badge mint">Keynest default</span><p>16–128 characters, with required character types and matching generator rules.</p><button class="text-link" data-destination="policy">Review or customize →</button></section>
+            </div>
+          </div>
+          <section id="vault-content" class="panel" hidden><div class="panel-heading"><div><p class="eyebrow">DEDICATED VAULT WORKFLOW</p><h2 id="filter-title">All Vault items</h2></div><button class="text-button" data-screen="overview">← Back to overview</button></div><div class="filter-chips" id="filter-chips" aria-label="Expiry filters"></div><p class="quiet small" id="filter-count" role="status"></p><div id="vault-list"></div></section>
+        </main>
+      </div>
+    </section>
+  </div>
+  <dialog id="destination-dialog" aria-labelledby="dialog-title"><button class="icon-button dialog-close" id="close-dialog" aria-label="Close preview explanation">×</button><p class="eyebrow">DESIGN PREVIEW</p><h2 id="dialog-title">Continue in Keynest</h2><p id="dialog-description"></p><button class="button primary" id="dialog-continue">Continue preview →</button></dialog>
+  <script>
+'use strict';
+// Design-only synthetic data. No credentials, network requests, analytics or persistence.
+const $ = (selector) => document.querySelector(selector);
+const groups = [
+  { id:'expired', label:'Expired', color:'var(--danger)', title:'Expired items' },
+  { id:'soon', label:'Less than 14 days', color:'var(--warning)', title:'Less than 14 days remaining' },
+  { id:'upcoming', label:'14 to <30 days', color:'#b2bd85', title:'14 to less than 30 days remaining' },
+  { id:'later', label:'30+ days', color:'var(--later)', title:'30 days or more remaining' },
+  { id:'unset', label:'No expiry', color:'var(--neutral)', title:'No expiry configured' },
+];
+const sample = [
+  ['Sandbox mail',-2], ['Example workspace',-0.5], ['Developer portal',2], ['Demo cloud',6], ['Personal notes',11],
+  ...[14,16,20,25,29].map((days,i)=>['Sample service '+(i+1),days]),
+  ...[30,35,45,60,75,90,120,150,180,240,300,365].map((days,i)=>['Example login '+(i+1),days]),
+  ['Reference account',null], ['Local sandbox',null],
+].map(([label,days])=>({label,days,group:days===null?'unset':days<=0?'expired':days<14?'soon':days<30?'upcoming':'later'}));
+let screen = 'public';
+let state = 'normal';
+let filter = 'all';
+let retryTimer;
+let pendingDestination = '';
+function subset(id) { return sample.filter(item=>id==='all'||item.group===id||(id==='attention'&&['expired','soon'].includes(item.group))); }
+function statusLabel(item) { return item.days===null?'No expiry':item.days<=0?'Expired':`${item.days} days left`; }
+function node(tag,classes,text) { const element=document.createElement(tag); if(classes) element.className=classes; if(text!==undefined) element.textContent=text; return element; }
+function itemRow(item,buttonLabel) {
+  const row=node('div','item-row');
+  row.append(node('span','item-avatar',item.label.slice(0,1)));
+  const info=node('span','item-info');info.append(node('b','',item.label),node('small','','Synthetic Vault item'));
+  const badge=node('span','badge '+(item.group==='expired'?'danger':item.group==='soon'?'warning':'mint'),statusLabel(item));
+  const open=node('button','text-button',buttonLabel);open.type='button';open.dataset.destination='item';open.setAttribute('aria-label','Open '+item.label+' in the dedicated Vault workflow');
+  row.append(info,badge,open);return row;
+}
+function render() {
+  clearTimeout(retryTimer);
+  $('#public-view').hidden=screen!=='public';$('#account-view').hidden=screen==='public';
+  $('#screen').value=screen;$('#state').value=state;$('#state').disabled=screen==='public';
+  document.querySelector('#public-view main').id=screen==='public'?'content':'public-content';
+  const accountMain=document.querySelector('.workspace');accountMain.id=screen==='public'?'account-content':'content';
+  for(const link of document.querySelectorAll('[data-nav]')) {
+    const active=link.dataset.nav===screen;link.classList.toggle('active',active);
+    if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+  }
+  $('#page-title').textContent=screen==='vault'?'Your Vault. Your next step.':'Your vault, at a glance.';
+  $('#page-subtitle').textContent=screen==='vault'?'Review a focused group without losing your place.':'A calm place to see what needs your attention.';
+  $('#breadcrumb').textContent=screen==='vault'?'WORKSPACE / VAULT':'WORKSPACE / OVERVIEW';
+  for(const id of ['loading','error','empty'])$('#'+id+'-state').hidden=screen==='public'||state!==id;
+  $('#overview-content').hidden=screen!=='overview'||state!=='normal';$('#vault-content').hidden=screen!=='vault'||state!=='normal';
+  $('#attention-list').replaceChildren(...subset('attention').slice(0,3).map(item=>itemRow(item,'Open →')));
+  $('#legend').replaceChildren(...groups.map(group=>{
+    const button=node('button');button.type='button';button.dataset.filter=group.id;
+    const label=node('span');const swatch=node('i');swatch.style.setProperty('--key',group.color);swatch.setAttribute('aria-hidden','true');label.append(swatch,document.createTextNode(group.label));
+    button.append(label,node('b','',String(subset(group.id).length)));return button;
+  }));
+  $('#filter-title').textContent=filter==='all'?'All Vault items':filter==='attention'?'Items needing attention':groups.find(group=>group.id===filter).title;
+  const filtered=subset(filter);$('#filter-count').textContent=`${filtered.length} of ${sample.length} synthetic items · expiry filter`;
+  $('#vault-list').replaceChildren(...filtered.map(item=>itemRow(item,'Open →')));
+  $('#filter-chips').replaceChildren(...[{id:'all',label:'All'},{id:'attention',label:'Need attention'},...groups].map(group=>{
+    const button=node('button','',group.label);button.type='button';button.dataset.filter=group.id;button.setAttribute('aria-pressed',String(filter===group.id));return button;
+  }));
+}
+function changeScreen(next,focus=true) { screen=next;render();if(focus)document.querySelector('#content')?.focus(); }
+function explain(destination) {
+  pendingDestination=destination;
+  const explanations={
+    signin:['Preview your account','This prototype does not sign in or create accounts. Continue to explore a synthetic account overview.'],
+    generator:['A dedicated password generator','In Keynest, this action opens /tools/generate. Generation stays on its own page, with the selected default or account policy. No password is generated in this design prototype.'],
+    tools:['Password tools','Generation and policy checking keep dedicated routes. This proposal adds an overview without condensing those workflows.'],
+    account:['Account settings','Profile/session, password policy and optional AI setup remain in Account settings. This prototype does not save account changes.'],
+    policy:['Your account password policy','This opens the existing account policy settings. New and replaced passwords follow the selected rules. Existing passwords remain readable; expiry counts do not assert current-policy compliance.'],
+    create:['Add a Vault item','This opens the existing /vault/new workflow. The empty-account state should lead here directly. This prototype contains synthetic data only.'],
+    item:['Open the dedicated item workflow','In the application this opens the selected item in Vault, where reveal and rotation remain explicit actions. The overview never reveals a password.'],
+    health:['Connection help','Open the existing API health workflow from account troubleshooting. A failed dashboard request must not masquerade as an empty account.'],
+  };
+  const [title,description]=explanations[destination];$('#dialog-title').textContent=title;$('#dialog-description').textContent=description;
+  $('#dialog-continue').textContent=destination==='signin'?'Explore sample account →':'Return to design';$('#destination-dialog').showModal();
+}
+$('#screen').addEventListener('change',event=>changeScreen(event.target.value));
+$('#state').addEventListener('change',event=>{state=event.target.value;render();});
+$('#phone').addEventListener('click',()=>{const enabled=$('#frame').classList.toggle('phone');$('#phone').setAttribute('aria-pressed',String(enabled));$('#phone').textContent=enabled?'Full width':'Phone width';});
+$('#close-dialog').addEventListener('click',()=>$('#destination-dialog').close());
+$('#dialog-continue').addEventListener('click',()=>{ $('#destination-dialog').close();if(pendingDestination==='signin'){state='normal';changeScreen('overview');}});
+function retry(){state='loading';render();retryTimer=setTimeout(()=>{state='normal';render();},700);}
+$('#retry').addEventListener('click',retry);$('#refresh').addEventListener('click',retry);
+document.addEventListener('click',event=>{
+  const target=event.target.closest('a,button');if(!target)return;
+  if(target.dataset.screen){event.preventDefault();changeScreen(target.dataset.screen);window.scrollTo({top:0});}
+  else if(target.hasAttribute('data-signin'))explain('signin');
+  else if(target.dataset.filter){filter=target.dataset.filter;changeScreen('vault');}
+  else if(target.dataset.destination){event.preventDefault();explain(target.dataset.destination);}
+});
+render();
+</script>
+</body>
+</html>
