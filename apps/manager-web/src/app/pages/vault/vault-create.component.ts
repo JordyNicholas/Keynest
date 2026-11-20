@@ -1,3 +1,4 @@
+import { httpErrorMessage } from '../http-error-message';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, DestroyRef, effect, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -63,7 +64,7 @@ export class VaultCreatePageComponent {
   loadPolicy(): void {
     if (this.policy() || this.loadingPolicy()) return;
     this.loadingPolicy.set(true);
-    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`)
+    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loadingPolicy.set(false)))
       .subscribe({ next: (policy) => this.policy.set(policy), error: () => this.policy.set(null) });
   }
@@ -106,6 +107,7 @@ export class VaultCreatePageComponent {
       expiresInDays: this.expiryDays(),
       notifyBeforeDays: this.noticeDays(),
       generate: false,
+      policyId: this.policy()?.id,
       password,
     }, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
@@ -113,13 +115,13 @@ export class VaultCreatePageComponent {
         next: () => {
           if (this.auth.token() === this.session) void this.router.navigateByUrl('/vault');
         },
-        error: ({ error }) => {
+        error: ({ error, status }) => {
           if (this.auth.token() !== this.session) return;
           if (error?.code === 'VAULT_PASSWORD_POLICY') {
             this.details.set(passwordViolationMessages(error.violations));
             this.error.set('The password does not meet the vault policy.');
           } else {
-            this.error.set('Could not create the vault item. Try again.');
+            this.error.set(httpErrorMessage(status, 'create this Vault item'));
           }
         },
       });

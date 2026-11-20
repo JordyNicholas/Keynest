@@ -36,6 +36,36 @@ JordyNicholas confirmed both results on November 18, 2026. The test dates, revis
 | Full-stack browser walkthrough with AI disabled | Pending | Manager Web and API revisions pending | Microsoft Edge on a local workstation. OS, browser version, and Web/API deployment topology pending | Pass, maintainer-confirmed |
 | PostgreSQL backup and restore with the matching retained vault key | Pending | Manager API revision or image digest pending | Host/runtime, PostgreSQL version, and restore-target details pending | Pass, maintainer-confirmed |
 
+### November 20 maintainer rehearsal
+
+The maintainer reported this run at **2026-11-20T09:12:59.4248589-03:00**, using revision **`ac03ce592db56ca52719dcaef00b2f6abe7154a1`**. These results do not apply to later policy or UX changes, and do not replace the frozen candidate's revision.
+
+| Environment | Reported value |
+| --- | --- |
+| OS | Microsoft Windows 11 Home Single Language 10.0.26300, 64 bits |
+| Browser | Microsoft Edge 158.0.4370.33 |
+| Docker Engine / Compose | 29.9.3 / v5.7.0 |
+| Node / npm | v24.14.1 / 11.18.0 |
+| PostgreSQL image | `16-alpine` (exact running server version not recorded for this run) |
+| Deployment | Local Web and Docker API/PostgreSQL, following the isolated test workflow |
+
+| Check | Maintainer-reported result |
+| --- | --- |
+| Runtime controls | Pass |
+| HTTP smoke and CORS | Pass |
+| Browser checklist and mobile layout | Pass |
+| Keyboard/focus and reduced motion | Pass |
+| Connection failure/recovery, AI disabled | Pass |
+| Backup created and copied | Pass |
+| Restore into separate database | Pass |
+| Fresh sign-in after restore | Pass |
+| Original password matches after restore | Pass |
+| Create and reveal after restore | Pass |
+
+The run also identified defects tracked in [#192](https://github.com/JordyNicholas/Keynest/issues/192). Registration and sign-in feedback was vague, page errors could be offscreen on mobile, the browser offered to save samples from the checker, and reveal text lacked a live countdown. Most significantly, standalone keyword generation could include characters rejected by Vault. The maintainer selected a shared account policy in [#193](https://github.com/JordyNicholas/Keynest/issues/193), covering generation, validation, creation and rotation with either default or custom rules.
+
+**Follow-up validation pending:** exercise both account policies end to end, keyword generation followed by Vault save, authentication feedback, viewport notifications, checker password-manager behavior in Edge, and timed/manual concealment. Recheck migration and restore after V6. Keep release verification open until fixes have passing CI and the affected human checks are recorded. Historical successful checks remain evidence for their tested revision.
+
 ### Operator environment captured November 18, 2026
 
 | Command | Reported output |
@@ -72,7 +102,7 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 4. Open **Edit details**, change the label or username, and save. Open **Rotate password** for the same item, verify **Generator options** starts collapsed, then open it and generate a replacement using **Use Vault policy**. Choose **Customize generation**, set a custom length and synthetic keyword, generate another replacement, verify **Show password** and **Hide password**, copy the replacement, then confirm saving it for the synthetic account. On mobile, open the card’s **More actions** menu to find editing, rotation and deletion. Verify the rotation timestamp changes. Reveal once to check the replacement, then conceal it.
 5. Cancel a deletion and verify the item remains. Confirm deletion and verify the item disappears.
 6. Sign out and revisit Vault and the rotation link. Verify both require sign-in. Repeat key navigation with the browser's reduced-motion preference enabled.
-7. Open **Check password policy**. Type a synthetic sample and verify the meter and checklist update without a validation request. Confirm the built-in check with **Check password**, then switch to custom rules and verify changing a rule updates the result without sending the sample.
+7. Open **Check password policy**. Type a synthetic sample and verify the meter and checklist update without a validation request. Confirm the selected account check with **Check password**. In Account settings, save custom password rules and reopen generation, checking and Vault rotation to verify all use the same rules. Guest-only temporary sample rules do not change account settings.
 8. Record the tested SHA, environment, date and outcomes. Keep credentials and revealed values out of the evidence.
 
 ## Governance evidence

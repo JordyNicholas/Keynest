@@ -26,4 +26,25 @@ describe('Browser password generator', () => {
     expect(() => generateBrowserPassword(8, { lower: false, upper: false, digits: false, symbols: false }, ''))
       .toThrowError(/character type/);
   });
+  it('applies ambiguous-character restrictions to random characters and transformed keywords', () => {
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const password = generateBrowserPassword(20, allTypes, 'keyword', { excludeAmbiguous: true });
+      expect(password.length).toBe(20);
+      expect(password).not.toMatch(/[0OIl1]/);
+    }
+  });
+
+  it('uses custom restrictions and refuses an unsatisfiable keyword instead of returning a rejected password', () => {
+    const lowerOnly = { lower: true, upper: false, digits: false, symbols: false };
+    expect(() => generateBrowserPassword(20, lowerOnly, 'keyword', { bannedSubstrings: ['keyword'] }))
+      .toThrowError(/conflicts/);
+    expect(() => generateBrowserPassword(20, lowerOnly, 'keyword', { username: 'keyword@example.test' }))
+      .toThrowError(/conflicts/);
+    expect(generateBrowserPassword(20, lowerOnly, 'keyword', {
+      username: 'keyword@example.test', forbidUsernameSubstring: false,
+    })).toContain('keyword');
+    expect(() => generateBrowserPassword(20, lowerOnly, 'aaaa', { bannedRegexes: ['(.)\\1{3,}'] }))
+      .toThrowError(/conflicts/);
+  });
+
 });

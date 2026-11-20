@@ -1,3 +1,4 @@
+import { httpErrorMessage } from '../http-error-message';
 import { confirmVaultChange } from '../confirm-vault-change';
 import { InlineErrorComponent } from '../inline-error.component';
 import { DatePipe } from '@angular/common';
@@ -31,6 +32,8 @@ export class VaultPageComponent implements OnDestroy {
   readonly vaultLoaded = signal(false);
   private readonly revealRequests = new Map<string, symbol>();
   private readonly concealTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private readonly countdownTimers = new Map<string, ReturnType<typeof setInterval>>();
+  readonly remainingSeconds = signal<Record<string, number>>({});
 
   readonly items = signal<VaultItem[]>([]);
   readonly upcomingExpiry = computed(() => {
@@ -88,8 +91,8 @@ export class VaultPageComponent implements OnDestroy {
         this.vaultLoaded.set(true);
         this.error.set('');
       },
-      error: () => {
-        if (this.auth.token() === token) this.error.set('Vault list failed — sign in again');
+      error: ({ status }) => {
+        if (this.auth.token() === token) this.error.set(httpErrorMessage(status, 'load Vault'));
       },
     });
   }
@@ -113,21 +116,36 @@ export class VaultPageComponent implements OnDestroy {
           if (this.revealRequests.get(id) !== request || this.auth.token() !== token) return;
           this.conceal(id);
           this.revealed.update((current) => ({ ...current, [id]: body.password }));
+          const deadline = Date.now() + VaultPageComponent.REVEAL_DURATION_MS;
+          this.remainingSeconds.update(current => ({ ...current, [id]: this.revealDurationSeconds }));
+          this.countdownTimers.set(id, setInterval(() => {
+            const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            if (remaining === 0) this.conceal(id);
+            else this.remainingSeconds.update(current => ({ ...current, [id]: remaining }));
+          }, 1000));
           this.concealTimers.set(
             id,
             setTimeout(() => this.conceal(id), VaultPageComponent.REVEAL_DURATION_MS)
           );
           this.error.set('');
         },
-        error: () => {
+        error: ({ status }) => {
           if (this.revealRequests.get(id) === request && this.auth.token() === token) {
-            this.error.set('Reveal failed');
+            this.error.set(httpErrorMessage(status, 'reveal this password'));
           }
         },
       });
   }
 
   conceal(id: string): void {
+    const countdown = this.countdownTimers.get(id);
+    if (countdown !== undefined) clearInterval(countdown);
+    this.countdownTimers.delete(id);
+    this.remainingSeconds.update(current => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
     this.revealRequests.delete(id);
     const timer = this.concealTimers.get(id);
     if (timer !== undefined) {
@@ -155,7 +173,7 @@ export class VaultPageComponent implements OnDestroy {
         next: () => {
           this.items.update((items) => items.filter((item) => item.id !== id));
         },
-        error: () => this.error.set('Delete failed'),
+        error: ({ status }) => this.error.set(httpErrorMessage(status, 'delete this item')),
       });
   }
 
@@ -164,6 +182,9 @@ export class VaultPageComponent implements OnDestroy {
   }
 
   private concealAll(): void {
+    for (const timer of this.countdownTimers.values()) clearInterval(timer);
+    this.countdownTimers.clear();
+    this.remainingSeconds.set({});
     this.revealRequests.clear();
     for (const timer of this.concealTimers.values()) {
       clearTimeout(timer);

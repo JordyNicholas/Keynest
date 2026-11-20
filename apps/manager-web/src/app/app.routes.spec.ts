@@ -25,11 +25,15 @@ describe('Manager entry routes', () => {
     TestBed.inject(AuthService).clearSession();
   });
 
-  it('opens the public generator without a session or a request on entry', async () => {
+  it('opens the public generator and fetches only the default rule document on entry', async () => {
     const harness = await RouterTestingHarness.create('/');
     expect(TestBed.inject(Router).url).toBe('/tools/generate');
     expect(harness.routeNativeElement?.textContent).toContain('Sign in to Manager');
-    TestBed.inject(HttpTestingController).expectNone('/api/v1/tools/generate');
+    const http = TestBed.inject(HttpTestingController);
+    const policy = http.expectOne('/api/v1/tools/policy');
+    expect(policy.request.headers.has('Authorization')).toBeFalse();
+    policy.flush({ id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } });
+    http.expectNone('/api/v1/tools/generate');
   });
 
   it('redirects the legacy explanation page and resumes through Account settings', async () => {
@@ -47,7 +51,7 @@ describe('Manager entry routes', () => {
     expect(router.url).toBe('/account?ai=policy-explanation#ai-settings');
     http.expectOne('/api/v1/auth/me').flush({ email: 'demo@example.test' });
     harness.detectChanges();
-    expect(harness.routeNativeElement!.querySelector('details')?.open).toBeTrue();
+    expect(harness.routeNativeElement!.querySelector<HTMLDetailsElement>('#ai-settings details')?.open).toBeTrue();
     http.expectNone('/api/v1/ai/policy/explain');
 
     const input = harness.routeNativeElement!.querySelector<HTMLInputElement>('#provider-key')!;

@@ -5,6 +5,7 @@ export type PolicyCheck = {
   id: string;
   label: string;
   met: boolean | null;
+  help?: string;
 };
 
 const categoryLabels = {
@@ -63,12 +64,13 @@ export function previewBuiltInPolicy(sample: string, rules: BuiltInPolicy['rules
       met: categories[id] || (hasNonAscii ? null : false),
     })),
   ];
-  if (rules.minCategories > 1) {
-    checks.push({ id: 'password.min_categories', label: `Use at least ${rules.minCategories} character types`,
+  if (rules.minCategories > Object.values(required).filter(Boolean).length) {
+    checks.push({ id: 'password.min_categories', label: `Use at least ${rules.minCategories} of lowercase, uppercase, numbers and symbols`,
       met: knownCategoryCount >= rules.minCategories || (hasNonAscii ? null : false) });
   }
   if (rules.excludeAmbiguous) {
     checks.push({ id: 'password.ambiguous_chars', label: 'Avoid ambiguous characters (0, O, I, l, 1)',
+      help: 'These specific characters are excluded anywhere in the password because they can look alike when copied by hand. Change this in your account policy.',
       met: !/[0OIl1]/.test(sample) });
   }
   if (rules.forbidWhitespace) {
@@ -76,10 +78,10 @@ export function previewBuiltInPolicy(sample: string, rules: BuiltInPolicy['rules
       met: containsAsciiWhitespace ? false : hasNonAscii ? null : true });
   }
   if (rules.bannedSubstrings.length) {
-    checks.push({ id: 'password.banned_substring', label: 'Avoid blocked words or strings',
+    checks.push({ id: 'password.banned_substring', label: 'Avoid blocked words or strings', help: `Blocked anywhere, ignoring case: ${rules.bannedSubstrings.join(', ')}.`,
       met: containsBannedString ? false : hasNonAscii ? null : true });
   }
-  checks.push({ id: 'password.banned_regex', label: 'Avoid blocked patterns', met: null });
+  if (rules.bannedRegexes === undefined || rules.bannedRegexes.length) checks.push({ id: 'password.banned_regex', label: 'Avoid blocked patterns', help: (rules.bannedRegexes ?? []).map(pattern => pattern === '(.)\\1{3,}' ? 'Four or more identical characters in a row, such as aaaa or !!!!.' : pattern).join(' '), met: null });
   return checks;
 }
 
