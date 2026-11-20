@@ -1,5 +1,5 @@
 <h1 class="page-title">{{ rotating ? 'Rotate password' : 'Edit vault item' }}</h1>
-<kn-inline-error [message]="error()" [details]="details()" />
+<kn-inline-error [(message)]="error" [details]="details()" />
 
 @if (loading()) {
   <p role="status">Loading vault item…</p>

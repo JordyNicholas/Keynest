@@ -1,5 +1,5 @@
 <h1 class="page-title">Add vault item</h1>
-<kn-inline-error [message]="error()" [details]="details()" />
+<kn-inline-error [(message)]="error" [details]="details()" />
 
 <form ngNativeValidate class="panel" (submit)="save($event, password)">
   <fieldset [disabled]="saving()">
