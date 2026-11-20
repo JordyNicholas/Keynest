@@ -20,6 +20,7 @@ dialog { width:min(450px,calc(100% - 32px)); padding:36px; background:var(--surf
 .breadcrumb,.sample-caption { font-size:11px; line-height:1.6; }
 .metric-label { font-size:11px; }
 .metric-note { font-size:12px; }
+.metric-value { font-variant-numeric:tabular-nums; }
 .metric-value .badge { font-size:11px; }
 .panel .eyebrow { font-size:10px; }
 .small { font-size:13px; }
@@ -31,11 +32,11 @@ dialog { width:min(450px,calc(100% - 32px)); padding:36px; background:var(--surf
 .app-nav a { font-size:14px; }
 @container (max-width:760px) {
   .summary-grid { grid-template-columns:1fr; }
-  .metric-card { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px 16px; }
+  .metric-card { display:grid; grid-template-columns:minmax(0,1fr) minmax(5.5rem,max-content); align-items:center; gap:10px 16px; }
   .metric-card .metric-label,.metric-card:last-child .metric-label { grid-column:1; }
   .metric-card .metric-value,.metric-card:last-child .metric-value { grid-column:2; grid-row:1/3; justify-content:flex-end; }
   .metric-card .metric-note,.metric-card:last-child .metric-note { grid-column:1; }
-  .metric-value { flex-direction:column; gap:8px; }
+  .metric-value { flex-direction:column; align-items:flex-end; justify-self:end; min-inline-size:5.5rem; text-align:right; gap:8px; }
   .metric-value>small { font-size:16px; }
   .item-row { flex-wrap:wrap; }
   .item-info { min-width:120px; }

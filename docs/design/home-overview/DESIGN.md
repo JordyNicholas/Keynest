@@ -45,6 +45,12 @@ Public content is capped near 1200px. Operational overview content can expand wi
 
 The imagery is original HTML/CSS UI composition with synthetic labels, not an image asset or actual account screenshot. No reference-site artwork or remote image/font dependency is included in the prototype.
 
+### Maintainer refinement: common alignment
+
+The November 20 phone-width review provided positive feedback on the visual direction and requested that common metric elements align consistently. Numeric values use tabular figures. Phone metric cards reserve the same minimum trailing-column width and align the value, its unit and its supporting badge to the card's right inset. A longer supporting label must not center the primary number or move it away from that common edge. Keep the explanatory label on the left, with enough width to wrap. Verify all three cards together, including longer counts and text-size changes, rather than reviewing one card in isolation.
+
+The maintainer also raised a logo/branding discussion. The current wordmark remains in the prototype. No symbol, replacement wordmark or new brand identity has been selected or approved.
+
 ## 3. Information architecture
 
 | Context | Proposed behavior |
