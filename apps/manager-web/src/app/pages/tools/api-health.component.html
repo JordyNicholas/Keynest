@@ -1,6 +1,6 @@
 <h1 class="page-title" id="health-heading">API health</h1>
 <p class="page-lede">Check whether this Manager Web instance can reach its configured API.</p>
-<kn-inline-error [message]="error()" />
+<kn-inline-error [(message)]="error" />
 
 <section class="panel" aria-labelledby="health-heading">
   @if (checking()) {

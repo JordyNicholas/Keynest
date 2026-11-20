@@ -1,5 +1,5 @@
 <h1 class="page-title">{{ auth.signedIn() ? 'Account settings' : 'Sign in to Manager' }}</h1>
-<kn-inline-error [message]="error()" />
+<kn-inline-error [(message)]="error" />
 
 @if (auth.signedIn()) {
   <section class="panel" aria-labelledby="auth-heading">

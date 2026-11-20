@@ -14,7 +14,7 @@ import { InlineErrorComponent } from '../inline-error.component';
   imports: [FormsModule, MatButtonModule, InlineErrorComponent],
   styleUrl: '../page-shared.css',
   template: `
-    <kn-inline-error [message]="error()" />
+    <kn-inline-error [(message)]="error" />
     @if (rules; as rules) {
       <form ngNativeValidate (ngSubmit)="save()">
         <p>These rules apply to generation, checking, new Vault passwords and rotation.</p>
