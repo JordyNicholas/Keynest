@@ -121,7 +121,7 @@ export class VaultCreatePageComponent {
             this.details.set(passwordViolationMessages(error.violations));
             this.error.set('The password does not meet the vault policy.');
           } else {
-            this.error.set('Could not create the vault item. Try again.');
+            this.error.set(httpErrorMessage(status, 'create this Vault item'));
           }
         },
       });
