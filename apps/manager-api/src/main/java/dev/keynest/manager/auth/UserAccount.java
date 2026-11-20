@@ -23,6 +23,17 @@ public class UserAccount {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(name = "password_policy", length = 4000)
+    private String passwordPolicy;
+
+    public String getPasswordPolicy() {
+        return passwordPolicy;
+    }
+
+    public void setPasswordPolicy(String passwordPolicy) {
+        this.passwordPolicy = passwordPolicy;
+    }
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
