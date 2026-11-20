@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed implementation following the maintainer's selection of an account default policy.
+Accepted November 20, 2026, following the maintainer's explicit approval of [PR #194](https://github.com/JordyNicholas/Keynest/pull/194) and [PR #195](https://github.com/JordyNicholas/Keynest/pull/195). Both are merged on `main`. The account-policy feature is implemented; follow-up human verification remains tracked in [release evidence](MVP_RELEASE_EVIDENCE.md#november-20-policy-and-ux-fix-checkpoint).
 
 ## Decision
 
