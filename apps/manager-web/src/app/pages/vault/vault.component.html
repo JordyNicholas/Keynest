@@ -33,7 +33,7 @@
           }
           @if (revealed()[item.id]; as secret) {
             <output class="secret" aria-live="polite">{{ secret }}</output>
-            <small>Automatically concealed after {{ revealDurationSeconds }} seconds.</small>
+            <small>Concealing in {{ remainingSeconds()[item.id] }} seconds.</small>
           }
         </div>
         <div class="vault-card-actions">

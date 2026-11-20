@@ -44,6 +44,21 @@ describe('AccountPageComponent', () => {
     login.flush({}, { status: 401, statusText: 'Unauthorized' });
   });
 
+  it('explains invalid email before registration and keeps failed sign-in non-enumerating', () => {
+    const fixture = TestBed.createComponent(AccountPageComponent);
+    const account = fixture.componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    account.formEmail.set('not-an-email');
+    account.formPassword.set('SyntheticMaster!42');
+    account.register();
+    http.expectNone('/api/v1/auth/register');
+    expect(account.error()).toContain('email');
+    account.formEmail.set('synthetic@example.test');
+    account.login();
+    http.expectOne('/api/v1/auth/login').flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(account.error()).toBe('The email address or master password is incorrect.');
+  });
+
   it('keeps AI setup behind sign-in', () => {
     const fixture = TestBed.createComponent(AccountPageComponent);
     fixture.detectChanges();
@@ -57,7 +72,7 @@ describe('AccountPageComponent', () => {
     http.expectOne('/api/v1/auth/me').flush({ email: 'test@example.com' });
     fixture.detectChanges();
     const host: HTMLElement = fixture.nativeElement;
-    const setup = host.querySelector('details')!;
+    const setup = host.querySelector<HTMLDetailsElement>('#ai-settings details')!;
 
     const toggle = (open: boolean) => {
       setup.open = open;

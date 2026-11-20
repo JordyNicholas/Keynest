@@ -1,3 +1,4 @@
+import { httpErrorMessage } from '../http-error-message';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, DestroyRef, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
@@ -122,13 +123,13 @@ export class VaultUpdatePageComponent {
     const item = this.item();
     if (!this.rotating || !item || this.policy() || this.loadingPolicy() || !this.sessionActive()) return;
     this.loadingPolicy.set(true);
-    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, { params: { policyId: item.policyId } })
+    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
         if (this.item() === item) this.loadingPolicy.set(false);
       }))
       .subscribe({
         next: (policy) => {
-          if (this.sessionActive() && this.item() === item && policy.id === item.policyId) this.policy.set(policy);
+          if (this.sessionActive() && this.item() === item) this.policy.set(policy);
         },
         error: () => {
           if (this.item() === item) this.policy.set(null);
@@ -149,7 +150,7 @@ export class VaultUpdatePageComponent {
     try {
       input.value = custom && options
         ? options.generate()
-        : generateBrowserPassword(rules.defaultLength, defaultCharacterSelection, '', rules);
+        : generateBrowserPassword(rules.defaultLength, defaultCharacterSelection, '', { ...rules, username: this.username() });
       this.replacementVisible.set(false);
       this.replacementChanged(input);
       this.copyStatus.set('Replacement generated.');
@@ -184,7 +185,7 @@ export class VaultUpdatePageComponent {
     this.error.set('');
     this.details.set([]);
 
-    let changes: { password?: string; label?: string; username?: string; url?: string };
+    let changes: { password?: string; policyId?: string; label?: string; username?: string; url?: string };
     if (this.rotating) {
       const password = input?.value;
       if (!password?.trim()) {
@@ -192,7 +193,7 @@ export class VaultUpdatePageComponent {
         return;
       }
       if (!confirmVaultChange('replace-password')) return;
-      changes = { password };
+      changes = { password, ...(this.policy() ? { policyId: this.policy()!.id } : {}) };
     } else {
       const label = this.label().trim();
       if (!label) {
@@ -225,13 +226,13 @@ export class VaultUpdatePageComponent {
         next: () => {
           if (this.sessionActive() && this.item() === item) void this.router.navigateByUrl('/vault');
         },
-        error: ({ error }) => {
+        error: ({ error, status }) => {
           if (!this.sessionActive() || this.item() !== item) return;
           if (error?.code === 'VAULT_PASSWORD_POLICY') {
             this.details.set(passwordViolationMessages(error.violations));
             this.error.set('The replacement password does not meet the vault policy.');
           } else {
-            this.error.set('Could not save the vault item. Try again.');
+            this.error.set(httpErrorMessage(status, 'save this Vault item'));
           }
         },
       });

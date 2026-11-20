@@ -13,6 +13,14 @@
     <button mat-stroked-button type="button" (click)="logout()">Sign out</button>
   </section>
 
+  <section class="panel" aria-labelledby="password-policy-heading">
+    <h2 id="password-policy-heading">Password policy</h2>
+    <details #policySetup (toggle)="policyOpen.set(policySetup.open)">
+      <summary>Default or custom account rules</summary>
+      @if (policyOpen()) { <kn-password-policy-settings /> }
+    </details>
+  </section>
+
   <section id="ai-settings" class="panel" aria-labelledby="ai-settings-heading">
     <h2 id="ai-settings-heading">AI settings</h2>
     <p>Use your own OpenAI key to explain the built-in password policy. A Keynest administrator must enable AI explanations for this instance.</p>

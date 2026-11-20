@@ -166,7 +166,7 @@ describe('VaultPageComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[role="alert"]').textContent)
-      .toContain('Vault list failed — sign in again');
+      .toContain('Your session expired or is no longer valid. Sign in again.');
 
     component.refreshVault();
     http.expectOne('/api/v1/vault/items').flush([]);
@@ -183,10 +183,14 @@ describe('VaultPageComponent', () => {
     request.flush({ item: { id: 'item-1', label: 'Example', policyId: 'keynest.default.v1' }, password: 'secret' });
 
     expect(component.revealed()['item-1']).toBe('secret');
-    tick(14_999);
+    expect(component.remainingSeconds()['item-1']).toBe(15);
+    tick(1000);
+    expect(component.remainingSeconds()['item-1']).toBe(14);
+    tick(13_999);
     expect(component.revealed()['item-1']).toBe('secret');
     tick(1);
     expect(component.revealed()['item-1']).toBeUndefined();
+    expect(component.remainingSeconds()['item-1']).toBeUndefined();
   }));
 
   it('ignores a reveal response after conceal or a session change', () => {

@@ -39,9 +39,9 @@ describe('CheckPasswordPageComponent', () => {
       fixture.detectChanges();
     };
     const status = (label: string) => Array.from(host.querySelectorAll('.policy-checks li'))
-      .find((row) => row.firstElementChild?.textContent === label)
+      .find((row) => row.firstElementChild?.textContent?.trim().startsWith(label))
       ?.querySelector('.check-status')?.textContent?.trim();
-    const submit = () => host.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
+    const submit = () => host.querySelector<HTMLButtonElement>('button[mat-flat-button]')!.click();
     return { fixture, host, http, input, meter, status, submit, type };
   }
 

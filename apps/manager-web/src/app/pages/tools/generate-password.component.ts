@@ -1,4 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { API_BASE_URL } from '../../injectionTokens';
+import { BuiltInPolicy, generatorOptionsForPolicy } from './built-in-policy';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../auth/auth.service';
@@ -12,10 +16,35 @@ import { PasswordGeneratorOptionsComponent } from './password-generator-options.
   styleUrl: '../page-shared.css',
 })
 export class GeneratePasswordPageComponent {
-  readonly signedIn = inject(AuthService).signedIn;
+  private readonly http = inject(HttpClient);
+  private readonly apiBaseUrl = inject(API_BASE_URL);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly policy = signal<BuiltInPolicy | null>(null);
+  readonly rules = computed(() => {
+    const policy = this.policy();
+    return policy ? generatorOptionsForPolicy(policy.rules) : null;
+  });
+  private readonly auth = inject(AuthService);
+  readonly signedIn = this.auth.signedIn;
   readonly copyStatus = signal('');
   readonly generated = signal('');
   readonly error = signal('');
+
+  constructor() {
+    this.loadPolicy();
+  }
+
+  loadPolicy(): void {
+    this.error.set('');
+    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, {
+      headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined,
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (policy) => this.policy.set(policy),
+        error: () => this.error.set('Could not load the password rules. Check the API connection and retry.'),
+      });
+  }
 
   generate(event: Event, options: PasswordGeneratorOptionsComponent): void {
     event.preventDefault();

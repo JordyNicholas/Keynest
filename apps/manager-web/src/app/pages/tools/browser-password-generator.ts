@@ -27,7 +27,30 @@ export function generateBrowserPassword(
   length: number | null,
   selection: CharacterSelection,
   keyword: string,
-  { minLength = minPasswordLength, maxLength = maxPasswordLength, excludeAmbiguous = false } = {},
+  {
+    minLength = minPasswordLength, maxLength = maxPasswordLength, excludeAmbiguous = false,
+    bannedSubstrings = [] as readonly string[], bannedRegexes = [] as readonly string[],
+    username = '', forbidUsernameSubstring = true,
+  } = {},
+): string {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const password = generateCandidate(length, selection, keyword, minLength, maxLength, excludeAmbiguous);
+    const lower = password.toLowerCase();
+    const local = username.trim().split('@')[0].toLowerCase();
+    if (bannedSubstrings.some((word) => word.trim() && lower.includes(word.toLowerCase()))) continue;
+    if (forbidUsernameSubstring && local.length >= 3 && lower.includes(local)) continue;
+    if (bannedRegexes.some((pattern) => {
+      if (pattern !== '(.)\\1{3,}') throw new Error('This policy needs a generator update. Ask your administrator.');
+      return /(.)\1{3,}/.test(password);
+    })) continue;
+    return password;
+  }
+  throw new Error('The keyword conflicts with the password rules. Try another keyword or a longer password.');
+}
+
+function generateCandidate(
+  length: number | null, selection: CharacterSelection, keyword: string,
+  minLength: number, maxLength: number, excludeAmbiguous: boolean,
 ): string {
   if (!validPasswordLength(length) || length < minLength || length > maxLength) {
     throw new Error(`Choose a length between ${minLength} and ${maxLength}.`);

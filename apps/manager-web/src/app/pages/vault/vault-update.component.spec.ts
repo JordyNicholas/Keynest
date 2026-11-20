@@ -116,9 +116,9 @@ describe('Vault update routes', () => {
     };
     expect(generator.open).toBeFalse();
     expect(content.querySelector('select[name=generationMode]')).toBeNull();
-    http.expectNone(`/api/v1/tools/policy?policyId=${policyId}`);
+    http.expectNone('/api/v1/tools/policy');
     toggleGenerator(true);
-    http.expectOne(`/api/v1/tools/policy?policyId=${policyId}`).flush({
+    http.expectOne('/api/v1/tools/policy').flush({
       id: policyId,
       rules: {
         minLength: 22, maxLength: 40, requireUpper: true, requireLower: true,
@@ -198,7 +198,7 @@ describe('Vault update routes', () => {
     const request = http.expectOne(endpoint);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
-      password: replacement, expiresInDays: null, notifyBeforeDays: 14,
+      password: replacement, policyId, expiresInDays: null, notifyBeforeDays: 14,
     });
     expect(input.value).toBe('');
     request.flush({});

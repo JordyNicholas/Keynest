@@ -63,7 +63,8 @@
               @if (generationMode() === 'custom') {
                 <kn-password-generator-options [minLength]="rules.minLength" [maxLength]="rules.maxLength"
                   [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
-                  [excludeAmbiguous]="rules.excludeAmbiguous" />
+                  [excludeAmbiguous]="rules.excludeAmbiguous"
+          [bannedSubstrings]="rules.bannedSubstrings" [bannedRegexes]="rules.bannedRegexes" [username]="username()" [forbidUsernameSubstring]="rules.forbidUsernameSubstring" />
               } @else {
                 <p>Generate a {{ rules.defaultLength }}-character password using
                   {{ selected.policyId === 'keynest.default.v1' ? 'the Keynest default policy' : selected.policyId }}.</p>

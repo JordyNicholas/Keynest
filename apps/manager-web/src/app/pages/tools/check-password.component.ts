@@ -1,3 +1,4 @@
+import { httpErrorMessage } from '../http-error-message';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,7 +25,8 @@ export class CheckPasswordPageComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly assessment = signal<PolicyCheck[] | null>(null);
 
-  readonly signedIn = inject(AuthService).signedIn;
+  private readonly auth = inject(AuthService);
+  readonly signedIn = this.auth.signedIn;
   private readonly navigationInfo = inject(Router).currentNavigation()?.extras.info as { policyExplanation?: unknown } | undefined;
   readonly explanation = typeof this.navigationInfo?.policyExplanation === 'string' ? this.navigationInfo.policyExplanation : '';
   readonly mode = signal<'built-in' | 'custom'>('built-in');
@@ -58,11 +60,13 @@ export class CheckPasswordPageComponent {
 
   loadPolicy(): void {
     this.policyError.set('');
-    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`)
+    this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, {
+      headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined,
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (policy) => this.policy.set(policy),
-        error: () => this.policyError.set('Could not load the built-in rules. You can still use custom rules.'),
+        error: ({ status }) => this.policyError.set(httpErrorMessage(status, 'load the selected password rules')),
       });
   }
 
@@ -102,6 +106,7 @@ export class CheckPasswordPageComponent {
     this.validating.set(true);
     this.http.post<{ valid: boolean; violations: string[]; policyId: string }>(
       `${this.apiBaseUrl}/tools/validate?operation=update`, { password, policyId: policy.id },
+      { headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined },
     ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.validating.set(false)))
       .subscribe({
         next: ({ valid, violations, policyId }) => {
@@ -111,7 +116,7 @@ export class CheckPasswordPageComponent {
             this.validationError.set('The Manager API checked a different policy. Reload this page and try again.');
           }
         },
-        error: () => this.validationError.set('Could not validate the sample password. Try again.'),
+        error: ({ status }) => this.validationError.set(httpErrorMessage(status, 'check this sample password')),
       });
   }
 

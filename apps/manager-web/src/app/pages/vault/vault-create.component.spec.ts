@@ -84,7 +84,7 @@ describe('VaultCreatePageComponent', () => {
     const request = http.expectOne(endpoint);
     const { password, ...fields } = request.request.body;
     expect(fields).toEqual({
-      label: 'Example login', username: '', url: '', expiresInDays: 90, notifyBeforeDays: 14, generate: false,
+      label: 'Example login', policyId: 'keynest.default.v1', username: '', url: '', expiresInDays: 90, notifyBeforeDays: 14, generate: false,
     });
     expect(password.length).toBe(22);
     expect(password).toMatch(/m[@a4]ngo/i);

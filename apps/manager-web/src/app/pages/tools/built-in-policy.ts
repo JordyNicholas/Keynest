@@ -14,6 +14,7 @@ export type BuiltInPolicy = {
     forbidWhitespace: boolean;
     forbidUsernameSubstring: boolean;
     bannedSubstrings: string[];
+    bannedRegexes?: string[];
   };
 };
 
@@ -29,5 +30,8 @@ export function generatorOptionsForPolicy(rules: BuiltInPolicy['rules']) {
     },
     minCategories: rules.minCategories,
     excludeAmbiguous: rules.excludeAmbiguous,
+    forbidUsernameSubstring: rules.forbidUsernameSubstring,
+    bannedSubstrings: rules.bannedSubstrings ?? [],
+    bannedRegexes: rules.bannedRegexes ?? [],
   };
 }

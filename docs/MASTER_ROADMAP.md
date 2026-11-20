@@ -195,6 +195,9 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 
 ## 5. Immediate dedicated-agent queue (implementation first)
 
+**November 20 validation follow-up:** the maintainer reported passing browser, accessibility, runtime and retained-key recovery checks on `ac03ce592db56ca52719dcaef00b2f6abe7154a1`, with policy consistency and UX defects. Prioritize [#192](https://github.com/JordyNicholas/Keynest/issues/192) and the selected shared account policy in [#193](https://github.com/JordyNicholas/Keynest/issues/193) before AI expansion. See [the rehearsal record](MVP_RELEASE_EVIDENCE.md#november-20-maintainer-rehearsal). Fixes and V6 migration require follow-up verification before release gates close.
+
+
 **Maintainer decision — November 16:** prioritize completing development **before** comprehensive testing, deployment/recovery rehearsals and release-candidate definition. This does **not** waive tests alongside code, CI, security reviews, PR approvals or fixing known security defects. The dedicated agent should continue non-conflicting work without waiting for new orders.
 
 1. **Finish core development now (through November 21):** inspect latest `main`, PRs (including [#131](https://github.com/JordyNicholas/Keynest/pull/131) if still open), branches and issues. Finish and polish routed Material account/tools/vault CRUD, generation/validation, reveal/conceal, rotation, expiry, backend wiring, accessibility fundamentals and error states. **Acceptance:** implemented and merged scoped journeys, relevant unit/integration/security tests, green affected-PR CI, no known unresolved critical defect.

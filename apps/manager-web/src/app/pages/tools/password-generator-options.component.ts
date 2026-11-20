@@ -16,6 +16,10 @@ export class PasswordGeneratorOptionsComponent {
   readonly requiredGroups = input<CharacterSelection>();
   readonly minCategories = input(1);
   readonly excludeAmbiguous = input(false);
+  readonly bannedSubstrings = input<readonly string[]>([]);
+  readonly bannedRegexes = input<readonly string[]>([]);
+  readonly username = input('');
+  readonly forbidUsernameSubstring = input(true);
   readonly length = linkedSignal<number | null>(() => defaultPasswordLength(this.minLength(), this.maxLength()));
   readonly selection: CharacterSelection = { ...defaultCharacterSelection };
   readonly characterGroups = characterGroups;
@@ -32,6 +36,7 @@ export class PasswordGeneratorOptionsComponent {
 
     return generateBrowserPassword(this.length(), selection, this.keyword().nativeElement.value.trim(), {
       minLength: this.minLength(), maxLength: this.maxLength(), excludeAmbiguous: this.excludeAmbiguous(),
+      bannedSubstrings: this.bannedSubstrings(), bannedRegexes: this.bannedRegexes(), username: this.username(), forbidUsernameSubstring: this.forbidUsernameSubstring(),
     });
   }
 }
