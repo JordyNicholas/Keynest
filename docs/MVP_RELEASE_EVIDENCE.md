@@ -85,6 +85,12 @@ Before merging, all seven verification jobs passed on each approved PR head. [Th
 
 Record the actual tested revision and environment for this follow-up. The November 20 morning rehearsal remains valid evidence for its original revision. This checkpoint does not create a new candidate, waive human checks or enable public deployment or AI expansion.
 
+### Subsequent November 20 UX feedback
+
+The maintainer reported most earlier fixes working and identified a remaining persistent inline error. No new tested SHA or item-by-item follow-up results were supplied, so this confirmation does not close every pending check above. [PR #198](https://github.com/JordyNicholas/Keynest/pull/198) refined the inline alert with a close control, a five-second lifetime paused during inline pointer/focus interaction, and coordinated clearing of the bottom notification and parent error. All seven [PR verification jobs](https://github.com/JordyNicholas/Keynest/actions/runs/44801245223) passed, including 49 browser tests, before merge as `bb2efa254c5d4c64f701ac5b120206091ff850e6`. Human confirmation of the new dismissal behavior remains pending.
+
+The maintainer also requested a complete, tailored homepage/account-overview design without rushing. [The design proposal](design/home-overview/DESIGN.md) records this work. Its synthetic prototype is not an implementation or release-validation result. Production routing and new generation/history tracking remain subject to feature review.
+
 ### Operator environment captured November 18, 2026
 
 | Command | Reported output |
