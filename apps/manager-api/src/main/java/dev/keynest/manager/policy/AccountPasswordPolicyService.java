@@ -82,7 +82,8 @@ public class AccountPasswordPolicyService {
     @Min(0) @Max(4) int minCategories,
     boolean excludeAmbiguous, boolean forbidWhitespace, boolean forbidUsernameSubstring,
     @NotNull @Size(max = 20) List<@NotNull @Size(min = 1, max = 64) String> bannedSubstrings,
-    @NotNull @Size(max = 1) List<@NotNull String> bannedRegexes
+    @NotNull @Size(max = 1) List<@NotNull @Size(max = 32) String> bannedRegexes,
+    @Min(1) @Max(36500) Integer maxAgeDays
   ) {
     PasswordPolicy runtime(String id) {
       if (minLength > maxLength || bannedRegexes.stream().anyMatch(regex -> !"(.)\\1{3,}".equals(regex))) {
@@ -92,13 +93,13 @@ public class AccountPasswordPolicyService {
         .requireUpper(requireUpper).requireLower(requireLower).requireDigit(requireDigit).requireSymbol(requireSymbol)
         .minCategories(minCategories).excludeAmbiguous(excludeAmbiguous).forbidWhitespace(forbidWhitespace)
         .forbidUsernameSubstring(forbidUsernameSubstring).bannedSubstrings(bannedSubstrings)
-        .bannedRegexes(bannedRegexes).build();
+        .bannedRegexes(bannedRegexes).maxAgeDays(maxAgeDays).build();
     }
 
     static Rules from(PasswordPolicy policy) {
       return new Rules(policy.minLength(), policy.maxLength(), policy.requireUpper(), policy.requireLower(),
         policy.requireDigit(), policy.requireSymbol(), policy.minCategories(), policy.excludeAmbiguous(),
-        policy.forbidWhitespace(), policy.forbidUsernameSubstring(), policy.bannedSubstrings(), policy.bannedRegexes());
+        policy.forbidWhitespace(), policy.forbidUsernameSubstring(), policy.bannedSubstrings(), policy.bannedRegexes(), policy.maxAgeDays());
     }
   }
 }

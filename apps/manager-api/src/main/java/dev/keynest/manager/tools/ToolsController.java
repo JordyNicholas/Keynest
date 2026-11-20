@@ -85,14 +85,15 @@ public class ToolsController {
   }
   
   @GetMapping("/policy")
-  public Map<String, Object> policy(
+  public org.springframework.http.ResponseEntity<Map<String, Object>> policy(
     @RequestParam(name = "policyId", required = false) String policyId,
     @RequestHeader(value = "Authorization", required = false) String bearer
   ) {
     PasswordPolicy policy = effectivePolicy(bearer, policyId);
     var view = accountPolicies.view(policy);
-    return Map.of("id", view.id(), "version", 1, "description", "Selected password policy",
-      "appliesTo", java.util.List.of("generate", "create", "update", "rotate"), "rules", view.rules());
+    return org.springframework.http.ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore()).body(
+      Map.of("id", view.id(), "version", 1, "description", "Selected password policy",
+      "appliesTo", java.util.List.of("generate", "create", "update", "rotate"), "rules", view.rules()));
   }
 
   @PostMapping("/validate")

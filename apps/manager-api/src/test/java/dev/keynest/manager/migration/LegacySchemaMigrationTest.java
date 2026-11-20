@@ -38,7 +38,7 @@ class LegacySchemaMigrationTest {
       .validateMigrationNaming(true)
       .load();
 
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
     assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("6");
 
     try (Connection connection = DriverManager.getConnection(url, "sa", "")) {

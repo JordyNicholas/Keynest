@@ -72,7 +72,7 @@ class AccountPasswordPolicyIntegrationTest {
   @Test
   void policyEditingRequiresAuthenticationAndValidRules() throws Exception {
     mvc.perform(put(SETTINGS).contentType(MediaType.APPLICATION_JSON).content("{\"mode\":\"default\"}"))
-      .andExpect(status().isBadRequest());
+      .andExpect(status().isUnauthorized());
     String bearer = session();
     mvc.perform(put(SETTINGS).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
         .content("{\"mode\":\"custom\",\"rules\":{\"minLength\":1}}"))

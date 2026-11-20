@@ -18,14 +18,14 @@ public class AccountPasswordPolicyController {
   }
 
   @GetMapping
-  public ResponseEntity<AccountPasswordPolicyService.View> read(@RequestHeader("Authorization") String bearer) {
+  public ResponseEntity<AccountPasswordPolicyService.View> read(@RequestHeader(value = "Authorization", required = false) String bearer) {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore())
       .body(policies.view(policies.effective(auth.requireUser(bearer))));
   }
 
   @PutMapping
   public ResponseEntity<AccountPasswordPolicyService.View> update(
-    @RequestHeader("Authorization") String bearer,
+    @RequestHeader(value = "Authorization", required = false) String bearer,
     @Valid @RequestBody AccountPasswordPolicyService.Settings settings
   ) {
     return ResponseEntity.ok().cacheControl(CacheControl.noStore())
