@@ -3,10 +3,10 @@ package dev.keynest.manager.vault;
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.manager.auth.UserAccount;
 import dev.keynest.manager.config.VaultKeyProperties;
+import dev.keynest.manager.policy.AccountPasswordPolicyService;
+import dev.keynest.policy.PasswordValidator;
 import dev.keynest.policy.PasswordPolicy;
-import dev.keynest.policy.PolicyOperation;
 import dev.keynest.policy.ValidationResult;
-import dev.keynest.policy.lifecycle.PasswordStandards;
 import dev.keynest.seal.KeynestSeal;
 import dev.keynest.seal.SealEnvelope;
 import org.springframework.http.HttpStatus;
@@ -26,7 +26,7 @@ import java.util.UUID;
 public class VaultService {
 
     private final VaultItemRepository items;
-    private final PasswordStandards passwordStandards;
+    private final AccountPasswordPolicyService accountPolicies;
     private final PasswordGenerator passwordGenerator;
     private final KeynestSeal seal;
     private final byte[] vaultKey;
@@ -34,13 +34,13 @@ public class VaultService {
 
     public VaultService(
             VaultItemRepository items,
-            PasswordStandards passwordStandards,
             PasswordGenerator passwordGenerator,
             KeynestSeal seal,
-            VaultKeyProperties vaultKeyProperties
+            VaultKeyProperties vaultKeyProperties,
+            AccountPasswordPolicyService accountPolicies
     ) {
         this.items = items;
-        this.passwordStandards = passwordStandards;
+        this.accountPolicies = accountPolicies;
         this.passwordGenerator = passwordGenerator;
         this.seal = seal;
         this.vaultKey = HexFormat.of().parseHex(vaultKeyProperties.getKeyHex());
@@ -71,9 +71,10 @@ public class VaultService {
         if (request.label() == null || request.label().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "label required");
         }
-        String policyId = blankToDefault(request.policyId(), PasswordPolicy.DEFAULT_POLICY_ID);
-        String password = resolvePassword(request, policyId);
-        assertValid(policyId, PolicyOperation.CREATE, password, request.username());
+        PasswordPolicy policy = currentPolicy(user, request.policyId());
+        String policyId = policy.id();
+        String password = resolvePassword(request, policy);
+        assertValid(policy, password, request.username());
 
         Instant now = Instant.now();
         Instant expiresAt = request.expiresInDays() == null
@@ -113,8 +114,9 @@ public class VaultService {
             item.setUsername(blankToNull(request.username()));
         }
         if (request.password() != null && !request.password().isBlank()) {
-            String policyId = blankToDefault(request.policyId(), item.getPolicyId());
-            assertValid(policyId, PolicyOperation.UPDATE, request.password(), item.getUsername());
+            PasswordPolicy policy = currentPolicy(user, request.policyId());
+            String policyId = policy.id();
+            assertValid(policy, request.password(), item.getUsername());
             item.setEnvelopeBytes(sealPassword(
                     request.password(), item.getUserId(), item.getId(), policyId
             ));
@@ -138,10 +140,21 @@ public class VaultService {
         items.delete(requireOwned(user, id));
     }
 
-    private String resolvePassword(CreateVaultItemRequest request, String policyId) {
+    private PasswordPolicy currentPolicy(UserAccount user, String requestedId) {
+        PasswordPolicy policy = accountPolicies.effective(user);
+        if (requestedId != null && !requestedId.isBlank() && !policy.id().equals(requestedId)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Password policy changed. Reload the form.");
+        }
+        return policy;
+    }
+
+    private String resolvePassword(CreateVaultItemRequest request, PasswordPolicy policy) {
         if (Boolean.TRUE.equals(request.generate())) {
-            PasswordPolicy policy = passwordStandards.runtimePolicy(policyId, PolicyOperation.GENERATE);
-            return passwordGenerator.generate(policy);
+            for (int attempt = 0; attempt < 100; attempt++) {
+                String candidate = passwordGenerator.generate(policy);
+                if (PasswordValidator.validate(candidate, policy, request.username()).valid()) return candidate;
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a different username or policy");
         }
         if (request.password() == null || request.password().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "password required unless generate=true");
@@ -149,13 +162,8 @@ public class VaultService {
         return request.password();
     }
 
-    private void assertValid(String policyId, PolicyOperation operation, String password, String username) {
-        ValidationResult result = switch (operation) {
-            case CREATE -> passwordStandards.validateForCreate(policyId, password, username);
-            case UPDATE -> passwordStandards.validateForUpdate(policyId, password, username);
-            case ROTATE -> passwordStandards.validateForRotate(policyId, password, username);
-            case GENERATE -> passwordStandards.validateForGenerateCheck(policyId, password);
-        };
+    private void assertValid(PasswordPolicy policy, String password, String username) {
+        ValidationResult result = PasswordValidator.validate(password, policy, username);
         if (!result.valid()) {
             throw new PolicyRejected(List.copyOf(result.violations()));
         }
@@ -222,10 +230,6 @@ public class VaultService {
 
     private static String blankToNull(String value) {
         return value == null || value.isBlank() ? null : value.trim();
-    }
-
-    private static String blankToDefault(String value, String defaultValue) {
-        return value == null || value.isBlank() ? defaultValue : value.trim();
     }
 
     public record CreateVaultItemRequest(

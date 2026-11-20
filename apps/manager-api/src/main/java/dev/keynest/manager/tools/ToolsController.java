@@ -2,13 +2,14 @@ package dev.keynest.manager.tools;
 
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.manager.api.ApiPaths;
+import dev.keynest.manager.auth.AuthService;
+import dev.keynest.manager.policy.AccountPasswordPolicyService;
+import dev.keynest.policy.PasswordValidator;
 import dev.keynest.manager.config.ToolsDemoProperties;
 import dev.keynest.manager.security.PasswordHashingService;
 import dev.keynest.policy.PasswordPolicy;
 import dev.keynest.policy.PolicyOperation;
 import dev.keynest.policy.ValidationResult;
-import dev.keynest.policy.lifecycle.PasswordStandards;
-import dev.keynest.policy.schema.PasswordPolicyDocument;
 import dev.keynest.seal.KeynestSeal;
 import dev.keynest.seal.SealEnvelope;
 import jakarta.validation.constraints.NotBlank;
@@ -20,13 +21,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HexFormat;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -45,8 +46,9 @@ public class ToolsController {
     "\\$argon2id\\$(?:v=(?:16|19)\\$)?m=([1-9][0-9]{0,4}),t=([1-9][0-9]?),p=([1-9][0-9]?)"
       + "\\$[A-Za-z0-9+/]{11,86}\\$[A-Za-z0-9+/]{6,86}");
   
+  private final AuthService auth;
+  private final AccountPasswordPolicyService accountPolicies;
   private final PasswordPolicy defaultPolicy;
-  private final PasswordStandards passwordStandards;
   private final PasswordGenerator generator;
   private final KeynestSeal seal;
   private final PasswordHashingService passwords;
@@ -55,14 +57,16 @@ public class ToolsController {
   
   public ToolsController(
     PasswordPolicy defaultPolicy,
-    PasswordStandards passwordStandards,
     PasswordGenerator generator,
     KeynestSeal seal,
     PasswordHashingService passwords,
-    ToolsDemoProperties demoProperties
+    ToolsDemoProperties demoProperties,
+    AuthService auth,
+    AccountPasswordPolicyService accountPolicies
   ) {
+    this.auth = auth;
+    this.accountPolicies = accountPolicies;
     this.defaultPolicy = defaultPolicy;
-    this.passwordStandards = passwordStandards;
     this.generator = generator;
     this.seal = seal;
     this.passwords = passwords;
@@ -82,70 +86,47 @@ public class ToolsController {
   
   @GetMapping("/policy")
   public Map<String, Object> policy(
-    @RequestParam(name = "policyId", defaultValue = PasswordPolicy.DEFAULT_POLICY_ID) String policyId
+    @RequestParam(name = "policyId", required = false) String policyId,
+    @RequestHeader(value = "Authorization", required = false) String bearer
   ) {
-    PasswordPolicyDocument document = passwordStandards.registry().require(policyId);
-    Map<String, Object> rules = new LinkedHashMap<>();
-    PasswordPolicy runtime = document.toRuntimePolicy();
-    rules.put("minLength", runtime.minLength());
-    rules.put("maxLength", runtime.maxLength());
-    rules.put("requireUpper", runtime.requireUpper());
-    rules.put("requireLower", runtime.requireLower());
-    rules.put("requireDigit", runtime.requireDigit());
-    rules.put("requireSymbol", runtime.requireSymbol());
-    rules.put("minCategories", runtime.minCategories());
-    rules.put("excludeAmbiguous", runtime.excludeAmbiguous());
-    rules.put("forbidWhitespace", runtime.forbidWhitespace());
-    rules.put("forbidUsernameSubstring", runtime.forbidUsernameSubstring());
-    rules.put("maxAgeDays", runtime.maxAgeDays());
-    rules.put("bannedSubstrings", runtime.bannedSubstrings());
-    
-    Map<String, Object> body = new LinkedHashMap<>();
-    body.put("id", document.id());
-    body.put("version", document.version());
-    body.put("description", document.description());
-    body.put("appliesTo", document.appliesTo());
-    body.put("rules", rules);
-    return body;
+    PasswordPolicy policy = effectivePolicy(bearer, policyId);
+    var view = accountPolicies.view(policy);
+    return Map.of("id", view.id(), "version", 1, "description", "Selected password policy",
+      "appliesTo", java.util.List.of("generate", "create", "update", "rotate"), "rules", view.rules());
   }
-  
+
   @PostMapping("/validate")
   public Map<String, Object> validate(
     @RequestBody ValidateRequest request,
-    @RequestParam(name = "operation", defaultValue = "update") String operation
+    @RequestParam(name = "operation", defaultValue = "update") String operation,
+    @RequestHeader(value = "Authorization", required = false) String bearer
   ) {
     PolicyOperation op = PolicyOperation.fromWire(operation);
-    String policyId = request.policyId() == null || request.policyId().isBlank()
-    ? PasswordPolicy.DEFAULT_POLICY_ID
-    : request.policyId();
-    ValidationResult result = switch (op) {
-      case CREATE -> passwordStandards.validateForCreate(policyId, request.password(), request.usernameOrEmail());
-      case UPDATE -> passwordStandards.validateForUpdate(policyId, request.password(), request.usernameOrEmail());
-      case ROTATE -> passwordStandards.validateForRotate(policyId, request.password(), request.usernameOrEmail());
-      case GENERATE -> passwordStandards.validateForGenerateCheck(policyId, request.password());
-    };
-    return Map.of(
-      "valid", result.valid(),
-      "violations", result.violations(),
-      "policyId", policyId,
-      "operation", op.wireValue()
-    );
+    PasswordPolicy policy = effectivePolicy(bearer, request.policyId());
+    ValidationResult result = PasswordValidator.validate(request.password(), policy, request.usernameOrEmail());
+    return Map.of("valid", result.valid(), "violations", result.violations(),
+      "policyId", policy.id(), "operation", op.wireValue());
   }
-  
+
   @PostMapping("/generate")
   public Map<String, Object> generate(
-    @RequestParam(name = "policyId", defaultValue = PasswordPolicy.DEFAULT_POLICY_ID) String policyId
+    @RequestParam(name = "policyId", required = false) String policyId,
+    @RequestHeader(value = "Authorization", required = false) String bearer
   ) {
-    PasswordPolicy policy = passwordStandards.runtimePolicy(policyId, PolicyOperation.GENERATE);
+    PasswordPolicy policy = effectivePolicy(bearer, policyId);
     String password = generator.generate(policy);
-    ValidationResult result = passwordStandards.validateForGenerateCheck(policyId, password);
-    return Map.of(
-      "password", password,
-      "valid", result.valid(),
-      "policyId", policyId
-    );
+    return Map.of("password", password, "valid", PasswordValidator.validate(password, policy).valid(),
+      "policyId", policy.id());
   }
-  
+
+  private PasswordPolicy effectivePolicy(String bearer, String requestedId) {
+    PasswordPolicy policy = accountPolicies.effective(bearer == null ? null : auth.requireUser(bearer));
+    if (requestedId != null && !requestedId.isBlank() && !policy.id().equals(requestedId)) {
+      throw new ResponseStatusException(HttpStatus.CONFLICT, "Password policy changed. Reload the form.");
+    }
+    return policy;
+  }
+
   @PostMapping("/seal")
   public Map<String, Object> seal(@RequestBody SealRequest request) {
     requireDemoEnabled();
