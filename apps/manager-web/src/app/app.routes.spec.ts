@@ -10,6 +10,9 @@ import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { API_BASE_URL } from './injectionTokens';
 
+const emptyVaultPage = { asOf: '2026-11-21T12:00:00Z', items: [], totalMatches: 0, page: 0, size: 10, totalPages: 0,
+  counts: { total: 0, expired: 0, soon: 0, upcoming: 0, later: 0, unset: 0 } };
+
 describe('Manager entry routes', () => {
   beforeEach(() => {
     sessionStorage.removeItem('keynest.token');
@@ -123,7 +126,7 @@ describe('Manager entry routes', () => {
     expect(TestBed.inject(Router).url).toBe('/vault');
     expect(TestBed.inject(MatDialog).openDialogs.length).toBe(0);
     expect(JSON.stringify(history.state)).not.toContain('test-session');expect(JSON.stringify(history.state)).not.toContain('Legacy password');
-    http.expectOne('/api/v1/vault/items').flush([]);
+    http.expectOne('/api/v1/vault/items/search').flush(emptyVaultPage);
   });
 
   it('redirects the legacy explanation page and resumes through Account settings', async () => {
@@ -164,8 +167,22 @@ describe('Manager entry routes', () => {
     TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
     await RouterTestingHarness.create('/');
     expect(TestBed.inject(Router).url).toBe('/vault');
-    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/vault/items');
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/vault/items/search');
     expect(request.request.headers.get('Authorization')).toBe('Bearer test-session');
-    request.flush([]);
+    request.flush(emptyVaultPage);
+  });
+
+  it('opens an authorized selected item in the requested expiry scope without fetching the whole Vault', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
+    const id = '00000000-0000-0000-0000-000000000001';
+    const harness = await RouterTestingHarness.create('/vault?expiry=upcoming&item=' + id);
+    const http = TestBed.inject(HttpTestingController);
+    const request = http.expectOne('/api/v1/vault/items/search');
+    expect(request.request.body.expiry).toBe('upcoming');expect(request.request.body.itemId).toBe(id);
+    request.flush({ ...emptyVaultPage, items: [{ id, label: 'Selected item', policyId: 'keynest.default.v1', expiresAt: '2026-12-11T12:00:00Z' }], totalMatches: 1, totalPages: 1, counts: { total: 1, expired: 0, soon: 0, upcoming: 1, later: 0, unset: 0 } });
+    harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('mat-expansion-panel-header')?.getAttribute('aria-expanded')).toBe('true');
+    expect(harness.routeNativeElement?.textContent).toContain('Showing a selected item');
+    http.expectNone('/api/v1/vault/items');http.expectNone(request => request.url.endsWith('/reveal'));
   });
 });

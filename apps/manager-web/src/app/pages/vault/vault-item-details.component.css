@@ -1,0 +1,74 @@
+.item-metadata {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(0, 3fr);
+  gap: 0.75rem 1rem;
+  margin-block: 1rem;
+  font-size: 0.9375rem;
+}
+
+.item-metadata dt {
+  color: var(--kn-color-muted);
+}
+
+.item-metadata dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.vault-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-block: 1rem 0.25rem;
+}
+
+.vault-actions > * {
+  min-block-size: 2.75rem;
+}
+
+.vault-actions .delete-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  color: var(--kn-color-danger);
+  border-color: var(--kn-color-danger);
+  margin-block-start: 0.5rem;
+}
+
+.concealed-note, .conceal-countdown {
+  color: var(--kn-color-muted);
+  font-size: 0.875rem;
+  margin-block: 1rem;
+}
+
+.secret {
+  display: block;
+  margin-block: 1rem;
+  padding: 0.85rem;
+  font-family: var(--kn-font-mono);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  color: var(--kn-color-mono-ink);
+  background: var(--kn-color-surface);
+  border: 1px solid var(--kn-color-outline);
+}
+
+:where(button, a):focus-visible {
+  outline: 2px solid var(--kn-color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  .vault-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .vault-actions .delete-button {
+    justify-self: stretch;
+  }
+  .item-metadata {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .item-metadata dd {
+    margin-block-end: 0.75rem;
+  }
+}

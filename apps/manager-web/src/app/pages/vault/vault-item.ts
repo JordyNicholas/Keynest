@@ -7,4 +7,6 @@ export type VaultItem = {
   expiresAt?: string;
   lastRotatedAt?: string;
   notifyBeforeDays?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
