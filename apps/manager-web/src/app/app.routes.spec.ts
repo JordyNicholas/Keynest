@@ -25,8 +25,20 @@ describe('Manager entry routes', () => {
     TestBed.inject(AuthService).clearSession();
   });
 
-  it('opens the public generator and fetches only the default rule document on entry', async () => {
+  it('opens public product information without making any API request', async () => {
     const harness = await RouterTestingHarness.create('/');
+    expect(TestBed.inject(Router).url).toBe('/');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Your passwords.');
+    expect(harness.routeNativeElement?.textContent).toContain('Design preview with synthetic data');
+    expect(harness.routeNativeElement?.querySelector('form')).toBeNull();
+    TestBed.inject(HttpTestingController).expectNone(() => true);
+  });
+
+  it('keeps anonymous generation on its dedicated route and fetches only the rules', async () => {
+    const harness = await RouterTestingHarness.create('/');
+    const generator = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/tools/generate"]')!;
+    expect(generator.textContent).toContain('Try the generator');
+    await harness.navigateByUrl(generator.getAttribute('href')!);
     expect(TestBed.inject(Router).url).toBe('/tools/generate');
     expect(harness.routeNativeElement?.textContent).toContain('Sign in to Manager');
     const http = TestBed.inject(HttpTestingController);
@@ -34,6 +46,24 @@ describe('Manager entry routes', () => {
     expect(policy.request.headers.has('Authorization')).toBeFalse();
     policy.flush({ id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } });
     http.expectNone('/api/v1/tools/generate');
+  });
+
+  it('keeps public section destinations and account entry reachable without account data', async () => {
+    const harness = await RouterTestingHarness.create('/#security');
+    const host = harness.routeNativeElement!;
+    for (const section of ['how', 'security', 'documentation']) {
+      const link = host.querySelector<HTMLAnchorElement>(`nav a[href="/#${section}"]`)!;
+      expect(link).not.toBeNull();
+      expect(host.querySelector('#' + section)).not.toBeNull();
+      await harness.navigateByUrl(link.getAttribute('href')!);
+      expect(TestBed.inject(Router).url).toBe('/#' + section);
+    }
+    const entries = [...host.querySelectorAll<HTMLAnchorElement>('a[href="/account"]')];
+    expect(entries.map((link) => link.textContent?.trim())).toEqual(['Sign in', 'Start your vault']);
+    await harness.navigateByUrl(entries[0].getAttribute('href')!);
+    expect(TestBed.inject(Router).url).toBe('/account');
+    expect(harness.routeNativeElement?.querySelector('input[type=password]')).not.toBeNull();
+    TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
   it('redirects the legacy explanation page and resumes through Account settings', async () => {
