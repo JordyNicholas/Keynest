@@ -67,20 +67,21 @@ Proposed signed-in navigation: Overview, Vault, Password tools, Account. Desktop
 
 ## 4. Public homepage specification
 
-1. **Identity and entry:** wordmark, how it works, security, documentation, sign-in. At narrow widths, keep sign-in visible and avoid a dense header. Production must retain access to the secondary destinations through a keyboard-accessible compact menu or equivalent visible links.
+1. **Identity and entry:** wordmark, how it works, security, documentation, sign-in. At narrow widths, keep sign-in visible and avoid a dense header. The primary create-account action opens the proposed signup dialog; sign-in uses the same dialog shell in its own mode. Production must retain access to the secondary destinations through a keyboard-accessible compact menu or equivalent visible links.
 2. **Hero:** candidate heading “Your passwords. Your rules. Your Keynest.” Supporting sentence names generation, storage, management and self-hosting. Primary “Start your vault” opens account entry; secondary “Try the generator” opens its dedicated route. Existing users can sign in directly.
 3. **Preview:** synthetic account overview illustrates what users will find. Label examples as samples. A screenshot or decorative image must not hide the explanation or primary action on mobile.
 4. **Product principles:** open-source license, self-hosting, account rules and AI-optional operation. These are product properties, not a claim of market uniqueness.
 5. **How it works:** choose rules; generate or enter and save; review expiry and rotate through dedicated workflows. Do not imply automatic external password changes.
 6. **Security boundaries:** encrypted password values, server-side decryption, current plaintext metadata, operator key/backup responsibilities. Link the threat model. Public copy remains understandable without dumping implementation configuration into onboarding.
 7. **FAQ:** account requirements, generator policy fetch, guided rotation and audit status. Optional AI is specifically built-in-policy explanation, not a general AI password manager.
-8. **Footer:** source, documentation, license and private security reporting. Do not add unsupported commercial comparisons or pretend Keynest runs a managed production service.
+8. **Documentation introduction:** a compact in-page section links to actual setup, library example and recovery documentation. Header How it works, Security and Documentation anchors scroll smoothly, with reduced motion disabling the animation. Outbound documentation links navigate normally.
+9. **Footer:** source, documentation, license and private security reporting. Do not add unsupported commercial comparisons or pretend Keynest runs a managed production service.
 
 ## 5. Account overview and metric definitions
 
 ### First screen
 
-Three proposed summary cards: total items, items needing attention, and next future expiry. Attention comes before secondary charts. Card activation opens an explicit Vault filter; the next-expiry card should ultimately open the particular item, with its accessible name identifying that item. The current prototype illustrates the soon-expiring group as a destination, which is a documented approximation to refine.
+Three proposed summary cards: total items, items needing attention, and next future expiry. Attention comes before secondary charts. Card activation opens an explicit Vault filter; the next-expiry card should ultimately open the particular item, with its accessible name identifying that item. The prototype now opens and expands the particular next-expiry item in the paginated Vault view.
 
 Below: an actionable expiry list, an expiry distribution, a current-policy card, and recent item changes. On mobile the attention list precedes the distribution. The layout should remain useful when a category is empty or every item has no expiry.
 
@@ -167,3 +168,46 @@ Acceptance requires reviewed visual states and meaningful navigation, accurate m
 Local JavaScript syntax and documentation/asset links were checked. A DOM-level check exercised public/account navigation round trips, attention and all five expiry filters (2/3/5/12/2 sample items), state selection, modal controls, the phone-width toggle and unique element IDs, without execution errors. This is logic verification, not pixel rendering, native dialog focus verification, a browser accessibility audit or a human Edge walkthrough.
 
 The cloud browser could not open the workspace preview; no completed browser visual review is claimed. Use the standalone HTML for visual review in Edge at desktop, phone and increased text sizes before approving production implementation. No cloud-browser restriction was bypassed to inspect it.
+
+## 10. Vault browsing and signup-dialog refinement
+
+The maintainer requested page sizes of **10, 25, 30 and 50**, accordion-like Vault items with their actions, user-entered search alongside the existing filters, smooth public-section navigation, and exploration of signup in a dialog. These refinements are demonstrated in the prototype. Default page size 10, the exact search fields, sorting and the direct-entry approach below are proposals for review.
+
+### Bounded Vault browsing
+
+- Use 10 items initially. Offer only 10/25/30/50, with 50 as the maximum. Show the visible range and matching total, plus first/previous/next/last controls. Do not offer an unbounded “All”. The prototype has 24 synthetic items, so sizes 25/30/50 intentionally fit on one page.
+- Search label, website/URL or username, optionally across all three. Match a literal, trimmed, case-insensitive substring. A domain such as `service-3.example.test` is a useful website query. Never search password values, envelopes, provider keys, generation keywords or secret fingerprints. “No matching items” is distinct from an empty account or a failed request.
+- Combine search and the selected expiry filter with **AND**. Keep the selected scope visible. Clear search leaves the expiry filter intact. Changes to query, field, sort, filter or page size reset to the first page and close any expanded item. An overview card explicitly selecting a group clears an old search so its destination matches the card's meaning.
+- Default to label A–Z, with earliest expiry as an alternative. Production must use a stable tie-breaker such as item ID. For expiry sorting, missing expiry comes after dated items. Maintain the same bucket boundaries as the overview; the visible page and totals must come from one authorized result scope.
+- Production must query a **bounded page on the server**, rather than download the whole Vault and hide extra rows in the browser. This is a future API contract, not implemented by the local prototype. Bound page size and query length, escape literal wildcard characters, parameterize database queries and count only the authenticated owner's matching items. Review the endpoint separately while preserving existing public contracts.
+- Prefer carrying the search term in a bounded request body rather than adding sensitive account metadata to navigation URLs. Keep search out of diagnostics, analytics and AI prompts. Use no-store and prevent late responses from replacing newer search results. Reconcile the current page after deletion or concurrent updates; do not show an impossible empty last page while earlier matches remain.
+
+### Expandable item contract
+
+Use Angular Material's expansion-panel/accordion equivalent for the production Angular application; the request describes an interaction pattern and does not introduce React/MUI into the stack. The framework-free prototype uses native buttons with explicit expanded state, panel association and named content regions.
+
+The collapsed header shows label, website domain and expiry status. Expanding shows website, username, expiry and an explicit concealed-password state, followed by Reveal password, Edit details, Rotate password and Delete item. Actions belong inside the expanded panel; avoid nested action buttons in its header. Open one item at a time by default so phone browsing remains compact. Keyboard activation must work without a pointer, and hidden panel controls must leave the tab sequence.
+
+Expansion is a metadata action: it never reveals a password. In production, collapse, page/search/filter changes, navigation, logout and session changes must conceal any open secret, clear timers and discard stale reveal responses. Reveal remains an explicit authorized, no-store request with bounded display. Delete requires its existing confirmation; edit and rotation retain their dedicated workflows. The prototype's action dialogs explain these destinations and contain no real secrets or destructive operations.
+
+### Public navigation motion
+
+How it works, Security and Documentation point to sections on the public homepage. Use smooth in-page scrolling with an appropriate anchor offset, and immediate scrolling when reduced motion is requested. Avoid parallax or an artificial delay on external links. Documentation now introduces the actual guides before linking out, so the header link has a real in-page destination.
+
+### Signup as a dialog
+
+Yes: the proposed primary signup entry is a dialog over the public page, preserving the visitor's context and the established visual language. Account settings still has its own authenticated destination. Do not duplicate registration business logic across two forms.
+
+- Show email, master password, the 15-character **new-account** requirement, an explicit create-account action and a switch to sign-in. Existing account sign-in retains its current compatibility rules; do not impose the registration minimum on legacy sign-in.
+- Make the dialog scrollable and close to the available viewport on phones, with safe keyboard space. Provide a visible close button, Escape handling, focus containment and focus return. Announce errors within the dialog, and keep persistent field requirements available even when a temporary notification disappears.
+- A direct registration entry should be able to open the **same** dialog or an equivalent full-page fallback, so bookmarks, refresh, browser history and deep links remain usable. This supports the dialog-first experience without requiring a separate-looking primary signup page. The prototype demonstrates `#signup` and `#signin` entry for its local file; production route semantics remain a review decision.
+- On cancel/close, clear credential input and local validation state. A cancelled client request must not show stale success after navigation; server-side completion cannot be assumed undone merely because the client stopped waiting. Preserve pending/error/retry behavior and existing generic authentication responses.
+- Successful creation goes to an empty-account first step. Sign-in goes to the originally requested authorized destination, or the overview when no destination was requested. Preserve a real fallback if a modal cannot be used. Never collect credentials in marketing analytics or prototype instrumentation.
+
+**Prototype safety:** the email/password examples are disabled; no real credentials are accepted or sent. “Preview created account” and “Preview sign in” simulate different UI states. The existing production authentication and routing are unchanged.
+
+### Sources and validation
+
+The [Angular Material accordion guidance](https://github.com/angular/components/blob/main/src/material/expansion/expansion.md) provides the matching component pattern. The [WAI modal-dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) describes focus placement/containment, Escape and return behavior. These are implementation references, not a claim that this prototype has passed an accessibility audit.
+
+A local DOM-level interaction check passed for page ranges and last-page boundaries, all four sizes, literal label/URL/username queries, combined filters, clearing and zero results, sorting, single expansion, explicit actions, next-expiry item targeting, signup/sign-in modes and cancellation, hash entry, view states and unique IDs. Syntax and local documentation links were checked. Native dialog/focus behavior, smooth-scroll perception, layout and browser password-manager behavior still require an Edge walkthrough. The earlier cloud-browser preview restriction was not retried or bypassed.
