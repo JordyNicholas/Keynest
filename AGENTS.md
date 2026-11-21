@@ -38,3 +38,9 @@ These instructions apply to the repository. Read them before planning, editing, 
 - Run relevant unit, integration, browser, PostgreSQL, and build checks when possible. If tools are unavailable, say so and do not imply success.
 - Never write directly to `main`, force-update another agent's branch, bypass branch protection, or merge security-sensitive changes without the maintainer's **explicit approval of that reviewed change**. Feature changes also require maintainer approval in chat. Documentation-only PRs can merge after CI passes.
 - If instructions conflict, raise a specific decision in an issue or ADR; do not silently choose an interpretation.
+
+## Scoped maintainer authorization — November 21, 2026
+
+The maintainer explicitly approved implementing and merging **all changes shown in the reviewed home/overview/Vault design previews**, with a separate PR for each focused slice and passing CI. This includes the public homepage, shared dialog-first account entry with safe deep-link return, the owner-scoped metadata overview, and bounded/filterable/searchable Vault browsing with expandable actions and reduced-motion support. See [the approved design and rollout](docs/design/home-overview/DESIGN.md) and #199. Do not request the same approval again for these scoped changes.
+
+This authorization does not waive tests, security boundaries, separate PRs, the human release walkthrough or release gates. New scope still requires chat approval. Unresolved durable history, generation counters/provenance, opt-in defaults, retention and clearing contracts are not approved by inference. Changes to cryptographic custody, session transport or other architecture beyond the reviewed design retain their existing explicit-review requirements.

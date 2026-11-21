@@ -1,0 +1,21 @@
+<kn-inline-error [(message)]="error" />
+<form (ngSubmit)="submit()" [attr.aria-busy]="pending()">
+  <label for="auth-email">Email</label>
+  <input id="auth-email" type="email" name="email" autocomplete="username" required
+         [disabled]="pending()" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+  <label for="auth-password">Master password</label>
+  <input id="auth-password" type="password" name="password" required
+         [attr.autocomplete]="mode() === 'signup' ? 'new-password' : 'current-password'"
+         [attr.aria-describedby]="mode() === 'signup' ? 'master-password-requirement' : null"
+         [disabled]="pending()" [ngModel]="password()" (ngModelChange)="password.set($event)" />
+  @if (mode() === 'signup') {
+    <p id="master-password-requirement">Your master password needs at least {{ minimumMasterPasswordLength }} characters. It signs you in to this Keynest instance.</p>
+  }
+  @if (pending()) {
+    <p role="status">{{ mode() === 'signup' ? 'Creating your account…' : 'Signing in…' }}</p>
+  }
+  <div class="auth-actions">
+    <button mat-flat-button type="submit" [disabled]="pending()">{{ mode() === 'signup' ? 'Create account' : 'Sign in' }}</button>
+    <button mat-stroked-button type="button" (click)="switchMode()" [disabled]="pending()">{{ mode() === 'signup' ? 'Sign in instead' : 'Create an account' }}</button>
+  </div>
+</form>

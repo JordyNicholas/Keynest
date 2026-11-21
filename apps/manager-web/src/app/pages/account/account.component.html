@@ -1,4 +1,4 @@
-<h1 class="page-title">{{ auth.signedIn() ? 'Account settings' : 'Sign in to Manager' }}</h1>
+<h1 class="page-title">{{ auth.signedIn() ? 'Account settings' : authMode() === 'signup' ? 'Create your account' : 'Sign in to Manager' }}</h1>
 <kn-inline-error [(message)]="error" />
 
 @if (auth.signedIn()) {
@@ -36,21 +36,7 @@
   </section>
 } @else {
   <p class="page-lede">Sign in or create an account to use your vault.</p>
-  <form class="panel" (ngSubmit)="login()">
-    <label>
-      Email
-      <input type="email" name="email" autocomplete="username" [ngModel]="formEmail()" (ngModelChange)="formEmail.set($event)" />
-    </label>
-    <label>
-      Master password
-      <input type="password" name="password" autocomplete="current-password" aria-describedby="master-password-requirement" [ngModel]="formPassword()" (ngModelChange)="formPassword.set($event)" />
-    </label>
-    <p id="master-password-requirement">New accounts require at least {{ minimumMasterPasswordLength }} characters.</p>
-    <div class="row">
-      <button mat-flat-button type="submit">Sign in</button>
-      <button mat-stroked-button type="button" (click)="register()">Create account</button>
-    </div>
-  </form>
+  <kn-auth-form [mode]="authMode()" (modeChange)="changeAuthMode($event)" (authenticated)="onAuth()" />
 }
 
 <section class="panel" aria-labelledby="diagnostics-heading">

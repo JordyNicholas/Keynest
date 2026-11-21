@@ -5,5 +5,5 @@
     <a routerLink="/" fragment="security">Security</a>
     <a routerLink="/" fragment="documentation">Documentation</a>
   </nav>
-  <a mat-stroked-button routerLink="/account">Sign in</a>
+  <a mat-stroked-button routerLink="/" [queryParams]="{ auth: 'signin' }">Sign in</a>
 </header>
