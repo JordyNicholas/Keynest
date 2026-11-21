@@ -5,6 +5,7 @@ import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthDialogComponent } from './auth/auth-dialog.component';
+import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { API_BASE_URL } from './injectionTokens';
@@ -67,7 +68,7 @@ describe('Manager entry routes', () => {
     await harness.fixture.whenStable();
     const dialog = TestBed.inject(MatDialog).openDialogs[0];
     expect(dialog.componentInstance.mode()).toBe('signin');
-    dialog.close();await harness.fixture.whenStable();
+    const closed = firstValueFrom(dialog.afterClosed());dialog.close();await closed;await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/');
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
@@ -81,8 +82,9 @@ describe('Manager entry routes', () => {
     const form = component.form()!;
     form.email.set('sample@example.test');form.password.set('Sample master password');form.submit();
     const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/register');
+    const closed = firstValueFrom(dialog.afterClosed());
     dialog.close();expect(request.cancelled).toBeTrue();expect(form.password()).toBe('');
-    await harness.fixture.whenStable();expect(TestBed.inject(AuthService).signedIn()).toBeFalse();
+    await closed;await harness.fixture.whenStable();expect(TestBed.inject(AuthService).signedIn()).toBeFalse();
     expect(TestBed.inject(Router).url).toBe('/');
   });
 
@@ -101,7 +103,7 @@ describe('Manager entry routes', () => {
     http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
     await harness.fixture.whenStable();
     expect(router.url).toBe('/vault/new');
-    http.expectOne('/api/v1/tools/policy').flush({ id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } });
+    http.expectNone('/api/v1/tools/policy');
   });
 
   it('switches dialog modes without retaining the password and signs in without putting credentials in navigation', async () => {
@@ -115,8 +117,9 @@ describe('Manager entry routes', () => {
     expect(TestBed.inject(Router).url).toBe('/?auth=signin&returnTo=%2Fvault');
     form.email.set('sample@example.test');form.password.set('Legacy password');form.submit();
     const http = TestBed.inject(HttpTestingController);
+    const closed = firstValueFrom(dialog.afterClosed());
     http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
-    await harness.fixture.whenStable();
+    await closed;await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/vault');
     expect(TestBed.inject(MatDialog).openDialogs.length).toBe(0);
     expect(JSON.stringify(history.state)).not.toContain('test-session');expect(JSON.stringify(history.state)).not.toContain('Legacy password');

@@ -35,9 +35,9 @@ describe('Shared account-entry form', () => {
     expect(form.error()).toBe('The email address or master password is incorrect.');
   });
 
-  it('submits once, announces pending state, then establishes a session and clears the password', () => {
+  it('submits once, announces pending state, then establishes a session and clears the password', async () => {
     const { form, fixture, http, auth } = setup('signup');const complete = jasmine.createSpy('authenticated');form.authenticated.subscribe(complete);
-    form.submit();form.submit();fixture.detectChanges();
+    form.submit();form.submit();fixture.detectChanges();await fixture.whenStable();fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('form').getAttribute('aria-busy')).toBe('true');
     expect(fixture.nativeElement.querySelector('input').disabled).toBeTrue();
     const request = http.expectOne('/api/v1/auth/register');
