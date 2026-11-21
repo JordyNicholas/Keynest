@@ -119,7 +119,7 @@ describe('Manager entry routes', () => {
     const http = TestBed.inject(HttpTestingController);
     const closed = firstValueFrom(dialog.afterClosed());
     http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
-    await closed;await harness.fixture.whenStable();
+    await closed;await harness.fixture.whenStable();harness.detectChanges();await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/vault');
     expect(TestBed.inject(MatDialog).openDialogs.length).toBe(0);
     expect(JSON.stringify(history.state)).not.toContain('test-session');expect(JSON.stringify(history.state)).not.toContain('Legacy password');
