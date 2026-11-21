@@ -1,0 +1,16 @@
+@let data = overview();
+<div class="summary-grid" aria-label="Vault summary">
+  <a class="metric" routerLink="/vault" [attr.aria-label]="'View all ' + data.counts.total + ' Vault items'">
+    <span class="metric-label">Vault items</span><span class="metric-note">All items currently stored</span><span class="metric-value"><strong>{{ data.counts.total.toLocaleString() }}</strong></span>
+  </a>
+  <a class="metric attention" routerLink="/vault" [queryParams]="{ expiry: 'attention' }" [attr.aria-label]="'View ' + (data.counts.expired + data.counts.soon) + ' items needing attention, including ' + data.counts.expired + ' expired'">
+    <span class="metric-label">Need attention</span><span class="metric-note">Expired or less than 14 days left</span><span class="metric-value"><strong>{{ (data.counts.expired + data.counts.soon).toLocaleString() }}</strong>@if (data.counts.expired) { <span class="expired-badge">{{ data.counts.expired.toLocaleString() }} expired</span> }</span>
+  </a>
+  @if (data.nextExpiry; as next) {
+    <a class="metric" routerLink="/vault" [queryParams]="{ item: next.id }" [attr.aria-label]="'Open next-expiring item: ' + next.label">
+      <span class="metric-label">Next expiry</span><span class="metric-note">{{ next.label }}</span><span class="metric-value"><strong>{{ nextDays().value }}</strong><span class="metric-unit">{{ nextDays().unit }} left</span></span>
+    </a>
+  } @else {
+    <div class="metric"><span class="metric-label">Next expiry</span><span class="metric-note">No upcoming expiry</span><span class="metric-value"><strong aria-hidden="true">—</strong></span></div>
+  }
+</div>

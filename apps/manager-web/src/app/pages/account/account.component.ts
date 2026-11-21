@@ -11,6 +11,7 @@ import { PasswordPolicySettingsComponent } from './password-policy-settings.comp
 
 import { AuthFormComponent, AuthMode } from '../../auth/auth-form.component';
 import { authReturnUrl } from '../../auth/auth-return-url';
+import { logoutSession } from '../../auth/logout-session';
 
 @Component({
   selector: 'kn-account-page',
@@ -29,6 +30,7 @@ export class AccountPageComponent {
   readonly authMode = signal<AuthMode>('signin');
   readonly policyOpen = signal(false);
   readonly error = signal('');
+  readonly loggingOut = signal(false);
   readonly aiSetupRequested = this.route.snapshot.queryParamMap.get('ai') === 'policy-explanation';
   readonly aiSetupOpen = signal(this.aiSetupRequested);
 
@@ -57,7 +59,9 @@ export class AccountPageComponent {
   }
 
   onAuth(): void {
-    void this.router.navigateByUrl(authReturnUrl(this.router, this.route.snapshot.queryParamMap.get('returnTo')));
+    const requested = this.route.snapshot.queryParamMap.get('returnTo');
+    const aiSetup = this.aiSetupRequested ? '/account?ai=policy-explanation#ai-settings' : null;
+    void this.router.navigateByUrl(authReturnUrl(this.router, requested ?? aiSetup), { onSameUrlNavigation: 'reload' });
   }
 
   changeAuthMode(mode: AuthMode): void {
@@ -66,15 +70,14 @@ export class AccountPageComponent {
   }
 
   logout(): void {
-    this.http.post(`${this.apiBaseUrl}/auth/logout`, {}, { headers: this.auth.authHeaders() }).subscribe({
-      next: () => this.clearAuth(),
-      error: () => this.clearAuth(),
+    if (this.loggingOut()) return;
+    this.loggingOut.set(true);
+    logoutSession(this.http, this.apiBaseUrl, this.auth).subscribe(() => {
+      if (this.destroyRef.destroyed) return;
+      this.loggingOut.set(false);
+      if (!this.auth.signedIn()) {
+        this.aiSetupOpen.set(false);this.error.set('');void this.router.navigateByUrl('/');
+      }
     });
-  }
-
-  private clearAuth(): void {
-    this.aiSetupOpen.set(false);
-    this.auth.clearSession();
-    this.error.set('');
   }
 }

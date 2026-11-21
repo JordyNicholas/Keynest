@@ -1,63 +1,62 @@
 :host {
   display: block;
-  min-height: 100vh;
+  min-block-size: 100vh;
 }
 
 .shell {
-  max-width: 52rem;
-  margin: 0 auto;
-  padding: clamp(1.5rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem) 4rem;
+  max-inline-size: 54rem;
+  margin-inline: auto;
+  padding: 2rem 1.5rem 4rem;
 }
 
-.brand {
-  margin-bottom: 0;
+.navigation {
+  min-inline-size: 0;
 }
 
 .mark {
-  margin: 0;
-  font-family: var(--kn-font-display);
-  font-size: clamp(2.5rem, 8vw, 3.75rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  font: 600 2.25rem/1 var(--kn-font-display);
+  letter-spacing: -0.04em;
   color: var(--kn-color-ink);
   text-decoration: none;
 }
 
+.mark span {
+  color: var(--kn-color-accent);
+}
+
 .product {
-  margin: 0.35rem 0 0;
-  font-family: var(--kn-font-body);
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0.18em;
+  margin-block: 0.75rem 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--kn-color-label);
+  color: var(--kn-color-subtle);
 }
 
 .nav {
   display: flex;
   overflow-x: auto;
   gap: 0.5rem;
-  margin: 1.75rem 0 0;
+  margin-block-start: 1.75rem;
   padding: 4px 4px 0.75rem;
-  border-bottom: 1px solid var(--kn-color-outline);
+  border-block-end: 1px solid var(--kn-color-outline);
 }
 
 .nav a {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  min-block-size: 44px;
+  min-block-size: 2.75rem;
   white-space: nowrap;
-  font-family: var(--kn-font-body);
   color: var(--kn-color-muted);
   text-decoration: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   padding: 0.65rem 0.75rem;
+  font-size: 0.9375rem;
 }
 
 .nav a:hover {
-  color: var(--kn-color-accent);
+  color: var(--kn-color-ink);
   background: var(--kn-color-surface-raised);
 }
 
@@ -68,28 +67,141 @@
 }
 
 .main {
-  margin-top: 1.5rem;
+  min-inline-size: 0;
+  margin-block-start: 1.5rem;
 }
 
-.nav a:focus-visible,
-.mark:focus-visible {
+.main:focus-visible {
   outline: 2px solid var(--kn-color-accent);
-  outline-offset: 2px;
+  outline-offset: -2px;
+}
+
+.shell.authenticated {
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  padding: 0;
+  max-inline-size: 100rem;
+  min-block-size: 100vh;
+}
+
+.authenticated .navigation {
+  position: sticky;
+  inset-block-start: 0;
+  align-self: start;
+  block-size: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.25rem;
+  border-inline-end: 1px solid var(--kn-color-outline);
+}
+
+.authenticated .nav {
+  flex-direction: column;
+  overflow-x: visible;
+  padding: 0;
+  border: 0;
+}
+
+.authenticated .main {
+  inline-size: 100%;
+  max-inline-size: 54rem;
+  margin-block: 0;
+  margin-inline: auto;
+  padding: 2rem clamp(1.25rem, 3vw, 3rem) 4rem;
+}
+
+.authenticated .main.wide {
+  max-inline-size: 80rem;
+}
+
+.session-controls {
+  display: grid;
+  gap: 1rem;
+  margin-block-start: auto;
+  padding-block-start: 3rem;
+}
+
+.profile-link, .security-link {
+  color: var(--kn-color-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  min-block-size: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.profile-link:hover, .security-link:hover {
+  text-decoration: underline;
+}
+
+.session-controls button {
+  justify-self: start;
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--kn-color-accent);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: absolute;
+  top: -6rem;
+  inset-inline-start: 1rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: var(--kn-color-accent);
+  color: var(--kn-color-accent-ink);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+@media (max-width: 60rem) {
+  .shell.authenticated {
+    display: block;
+  }
+  .authenticated .navigation {
+    position: static;
+    block-size: auto;
+    padding: 1.5rem 1rem 0;
+    border-inline-end: 0;
+    border-block-end: 1px solid var(--kn-color-outline);
+  }
+  .authenticated .product {
+    display: none;
+  }
+  .authenticated .nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 4px 4px 0.75rem;
+    margin-block-start: 1.25rem;
+  }
+  .authenticated .main {
+    padding: 1.5rem 1rem 3rem;
+  }
+  .session-controls {
+    display: none;
+  }
 }
 
 @media (max-width: 30rem) {
+  .shell {
+    padding: 1.5rem 1rem 3rem;
+  }
   .nav {
     gap: 0.25rem;
   }
-
   .nav a {
     font-size: 0.875rem;
-    padding-inline: 0.5rem;
+    padding-inline: 0.65rem;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .nav a {
-    transition: background-color 150ms ease-out, color 150ms ease-out;
+    transition: background-color 160ms ease-out, color 160ms ease-out;
   }
 }
