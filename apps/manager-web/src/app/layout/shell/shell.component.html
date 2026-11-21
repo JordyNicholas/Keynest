@@ -1,21 +1,24 @@
-<div class="shell">
-  <header class="brand">
-    <a class="mark" routerLink="/">Keynest</a>
-    <p class="product">Manager</p>
-  </header>
-
-  <nav class="nav" aria-label="Primary">
-    <a #tools routerLink="/tools" routerLinkActive="active" ariaCurrentWhenActive="page"
-       (isActiveChange)="keepActiveLinkVisible(tools, $event)">Password tools</a>
+<div class="shell" [class.authenticated]="signedIn()">
+  <a class="skip-link" [href]="signedIn() ? '/overview#workspace-content' : '/tools#workspace-content'" (click)="skipToContent($event, page)">Skip to content</a>
+  <aside class="navigation" aria-label="Workspace navigation">
+    <header class="brand"><a class="mark" routerLink="/">Keynest<span>.</span></a><p class="product">Your password workspace</p></header>
+    <nav class="nav" aria-label="Primary">
+      @if (signedIn()) {
+        <a #overview routerLink="/overview" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(overview, $event)">Overview</a>
+        <a #vault routerLink="/vault" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(vault, $event)">Vault</a>
+      }
+      <a #tools routerLink="/tools" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(tools, $event)">Password tools</a>
+      <a #account routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(account, $event)">{{ signedIn() ? 'Account settings' : 'Sign in' }}</a>
+    </nav>
     @if (signedIn()) {
-      <a #vault routerLink="/vault" routerLinkActive="active" ariaCurrentWhenActive="page"
-       (isActiveChange)="keepActiveLinkVisible(vault, $event)">Vault</a>
+      <div class="session-controls">
+        <a class="profile-link" routerLink="/account">{{ auth.email() && auth.email() !== 'session' ? auth.email() : 'Your account' }}</a>
+        <button mat-stroked-button type="button" [disabled]="loggingOut()" (click)="logout()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button>
+        <a class="security-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/THREAT_MODEL.md">Security model</a>
+      </div>
     }
-    <a #account routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page"
-       (isActiveChange)="keepActiveLinkVisible(account, $event)">{{ signedIn() ? 'Account settings' : 'Sign in' }}</a>
-  </nav>
-
-  <main #page class="main">
-    <router-outlet (activate)="animatePage(page)" />
+  </aside>
+  <main #page class="main" [class.wide]="outlet.isActivated && outlet.activatedRouteData['wide']" id="workspace-content" tabindex="-1">
+    <router-outlet #outlet="outlet" (activate)="activatePage(page)" />
   </main>
 </div>

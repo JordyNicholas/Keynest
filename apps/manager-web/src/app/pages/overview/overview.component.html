@@ -1,0 +1,58 @@
+<div class="overview-heading">
+  <div><p class="eyebrow">A clearer picture</p><h1>Your vault, at a glance.</h1><p class="lede">A calm place to see what needs your attention.</p></div>
+  <div class="heading-actions"><a mat-flat-button routerLink="/vault/new">Add Vault item</a><button mat-stroked-button type="button" [disabled]="loading()" (click)="refresh()">Refresh</button></div>
+</div>
+<section [attr.aria-busy]="loading()" aria-label="Account overview">
+  @if (loading()) {
+    <div class="view-state" role="status"><h2>Loading your overview…</h2><p>Getting your account’s current Vault information.</p><div class="skeleton-row" aria-hidden="true"><span></span><span></span><span></span></div></div>
+  } @else if (error()) {
+    <div class="view-state unavailable" role="alert"><h2>Overview unavailable</h2><p>{{ error() }}</p><div class="heading-actions"><button mat-stroked-button type="button" (click)="refresh()">Try again</button><a mat-stroked-button routerLink="/account" [queryParams]="auth.signedIn() ? null : { returnTo: '/overview' }">{{ auth.signedIn() ? 'Account settings' : 'Sign in' }}</a></div></div>
+  } @else if (overview(); as data) {
+    <p class="snapshot">Snapshot from {{ data.asOf | date:'medium' }}. Refresh after changes.</p>
+    @if (data.counts.total === 0) {
+      <div class="view-state empty"><p class="eyebrow">Your first step</p><h2>Make a place for your first password.</h2><p>Your Vault is empty. Add an account to bring its password, details and expiry together.</p><div class="heading-actions"><a mat-flat-button routerLink="/vault/new">Add your first item</a><a mat-stroked-button routerLink="/account" fragment="password-policy-heading">Review your password rules</a></div></div>
+    } @else {
+      <kn-overview-metrics [overview]="data" />
+      <div class="overview-grid">
+        <section class="overview-panel attention-panel" aria-labelledby="attention-heading">
+          <div class="panel-heading"><h2 id="attention-heading">Needs your attention</h2><a mat-button routerLink="/vault" [queryParams]="{ expiry: 'attention' }">View this group</a></div>
+          <p class="panel-description">Expired or less than 14 days left. Change a password at its website before saving its replacement here.</p>
+          @if (data.attention.length) {
+            <ul class="item-list">
+              @for (item of data.attention; track item.id) {
+                @let expiry = expiryLabel(item.expiresAt);
+                <li><a class="item-link" routerLink="/vault" [queryParams]="{ item: item.id }"><span class="item-text"><strong>{{ item.label }}</strong><span>{{ item.url }}</span></span><span class="status-badge" [attr.data-tone]="expiry.tone">{{ expiry.label }}</span></a></li>
+              }
+            </ul>
+            <p class="panel-note">Showing {{ data.attention.length }} of {{ data.counts.expired + data.counts.soon }} items needing attention.</p>
+          } @else {
+            <p class="quiet-state">No items need attention under these expiry rules.</p>
+          }
+        </section>
+        <section class="overview-panel" aria-labelledby="distribution-heading">
+          <h2 id="distribution-heading">Expiry overview</h2><p class="panel-description">Every current item, grouped by time until expiry.</p>
+          <kn-expiry-distribution [counts]="data.counts" />
+          <p class="panel-note">Expiry is not a password strength or breach score. “No expiry” is a separate category.</p>
+        </section>
+        <section class="overview-panel" aria-labelledby="policy-heading">
+          <h2 id="policy-heading">Your password rules</h2><p class="policy-name">{{ data.policy.id === 'keynest.default.v1' ? 'Keynest built-in policy' : 'Custom account policy' }}</p>
+          <ul class="policy-facts"><li>{{ data.policy.rules.minLength }}–{{ data.policy.rules.maxLength }} characters</li><li>{{ requiredTypes(data) }}</li>
+            @if (data.policy.rules.minCategories > requiredTypeCount(data)) { <li>At least {{ data.policy.rules.minCategories }} of these types: lowercase letters, uppercase letters, numbers and symbols</li> }
+            @if (data.policy.rules.excludeAmbiguous) { <li>Ambiguous characters excluded</li> }
+          </ul>
+          <p class="panel-description">Your selected rules guide generation, checking and saved passwords. Existing items are not automatically reassessed when rules change.</p>
+          <div class="heading-actions"><a mat-stroked-button routerLink="/account" fragment="password-policy-heading">Review rules</a><a mat-button routerLink="/tools/check">Check a sample</a></div>
+        </section>
+        <section class="overview-panel" aria-labelledby="recent-heading">
+          <h2 id="recent-heading">Recent item changes</h2><p class="panel-description">The latest change to each item currently in your Vault.</p>
+          <ul class="item-list recent-list">
+            @for (item of data.recent; track item.id) {
+              <li><a class="item-link" routerLink="/vault" [queryParams]="{ item: item.id }"><span class="item-text"><strong>{{ item.label }}</strong><span>{{ item.createdAt === item.updatedAt ? 'Created' : 'Updated' }} {{ item.updatedAt | date:'medium' }}</span></span><span class="open-label">Open item</span></a></li>
+            }
+          </ul>
+          <p class="panel-note">This is a view of current items, rather than a complete activity history.</p>
+        </section>
+      </div>
+    }
+  }
+</section>

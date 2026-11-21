@@ -9,6 +9,7 @@ import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { API_BASE_URL } from './injectionTokens';
+import { emptyOverview, sampleOverview } from './pages/overview/overview-test-data';
 
 const emptyVaultPage = { asOf: '2026-11-21T12:00:00Z', items: [], totalMatches: 0, page: 0, size: 10, totalPages: 0,
   counts: { total: 0, expired: 0, soon: 0, upcoming: 0, later: 0, unset: 0 } };
@@ -109,6 +110,19 @@ describe('Manager entry routes', () => {
     http.expectNone('/api/v1/tools/policy');
   });
 
+  it('takes a newly created account to an empty real overview', async () => {
+    const harness = await RouterTestingHarness.create('/?auth=signup');await harness.fixture.whenStable();
+    const dialog = TestBed.inject(MatDialog).openDialogs[0];
+    const form = (dialog.componentInstance as AuthDialogComponent).form()!;
+    form.email.set('new-account@example.test');form.password.set('Sample master password');form.submit();
+    const http = TestBed.inject(HttpTestingController);const closed = firstValueFrom(dialog.afterClosed());
+    http.expectOne('/api/v1/auth/register').flush({ token: 'new-session', email: 'new-account@example.test' });
+    await closed;await harness.fixture.whenStable();harness.detectChanges();await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/overview');
+    http.expectOne('/api/v1/vault/overview').flush(emptyOverview());harness.detectChanges();
+    expect(harness.routeNativeElement?.textContent).toContain('first password');http.expectNone('/api/v1/vault/items');
+  });
+
   it('switches dialog modes without retaining the password and signs in without putting credentials in navigation', async () => {
     const harness = await RouterTestingHarness.create('/?auth=signup&returnTo=%2Fvault');
     await harness.fixture.whenStable();
@@ -163,13 +177,42 @@ describe('Manager entry routes', () => {
     expect(JSON.stringify(history.state)).not.toContain('test-provider-key');
   });
 
-  it('opens the authenticated vault when a session is already present', async () => {
+  it('opens the authenticated overview with active workspace navigation when a session is already present', async () => {
     TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
-    await RouterTestingHarness.create('/');
-    expect(TestBed.inject(Router).url).toBe('/vault');
-    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/vault/items/search');
-    expect(request.request.headers.get('Authorization')).toBe('Bearer test-session');
-    request.flush(emptyVaultPage);
+    const harness = await RouterTestingHarness.create('/');
+    expect(TestBed.inject(Router).url).toBe('/overview');
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/vault/overview');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer test-session');request.flush(emptyOverview());harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('nav[aria-label=Primary] a.active')?.textContent).toBe('Overview');
+    expect(harness.routeNativeElement?.querySelector('main')?.classList.contains('wide')).toBeTrue();
+    TestBed.inject(HttpTestingController).expectNone('/api/v1/vault/items');
+  });
+
+  it('preserves the existing AI-setup handoff when its visitor needs to sign in first', async () => {
+    const destination = '/account?ai=policy-explanation#ai-settings';
+    const harness = await RouterTestingHarness.create(destination);harness.detectChanges();
+    const form = harness.routeNativeElement!.querySelector('form')!;
+    const email = form.querySelector<HTMLInputElement>('input[type=email]')!, password = form.querySelector<HTMLInputElement>('input[type=password]')!;
+    email.value = 'sample@example.test';email.dispatchEvent(new Event('input'));
+    password.value = 'Sample master password';password.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    const http = TestBed.inject(HttpTestingController);http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
+    await harness.fixture.whenStable();harness.detectChanges();
+    expect(TestBed.inject(Router).url).toBe(destination);
+    expect(harness.routeNativeElement!.querySelector<HTMLDetailsElement>('#ai-settings details')?.open).toBeTrue();
+    http.expectNone('/api/v1/vault/overview');http.expectNone('/api/v1/ai/policy/explain');
+  });
+
+  it('navigates from a real overview card to an expanded bounded Vault result', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
+    const harness = await RouterTestingHarness.create('/overview');
+    const http = TestBed.inject(HttpTestingController);const data = sampleOverview();http.expectOne('/api/v1/vault/overview').flush(data);harness.detectChanges();
+    const next = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('.metric:last-child')!;
+    await harness.navigateByUrl(next.getAttribute('href')!);
+    const request = http.expectOne('/api/v1/vault/items/search');expect(request.request.body.itemId).toBe(data.nextExpiry!.id);
+    request.flush({ ...emptyVaultPage, items: [{ ...data.nextExpiry, policyId: 'keynest.default.v1' }], totalMatches: 1, totalPages: 1, counts: data.counts });harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('mat-expansion-panel-header')?.getAttribute('aria-expanded')).toBe('true');
+    http.expectNone('/api/v1/vault/items');http.expectNone(request => request.url.endsWith('/reveal'));
   });
 
   it('opens an authorized selected item in the requested expiry scope without fetching the whole Vault', async () => {
@@ -184,5 +227,16 @@ describe('Manager entry routes', () => {
     expect(harness.routeNativeElement?.querySelector('mat-expansion-panel-header')?.getAttribute('aria-expanded')).toBe('true');
     expect(harness.routeNativeElement?.textContent).toContain('Showing a selected item');
     http.expectNone('/api/v1/vault/items');http.expectNone(request => request.url.endsWith('/reveal'));
+  });
+
+  it('signs out from the shared workspace control and returns to the public homepage', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
+    const harness = await RouterTestingHarness.create('/overview');const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/vault/overview').flush(sampleOverview());harness.detectChanges();
+    harness.routeNativeElement!.querySelector<HTMLButtonElement>('.session-controls button')!.click();
+    const request = http.expectOne('/api/v1/auth/logout');expect(request.request.headers.get('Authorization')).toBe('Bearer test-session');request.flush({});
+    await harness.fixture.whenStable();harness.detectChanges();
+    expect(TestBed.inject(Router).url).toBe('/');expect(TestBed.inject(AuthService).signedIn()).toBeFalse();
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Your passwords.');
   });
 });

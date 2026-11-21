@@ -1,6 +1,6 @@
 # Keynest public home and account overview
 
-**Status: visual design and prototype interactions approved for production implementation; rollout in progress.**
+**Status: reviewed design implemented through focused production slices; Windows/Edge walkthrough remains pending.**
 
 Issue [#199](https://github.com/JordyNicholas/Keynest/issues/199). Baseline inspected: `3e9ca6222649cb0ad9bf30c51fd2323c4c3a3528`, November 20, 2026. After reviewing the prototype and accordion-motion refinement in #206, the maintainer confirmed: “I figure we are good to go with the design!” This approves the reviewed composition and interactions for implementation. It does not approve unresolved history/retention choices, declare a new release date, close release gates or waive production PR review. The maintainer wants a complete, tailored design and has explicitly removed rush from this feature.
 
@@ -53,13 +53,13 @@ The maintainer also raised a logo/branding discussion. The current wordmark rema
 
 ## 3. Information architecture
 
-| Context | Proposed behavior |
+| Context | Approved behavior |
 | --- | --- |
 | Visitor opening `/` | Product homepage |
-| Successful sign-in with no requested destination | Account overview, proposed `/overview` |
+| Successful sign-in with no requested destination | Account overview at `/overview` |
 | Sign-in required for an existing deep link | Return to that authorized destination after sign-in |
 | Password generation / policy check | Keep `/tools/generate` and `/tools/check` as separate workflows |
-| Vault filtering | Dedicated `/vault` view, proposed explicit expiry query parameter |
+| Vault filtering | Dedicated bounded `/vault` view with explicit expiry/selected-item query parameters |
 | Policy and AI setup | Remain in Account settings, separate sections |
 | Account settings and troubleshooting | Keep existing workflows; no diagnostics clutter on the public hero |
 
@@ -216,10 +216,10 @@ A local DOM-level interaction check passed for page ranges and last-page boundar
 
 ## 11. Production rollout
 
-The first implementation slice [#207](https://github.com/JordyNicholas/Keynest/issues/207) is merged through [#208](https://github.com/JordyNicholas/Keynest/pull/208): an Angular public homepage at anonymous `/`, with the approved hierarchy, responsive public navigation, smooth section scrolling, Material actions, documentation/security links and visibly synthetic preview artwork. Public entry requires no API request. Direct tools, guarded Vault and account settings remain available. Until the overview slice lands, authenticated `/` continues to open `/vault`.
+The first implementation slice [#207](https://github.com/JordyNicholas/Keynest/issues/207) is merged through [#208](https://github.com/JordyNicholas/Keynest/pull/208): an Angular public homepage at anonymous `/`, with the approved hierarchy, responsive public navigation, smooth section scrolling, Material actions, documentation/security links and visibly synthetic preview artwork. Public entry requires no API request. Direct tools, guarded Vault and account settings remain available. The [overview slice #215](https://github.com/JordyNicholas/Keynest/issues/215) now makes authenticated `/` and default sign-in/signup open `/overview`.
 
-The account-entry slice [#209](https://github.com/JordyNicholas/Keynest/issues/209), merged through [#210](https://github.com/JordyNicholas/Keynest/pull/210), introduces one shared credential form in a Material dialog and the direct `/account` fallback. Public links use `/?auth=signup` and `/?auth=signin`, so refresh and direct entry can open the same dialog. These two bounded mode values contain no credentials. Closing clears the form and removes the mode parameter; changing modes replaces that navigation entry. The fallback accepts the same mode values. Guarded deep links carry a bounded local `returnTo` and resume only primary-outlet `/vault` or `/overview` destinations; malformed, remote and unrelated targets fall back to Vault. Neither credentials nor session responses enter router state. Cancellation unsubscribes before the dialog closing animation; the server may already have completed a request, so cancellation is not account deletion or remote rollback.
+The account-entry slice [#209](https://github.com/JordyNicholas/Keynest/issues/209), merged through [#210](https://github.com/JordyNicholas/Keynest/pull/210), introduces one shared credential form in a Material dialog and the direct `/account` fallback. Public links use `/?auth=signup` and `/?auth=signin`, so refresh and direct entry can open the same dialog. These two bounded mode values contain no credentials. Closing clears the form and removes the mode parameter; changing modes replaces that navigation entry. The fallback accepts the same mode values. Guarded deep links carry a bounded local `returnTo` and resume primary-outlet `/vault` or `/overview` destinations, plus the existing fixed Account AI-setup target; malformed, remote and unrelated targets fall back to the overview. Neither credentials nor session responses enter router state. Cancellation unsubscribes before the dialog closing animation; the server may already have completed a request, so cancellation is not account deletion or remote rollback.
 
-The metadata API slice [#211](https://github.com/JordyNicholas/Keynest/issues/211), merged through [#212](https://github.com/JordyNicholas/Keynest/pull/212), adds the [bounded overview/search contracts](../../VAULT_BROWSING.md), with exact expiry buckets, selected policy, owner-scoped projections and one response snapshot. Vault browsing [#213](https://github.com/JordyNicholas/Keynest/issues/213) wires bounded pages, literal metadata search, visible expiry/selected-item scopes and Material accordions before the overview, so its later card destinations work on arrival. The actual overview/navigation rail, usage counters and history remain follow-ups. Do not download the entire Vault for dashboard charts or introduce tracking before its explicit contract is agreed.
+The metadata API slice [#211](https://github.com/JordyNicholas/Keynest/issues/211), merged through [#212](https://github.com/JordyNicholas/Keynest/pull/212), adds the [bounded overview/search contracts](../../VAULT_BROWSING.md), with exact expiry buckets, selected policy, owner-scoped projections and one response snapshot. Vault browsing [#213](https://github.com/JordyNicholas/Keynest/issues/213), merged through [#214](https://github.com/JordyNicholas/Keynest/pull/214), wires bounded pages, literal metadata search, visible expiry/selected-item scopes and Material accordions before the overview, so its later card destinations work on arrival. The [account overview/workspace slice #215](https://github.com/JordyNicholas/Keynest/issues/215) implements real-data summaries/distribution/policy/recent-current-item views, desktop rail, mobile active navigation and default account entry; see [its semantics and validation checklist](../../ACCOUNT_OVERVIEW.md). Usage counters and durable history remain unresolved follow-ups, not implemented features. Do not download the entire Vault for dashboard charts or introduce tracking before its explicit contract is agreed.
 
 For the public-home slice, verify `/` without an API connection, the dedicated generator's policy fetch, both account links, authenticated root behavior, direct guarded routes and `/#security` refresh. The Windows/Edge walkthrough must also check 320px reflow, enlarged text, horizontal section navigation, skip link/focus, native FAQ controls, smooth scroll and reduced motion. Component/route tests and a build do not replace this visual walkthrough or close MVP release gates.

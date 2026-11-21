@@ -164,7 +164,7 @@ npm install
 npm start
 ```
 
-Open http://localhost:4200. Development uses `http://localhost:8080/api/v1`. Production defaults to the same-origin `/api/v1`; set the public build variable `KEYNEST_API_BASE_URL` for a separately hosted API without editing source. Use `npm run build` so the destination is validated. See [deployment configuration](./docs/VERCEL.md) for same-origin, local, and split-origin hosting.
+Open http://localhost:4200. Anonymous entry introduces the product; default sign-in/signup opens the [account overview](./docs/ACCOUNT_OVERVIEW.md), with dedicated tools, settings and [bounded Vault browsing](./docs/VAULT_BROWSING.md). Development uses `http://localhost:8080/api/v1`. Production defaults to the same-origin `/api/v1`; set the public build variable `KEYNEST_API_BASE_URL` for a separately hosted API without editing source. Use `npm run build` so the destination is validated. See [deployment configuration](./docs/VERCEL.md) for same-origin, local, and split-origin hosting.
 
 ### Docker (API)
 

@@ -13,12 +13,13 @@ export const routes: Routes = [
     path: '',
     pathMatch: 'full',
     loadComponent: () => import('./pages/home/home.component').then((page) => page.HomePageComponent),
-    canActivate: [() => inject(AuthService).signedIn() ? inject(Router).createUrlTree(['/vault']) : true],
+    canActivate: [() => inject(AuthService).signedIn() ? inject(Router).createUrlTree(['/overview']) : true],
   },
   {
     path: '',
     component: ShellComponent,
     children: [
+      { path: 'overview', loadComponent: () => import('./pages/overview/overview.component').then(page => page.OverviewPageComponent), canActivate: [authGuard], data: { wide: true } },
       { path: 'tools', component: ToolsPageComponent },
       { path: 'tools/generate', component: GeneratePasswordPageComponent },
       { path: 'tools/check', loadComponent: () => import('./pages/tools/check-password.component').then((page) => page.CheckPasswordPageComponent) },
@@ -28,6 +29,7 @@ export const routes: Routes = [
       { path: 'vault/rotate/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard], data: { rotate: true } },
       {
         path: 'vault',
+        data: { wide: true },
         loadComponent: () => import('./pages/vault/vault.component').then((page) => page.VaultPageComponent),
         canActivate: [authGuard],
       },
