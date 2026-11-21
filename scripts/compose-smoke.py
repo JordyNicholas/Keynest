@@ -116,6 +116,20 @@ def run(cors_origin):
   check(len(items) == 1 and items[0]['id'] == item['id'], 'created item must appear in owner list')
   check('password' not in items[0] and 'envelopeBytes' not in items[0], 'list must omit secret fields')
 
+  headers, overview = expect('GET', API + '/vault/overview', token=token)
+  check(headers.get('Cache-Control') == 'no-store', 'overview must be no-store')
+  check(overview['counts']['total'] == 1 and overview['counts']['unset'] == 1, 'overview must count owner metadata')
+  check(overview['nextExpiry'] is None and len(overview['recent']) == 1, 'overview must keep missing expiry explicit')
+  headers, page = expect('POST', API + '/vault/items/search', {'query': 'COMPOSE', 'field': 'label', 'sort': 'expiry'}, token)
+  check(headers.get('Cache-Control') == 'no-store', 'search must be no-store')
+  check(page['totalMatches'] == 1 and page['items'][0]['id'] == item['id'], 'bounded search must return owner metadata')
+  check('password' not in page['items'][0] and 'envelopeBytes' not in page['items'][0], 'search must omit secret fields')
+  _, literal = expect('POST', API + '/vault/items/search', {'query': '%', 'field': 'label'}, token)
+  check(literal['totalMatches'] == 0, 'search wildcards must be literal')
+  expect('POST', API + '/vault/items/search', {'size': 51}, token, status=400)
+  expect('GET', API + '/vault/overview', status=401)
+  expect('POST', API + '/vault/items/search', {}, status=401)
+
   headers, revealed = expect('POST', item_path + '/reveal', token=token)
   check('no-store' in headers.get('Cache-Control', '').lower(), 'reveal must be no-store')
   check(headers.get('Pragma') == 'no-cache' and headers.get('Expires') == '0', 'reveal cache compatibility headers')
@@ -128,6 +142,10 @@ def run(cors_origin):
   })
   _, other_items = expect('GET', API + '/vault/items', token=other['token'])
   check(other_items == [], 'other user must have an empty vault')
+  _, other_overview = expect('GET', API + '/vault/overview', token=other['token'])
+  check(other_overview['counts']['total'] == 0, 'overview must isolate owners')
+  _, other_page = expect('POST', API + '/vault/items/search', {'itemId': item['id']}, other['token'])
+  check(other_page['totalMatches'] == 0 and other_page['items'] == [], 'selected-item search must isolate owners')
   expect('GET', item_path, token=other['token'], status=404)
   expect('POST', item_path + '/reveal', token=other['token'], status=404)
   expect('PUT', item_path, {'label': 'Unauthorized edit'}, other['token'], status=404)
@@ -145,7 +163,7 @@ def run(cors_origin):
   expect('POST', API + '/auth/me', token=login_token, status=401)
   expect('POST', API + '/auth/logout', token=token)
   expect('POST', API + '/auth/logout', token=other['token'])
-  print('PASS: packaged API health, auth, vault CRUD, no-store reveal and tenant isolation')
+  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, no-store and tenant isolation')
 
 
 if __name__ == '__main__':
