@@ -33,6 +33,18 @@ public class AccountPasswordPolicyService {
   public PasswordPolicy effective(UserAccount user) {
     if (user == null) return registry.runtime(PasswordPolicy.DEFAULT_POLICY_ID);
     UserAccount current = requireLocked(user);
+    return decode(current);
+  }
+
+  /** Metadata inspection does not acquire the policy mutation lock. */
+  @Transactional(readOnly = true)
+  public View inspect(UserAccount user) {
+    UserAccount current = users.findById(user.getId())
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid session"));
+    return view(decode(current));
+  }
+
+  private PasswordPolicy decode(UserAccount current) {
     if (current.getPasswordPolicy() == null) return registry.runtime(PasswordPolicy.DEFAULT_POLICY_ID);
     try {
       Stored stored = json.readValue(current.getPasswordPolicy(), Stored.class);
