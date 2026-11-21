@@ -1,0 +1,21 @@
+@let details = item();
+<dl class="item-metadata">
+  @if (details.url) { <dt>Website</dt><dd>{{ details.url }}</dd> }
+  @if (details.username) { <dt>Username</dt><dd>{{ details.username }}</dd> }
+  <dt>Expiry</dt><dd>{{ details.expiresAt ? (details.expiresAt | date:'medium') : 'No expiry set' }}</dd>
+  @if (details.lastRotatedAt) { <dt>Password last set</dt><dd>{{ details.lastRotatedAt | date:'medium' }}</dd> }
+  @if (details.notifyBeforeDays != null) { <dt>Expiry notice</dt><dd>{{ details.notifyBeforeDays }} days before expiry</dd> }
+</dl>
+@if (secret(); as secret) {
+  <output class="secret" aria-live="polite">{{ secret }}</output><p class="conceal-countdown">Concealing in {{ remaining() }} seconds.</p>
+} @else { <p class="concealed-note">Password concealed. Reveal only when you need it.</p> }
+<div class="vault-actions" [attr.aria-label]="'Actions for ' + details.label">
+  @if (secret()) {
+    <button mat-stroked-button type="button" (click)="conceal.emit()">Conceal</button>
+  } @else {
+    <button mat-stroked-button type="button" [disabled]="pending() || revealing()" (click)="reveal.emit()">{{ revealing() ? 'Revealing…' : 'Reveal for 15s' }}</button>
+  }
+  <a mat-stroked-button [routerLink]="['/vault', 'edit', details.id]">Edit details</a>
+  <a mat-stroked-button [routerLink]="['/vault', 'rotate', details.id]">Rotate password</a>
+  <button mat-stroked-button type="button" class="delete-button" [disabled]="pending()" (click)="remove.emit()">Delete item</button>
+</div>
