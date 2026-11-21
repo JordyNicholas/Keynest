@@ -26,39 +26,6 @@ describe('AccountPageComponent', () => {
     TestBed.inject(AuthService).clearSession();
   });
 
-  it('applies the minimum password length only when creating an account', () => {
-    const fixture = TestBed.createComponent(AccountPageComponent);
-    const account = fixture.componentInstance;
-    const http = TestBed.inject(HttpTestingController);
-    const password = '🔑'.repeat(14);
-    account.formEmail.set('existing@example.com');
-    account.formPassword.set(password);
-
-    account.register();
-    http.expectNone('/api/v1/auth/register');
-    expect(account.error()).toContain('15 characters');
-
-    account.login();
-    const login = http.expectOne('/api/v1/auth/login');
-    expect(login.request.body.password).toBe(password);
-    login.flush({}, { status: 401, statusText: 'Unauthorized' });
-  });
-
-  it('explains invalid email before registration and keeps failed sign-in non-enumerating', () => {
-    const fixture = TestBed.createComponent(AccountPageComponent);
-    const account = fixture.componentInstance;
-    const http = TestBed.inject(HttpTestingController);
-    account.formEmail.set('not-an-email');
-    account.formPassword.set('SyntheticMaster!42');
-    account.register();
-    http.expectNone('/api/v1/auth/register');
-    expect(account.error()).toContain('email');
-    account.formEmail.set('synthetic@example.test');
-    account.login();
-    http.expectOne('/api/v1/auth/login').flush({}, { status: 401, statusText: 'Unauthorized' });
-    expect(account.error()).toBe('The email address or master password is incorrect.');
-  });
-
   it('keeps AI setup behind sign-in', () => {
     const fixture = TestBed.createComponent(AccountPageComponent);
     fixture.detectChanges();

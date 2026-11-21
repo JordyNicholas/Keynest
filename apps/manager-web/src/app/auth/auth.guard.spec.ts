@@ -25,7 +25,7 @@ describe('authGuard', () => {
   function expectAccountRedirect(): void {
     const result = activateVault();
     expect(result instanceof UrlTree).toBeTrue();
-    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/account');
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/account?returnTo=%2Fvault');
   }
 
   it('redirects a signed-out visitor to the account route', () => {

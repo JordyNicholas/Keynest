@@ -8,7 +8,7 @@
       <h1 id="home-heading">Your passwords.<br>Your rules.<br><em>Your Keynest.</em></h1>
       <p class="lede">Generate, store and manage passwords with a policy you control. An open-source manager you can host yourself.</p>
       <div class="actions">
-        <a mat-flat-button routerLink="/account">Start your vault</a>
+        <a mat-flat-button routerLink="/" [queryParams]="{ auth: 'signup' }">Start your vault</a>
         <a mat-stroked-button routerLink="/tools/generate">Try the generator</a>
       </div>
       <p class="quiet">A dedicated place for every task. AI is optional.</p>

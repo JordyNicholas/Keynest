@@ -3,18 +3,18 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 import { PolicyExplanationComponent } from '../policy-explanation/policy-explanation.component';
 import { PasswordPolicySettingsComponent } from './password-policy-settings.component';
 
-type AuthResponse = { userId: string; email: string; token: string; expiresAt: string };
+import { AuthFormComponent, AuthMode } from '../../auth/auth-form.component';
+import { authReturnUrl } from '../../auth/auth-return-url';
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, FormsModule, MatButtonModule, RouterLink, PolicyExplanationComponent, PasswordPolicySettingsComponent],
+  imports: [InlineErrorComponent, AuthFormComponent, MatButtonModule, RouterLink, PolicyExplanationComponent, PasswordPolicySettingsComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
@@ -25,15 +25,17 @@ export class AccountPageComponent {
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
 
-  readonly minimumMasterPasswordLength = 15;
-  readonly formEmail = signal('');
+  private readonly route = inject(ActivatedRoute);
+  readonly authMode = signal<AuthMode>('signin');
   readonly policyOpen = signal(false);
-  readonly formPassword = signal('');
   readonly error = signal('');
-  readonly aiSetupRequested = inject(ActivatedRoute).snapshot.queryParamMap.get('ai') === 'policy-explanation';
+  readonly aiSetupRequested = this.route.snapshot.queryParamMap.get('ai') === 'policy-explanation';
   readonly aiSetupOpen = signal(this.aiSetupRequested);
 
   constructor() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.authMode.set(params.get('auth') === 'signup' ? 'signup' : 'signin');
+    });
     const token = this.auth.token();
     if (!token) return;
     this.http.post<{ email: string }>(`${this.apiBaseUrl}/auth/me`, {}, { headers: this.auth.authHeaders() })
@@ -54,40 +56,13 @@ export class AccountPageComponent {
       });
   }
 
-  register(): void {
-    this.error.set('');
-    if (!this.validEmail()) return;
-    const password = this.formPassword();
-    if ([...password].length < this.minimumMasterPasswordLength) {
-      this.error.set(`Your master password must contain at least ${this.minimumMasterPasswordLength} characters to create an account.`);
-      return;
-    }
-    this.http
-      .post<AuthResponse>(`${this.apiBaseUrl}/auth/register`, {
-        email: this.formEmail(),
-        password,
-      })
-      .subscribe({
-        next: (body) => this.onAuth(body),
-        error: ({ status }) => this.error.set(status === 409 ? 'An account with this email already exists. Try signing in.'
-          : status === 400 ? 'Check the email address and master password requirements.'
-          : this.connectionError(status)),
-      });
+  onAuth(): void {
+    void this.router.navigateByUrl(authReturnUrl(this.router, this.route.snapshot.queryParamMap.get('returnTo')));
   }
 
-  login(): void {
-    this.error.set('');
-    this.http
-      .post<AuthResponse>(`${this.apiBaseUrl}/auth/login`, {
-        email: this.formEmail(),
-        password: this.formPassword(),
-      })
-      .subscribe({
-        next: (body) => this.onAuth(body),
-        error: ({ status }) => this.error.set(status === 401 ? 'The email address or master password is incorrect.'
-          : status === 400 ? 'Enter your email address and master password.'
-          : this.connectionError(status)),
-      });
+  changeAuthMode(mode: AuthMode): void {
+    this.authMode.set(mode);
+    void this.router.navigate([], { relativeTo: this.route, queryParams: { auth: mode }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   logout(): void {
@@ -95,29 +70,6 @@ export class AccountPageComponent {
       next: () => this.clearAuth(),
       error: () => this.clearAuth(),
     });
-  }
-
-  private validEmail(): boolean {
-    const input = document.createElement('input');
-    input.type = 'email';
-    input.required = true;
-    input.value = this.formEmail().trim();
-    if (input.checkValidity()) return true;
-    this.error.set('Enter a valid email address, such as name@example.com.');
-    return false;
-  }
-
-  private connectionError(status: number): string {
-    if (status === 429) return 'Too many attempts. Wait a minute and try again.';
-    if (status === 503) return 'Password operations are busy. Wait a moment and try again.';
-    return 'Could not connect to Manager. Check API health and try again.';
-  }
-
-  private onAuth(body: AuthResponse): void {
-    this.formPassword.set('');
-    this.auth.setSession(body.token, body.email);
-    this.error.set('');
-    void this.router.navigateByUrl('/vault');
   }
 
   private clearAuth(): void {

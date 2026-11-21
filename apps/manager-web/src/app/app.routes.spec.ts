@@ -3,6 +3,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { MatDialog } from '@angular/material/dialog';
+import { AuthDialogComponent } from './auth/auth-dialog.component';
 import { routes } from './app.routes';
 import { AuthService } from './auth/auth.service';
 import { API_BASE_URL } from './injectionTokens';
@@ -58,12 +60,67 @@ describe('Manager entry routes', () => {
       await harness.navigateByUrl(link.getAttribute('href')!);
       expect(TestBed.inject(Router).url).toBe('/#' + section);
     }
-    const entries = [...host.querySelectorAll<HTMLAnchorElement>('a[href="/account"]')];
-    expect(entries.map((link) => link.textContent?.trim())).toEqual(['Sign in', 'Start your vault']);
-    await harness.navigateByUrl(entries[0].getAttribute('href')!);
-    expect(TestBed.inject(Router).url).toBe('/account');
-    expect(harness.routeNativeElement?.querySelector('input[type=password]')).not.toBeNull();
+    const entry = host.querySelector<HTMLAnchorElement>('a[href="/?auth=signin"]')!;
+    expect(entry.textContent?.trim()).toBe('Sign in');
+    expect(host.querySelector('a[href="/?auth=signup"]')?.textContent).toContain('Start your vault');
+    await harness.navigateByUrl(entry.getAttribute('href')!);
+    await harness.fixture.whenStable();
+    const dialog = TestBed.inject(MatDialog).openDialogs[0];
+    expect(dialog.componentInstance.mode()).toBe('signin');
+    dialog.close();await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/');
     TestBed.inject(HttpTestingController).expectNone(() => true);
+  });
+
+  it('opens direct signup entry and cancels pending authentication before the closing animation', async () => {
+    const harness = await RouterTestingHarness.create('/?auth=signup');
+    await harness.fixture.whenStable();
+    const dialog = TestBed.inject(MatDialog).openDialogs[0];
+    const component = dialog.componentInstance as AuthDialogComponent;
+    expect(component.mode()).toBe('signup');
+    const form = component.form()!;
+    form.email.set('sample@example.test');form.password.set('Sample master password');form.submit();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/register');
+    dialog.close();expect(request.cancelled).toBeTrue();expect(form.password()).toBe('');
+    await harness.fixture.whenStable();expect(TestBed.inject(AuthService).signedIn()).toBeFalse();
+    expect(TestBed.inject(Router).url).toBe('/');
+  });
+
+  it('resumes a guarded Vault deep link using the shared direct-account fallback', async () => {
+    const harness = await RouterTestingHarness.create('/vault/new');
+    const router = TestBed.inject(Router);
+    expect(router.url).toBe('/account?returnTo=%2Fvault%2Fnew');
+    harness.detectChanges();
+    const form = harness.routeNativeElement!.querySelector('form')!;
+    const email = form.querySelector<HTMLInputElement>('input[type=email]')!;
+    const password = form.querySelector<HTMLInputElement>('input[type=password]')!;
+    email.value = 'sample@example.test';email.dispatchEvent(new Event('input'));
+    password.value = 'Legacy password';password.dispatchEvent(new Event('input'));
+    form.dispatchEvent(new Event('submit', { cancelable: true }));
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
+    await harness.fixture.whenStable();
+    expect(router.url).toBe('/vault/new');
+    http.expectOne('/api/v1/tools/policy').flush({ id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } });
+  });
+
+  it('switches dialog modes without retaining the password and signs in without putting credentials in navigation', async () => {
+    const harness = await RouterTestingHarness.create('/?auth=signup&returnTo=%2Fvault');
+    await harness.fixture.whenStable();
+    const dialog = TestBed.inject(MatDialog).openDialogs[0];
+    const component = dialog.componentInstance as AuthDialogComponent;
+    const form = component.form()!;
+    form.password.set('temporary password');form.switchMode();harness.detectChanges();await harness.fixture.whenStable();
+    expect(form.password()).toBe('');expect(component.mode()).toBe('signin');
+    expect(TestBed.inject(Router).url).toBe('/?auth=signin&returnTo=%2Fvault');
+    form.email.set('sample@example.test');form.password.set('Legacy password');form.submit();
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
+    await harness.fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/vault');
+    expect(TestBed.inject(MatDialog).openDialogs.length).toBe(0);
+    expect(JSON.stringify(history.state)).not.toContain('test-session');expect(JSON.stringify(history.state)).not.toContain('Legacy password');
+    http.expectOne('/api/v1/vault/items').flush([]);
   });
 
   it('redirects the legacy explanation page and resumes through Account settings', async () => {
