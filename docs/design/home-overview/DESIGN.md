@@ -192,7 +192,7 @@ Expansion is a metadata action: it never reveals a password. In production, coll
 
 ### Public navigation motion
 
-How it works, Security and Documentation point to sections on the public homepage. Use smooth in-page scrolling with an appropriate anchor offset, and immediate scrolling when reduced motion is requested. Avoid parallax or an artificial delay on external links. Documentation now introduces the actual guides before linking out, so the header link has a real in-page destination.
+How it works, Security and Documentation point to sections on the public homepage. Use smooth in-page scrolling with an appropriate anchor offset, and immediate scrolling when reduced motion is requested. Keep these section links available on phones in a horizontal row below the wordmark/sign-in controls, with scrolling when needed. Avoid parallax or an artificial delay on external links. Documentation now introduces the actual guides before linking out, so the header link has a real in-page destination.
 
 ### Signup as a dialog
 
