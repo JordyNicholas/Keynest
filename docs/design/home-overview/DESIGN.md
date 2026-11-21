@@ -1,16 +1,16 @@
 # Keynest public home and account overview
 
-**Status: proposed design for discussion, not an approved production interface.**
+**Status: visual design and prototype interactions approved for production implementation; rollout in progress.**
 
-Issue [#199](https://github.com/JordyNicholas/Keynest/issues/199). Baseline inspected: `3e9ca6222649cb0ad9bf30c51fd2323c4c3a3528`, November 20, 2026. The maintainer wants a complete, tailored design and has explicitly removed rush from this feature. This does not declare a new release date or waive tests and approvals.
+Issue [#199](https://github.com/JordyNicholas/Keynest/issues/199). Baseline inspected: `3e9ca6222649cb0ad9bf30c51fd2323c4c3a3528`, November 20, 2026. After reviewing the prototype and accordion-motion refinement in #206, the maintainer confirmed: “I figure we are good to go with the design!” This approves the reviewed composition and interactions for implementation. It does not approve unresolved history/retention choices, declare a new release date, close release gates or waive production PR review. The maintainer wants a complete, tailored design and has explicitly removed rush from this feature.
 
-Open [the interactive prototype](prototype.html) in Edge. It is a standalone design document with synthetic data, no network requests, credentials, persistence or real sign-in. Screen, state and phone-width controls are review tools, not proposed product chrome. The existing product routes are unchanged. All styles and scripts are embedded, so the HTML can be opened directly without installing anything.
+Open [the interactive prototype](prototype.html) in Edge. It is a standalone design document with synthetic data, no network requests, credentials, persistence or real sign-in. Screen, state and phone-width controls are review tools, not product chrome. All styles and scripts are embedded, so the HTML can be opened directly without installing anything. See Section 11 for production implementation scope; the prototype itself never changes application routes.
 
 ## 1. Confirmed direction and unresolved choices
 
 Confirmed by the maintainer: a public product overview; an account-specific overview after sign-in; distinct pages for distinct workflows; a tailored responsive visual design; a forest palette; optional AI and portable self-hosting; useful visual summaries; and exploration of usage history and generation statistics. The requested shared error refinement is tracked separately in #197/#198.
 
-The exact layouts, wording, dashboard destination, history scope and retention described below are **proposals**. Sample counts are illustrations, not observed usage. Do not convert these into accepted architecture or product claims merely because this document merges.
+The reviewed visual composition, navigation, overview priorities and Vault browsing interactions are approved implementation direction. Earlier “proposed” wording below records their design origin and does not establish shipped functionality. History scope, retention, generation tracking and their privacy defaults remain **proposals requiring agreement**. Sample counts are illustrations, not observed usage. Design approval does not turn proposed tracking into an accepted data contract.
 
 ## 2. Evidence and visual direction
 
@@ -155,19 +155,19 @@ No first-party cloud dependency or AI call is needed for any dashboard calculati
 
 ## 8. Review decisions
 
-- Composition: the proposed editorial public page and operational account layout, including desktop rail and existing mobile horizontal navigation.
-- Overview priorities: totals, attention, next expiry, distribution, policy and recent changes; decide if any should be removed or reordered.
-- History: scope, opt-in/default behavior, retention, clearing semantics and aggregate lifetime.
-- Generation provenance: whether an approximate generation counter is useful enough to justify tracking, and the label “Keynest-generated passwords currently saved”.
-- Deployment entry: whether sign-in or account creation leads the primary action for an installed instance; the public site must not imply a hosted Keynest service exists.
+- Approved for implementation: editorial public page and operational account layout, desktop rail, mobile horizontal navigation, restrained motion, bounded Vault browsing and dialog-first account entry.
+- Approved overview priorities: totals, attention, next expiry, distribution, selected policy and recent item changes derivable from authorized metadata.
+- Unresolved history decisions: scope, opt-in/default behavior, retention, clearing semantics and aggregate lifetime.
+- Unresolved generation provenance: whether an approximate generation counter justifies tracking and the precise custody/clearing contract for origin markers.
+- Approved primary public action: “Start your vault”, alongside direct sign-in and the standalone generator. The public site must not imply a hosted Keynest service exists.
 
-Acceptance requires reviewed visual states and meaningful navigation, accurate metrics, preserved security boundaries, passing CI, and a maintainer walkthrough. Merging this proposed design document is not approval to merge the production feature.
+Acceptance requires reviewed visual states and meaningful navigation, accurate metrics, preserved security boundaries, passing CI, and a maintainer walkthrough. Design approval authorizes implementation; production feature PR merges still follow the established chat approval workflow.
 
 ## 9. Verification of this proposal
 
 Local JavaScript syntax and documentation/asset links were checked. A DOM-level check exercised public/account navigation round trips, attention and all five expiry filters (2/3/5/12/2 sample items), state selection, modal controls, the phone-width toggle and unique element IDs, without execution errors. This is logic verification, not pixel rendering, native dialog focus verification, a browser accessibility audit or a human Edge walkthrough.
 
-The cloud browser could not open the workspace preview; no completed browser visual review is claimed. Use the standalone HTML for visual review in Edge at desktop, phone and increased text sizes before approving production implementation. No cloud-browser restriction was bypassed to inspect it.
+The cloud browser could not open the workspace preview; no completed agent browser visual review is claimed. The maintainer has since approved the design. Use the standalone HTML for further visual discussion; production still needs an Edge walkthrough at desktop, phone and increased text sizes. No cloud-browser restriction was bypassed to inspect it.
 
 ## 10. Vault browsing and signup-dialog refinement
 
@@ -206,10 +206,18 @@ Yes: the proposed primary signup entry is a dialog over the public page, preserv
 - On cancel/close, clear credential input and local validation state. A cancelled client request must not show stale success after navigation; server-side completion cannot be assumed undone merely because the client stopped waiting. Preserve pending/error/retry behavior and existing generic authentication responses.
 - Successful creation goes to an empty-account first step. Sign-in goes to the originally requested authorized destination, or the overview when no destination was requested. Preserve a real fallback if a modal cannot be used. Never collect credentials in marketing analytics or prototype instrumentation.
 
-**Prototype safety:** the email/password examples are disabled; no real credentials are accepted or sent. “Preview created account” and “Preview sign in” simulate different UI states. The existing production authentication and routing are unchanged.
+**Prototype safety:** the email/password examples are disabled; no real credentials are accepted or sent. “Preview created account” and “Preview sign in” simulate different UI states. The prototype has no connection to production authentication or routing.
 
 ### Sources and validation
 
 The [Angular Material accordion guidance](https://github.com/angular/components/blob/main/src/material/expansion/expansion.md) provides the matching component pattern. The [WAI modal-dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/) describes focus placement/containment, Escape and return behavior. These are implementation references, not a claim that this prototype has passed an accessibility audit.
 
 A local DOM-level interaction check passed for page ranges and last-page boundaries, all four sizes, literal label/URL/username queries, combined filters, clearing and zero results, sorting, single expansion, explicit actions, next-expiry item targeting, signup/sign-in modes and cancellation, hash entry, view states and unique IDs. Syntax and local documentation links were checked. Native dialog/focus behavior, smooth-scroll perception, layout and browser password-manager behavior still require an Edge walkthrough. The earlier cloud-browser preview restriction was not retried or bypassed.
+
+## 11. Production rollout
+
+The first implementation slice is [#207](https://github.com/JordyNicholas/Keynest/issues/207): an Angular public homepage at anonymous `/`, with the approved hierarchy, responsive public navigation, smooth section scrolling, Material actions, documentation/security links and visibly synthetic preview artwork. Public entry requires no API request. Direct tools, guarded Vault and account settings remain available. Until the overview slice lands, authenticated `/` continues to open `/vault`; both public account actions use the existing `/account` form as a working interim destination.
+
+This slice does not implement the account overview API, account navigation rail, signup dialog, bounded server-side Vault browsing, usage counters or history. Introduce these through focused follow-up PRs, reusing shared authentication logic for the dialog and a bounded owner-scoped metadata query for overview/filter counts. Do not download the entire Vault for dashboard charts or introduce tracking before its explicit contract is agreed.
+
+For the public-home slice, verify `/` without an API connection, the dedicated generator's policy fetch, both account links, authenticated root behavior, direct guarded routes and `/#security` refresh. The Windows/Edge walkthrough must also check 320px reflow, enlarged text, horizontal section navigation, skip link/focus, native FAQ controls, smooth scroll and reduced motion. Component/route tests and a build do not replace this visual walkthrough or close MVP release gates.

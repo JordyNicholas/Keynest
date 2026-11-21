@@ -23,3 +23,10 @@ body {
     );
   color: var(--kn-color-ink);
 }
+
+/* Public section navigation follows the reviewed motion preference. */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(kn-home-page) {
+    scroll-behavior: smooth;
+  }
+}

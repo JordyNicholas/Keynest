@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+.container {
+  inline-size: min(75rem, calc(100% - 6rem));
+  margin-inline: auto;
+}
+
+.public-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-block-size: 6.5rem;
+}
+
+.wordmark {
+  font: 600 2.25rem/1 var(--kn-font-display);
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.wordmark span {
+  color: var(--kn-color-accent);
+}
+
+.public-header nav {
+  display: flex;
+  gap: 1.75rem;
+}
+
+.public-header nav a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  color: var(--kn-color-muted);
+  text-decoration: none;
+}
+
+.public-header nav a:hover {
+  color: var(--kn-color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.public-header > a:last-child {
+  flex-shrink: 0;
+  min-block-size: 3rem;
+  padding-inline: 1.5rem;
+  font-size: 1rem;
+}
+
+:where(a):focus-visible {
+  outline: 2px solid var(--kn-color-accent);
+  outline-offset: 4px;
+  border-radius: 0.25rem;
+}
+
+@media (max-width: 65rem) {
+  .container {
+    inline-size: calc(100% - 4rem);
+  }
+  .public-header nav {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .container {
+    inline-size: calc(100% - 2.5rem);
+  }
+  .public-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem 1rem;
+    padding-block: 1.25rem;
+  }
+  .public-header > a:last-child {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .public-header nav {
+    display: flex;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    overflow-x: auto;
+    min-inline-size: 0;
+    gap: 1.25rem;
+    padding: 0.25rem 0.25rem 0.5rem;
+  }
+  .public-header nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.875rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .public-header nav a {
+    transition: color 160ms ease-out;
+  }
+}
