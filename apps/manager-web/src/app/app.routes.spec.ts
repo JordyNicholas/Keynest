@@ -215,6 +215,17 @@ describe('Manager entry routes', () => {
     http.expectNone('/api/v1/vault/items');http.expectNone(request => request.url.endsWith('/reveal'));
   });
 
+  it('updates workspace width through router completion when switching between views and forms', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
+    const harness = await RouterTestingHarness.create('/overview');const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/vault/overview').flush(emptyOverview());harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('main')?.classList.contains('wide')).toBeTrue();
+    await harness.navigateByUrl('/account');http.expectOne('/api/v1/auth/me').flush({ email: 'sample@example.test' });harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('main')?.classList.contains('wide')).toBeFalse();
+    await harness.navigateByUrl('/vault');http.expectOne('/api/v1/vault/items/search').flush(emptyVaultPage);harness.detectChanges();
+    expect(harness.routeNativeElement?.querySelector('main')?.classList.contains('wide')).toBeTrue();
+  });
+
   it('opens an authorized selected item in the requested expiry scope without fetching the whole Vault', async () => {
     TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
     const id = '00000000-0000-0000-0000-000000000001';

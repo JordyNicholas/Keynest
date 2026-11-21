@@ -18,7 +18,7 @@
       </div>
     }
   </aside>
-  <main #page class="main" [class.wide]="outlet.isActivated && outlet.activatedRouteData['wide']" id="workspace-content" tabindex="-1">
-    <router-outlet #outlet="outlet" (activate)="activatePage(page)" />
+  <main #page class="main" [class.wide]="wide()" id="workspace-content" tabindex="-1">
+    <router-outlet (activate)="activatePage(page)" />
   </main>
 </div>

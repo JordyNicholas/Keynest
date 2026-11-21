@@ -1,6 +1,8 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -18,7 +20,11 @@ export class ShellComponent {
   private readonly http = inject(HttpClient);
   private readonly api = inject(API_BASE_URL);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  readonly wide = toSignal(this.router.events.pipe(
+    filter(event => event instanceof NavigationEnd), map(() => this.isWidePage()),
+  ), { initialValue: this.isWidePage() });
   readonly loggingOut = signal(false);
   private transition?: Animation;
 
@@ -42,6 +48,12 @@ export class ShellComponent {
   }
 
   skipToContent(event: Event, page: HTMLElement): void { event.preventDefault();page.focus(); }
+
+  private isWidePage(): boolean {
+    let route = this.route.snapshot;
+    while (route.firstChild) route = route.firstChild;
+    return route.data['wide'] === true;
+  }
 
   logout(): void {
     if (this.loggingOut()) return;
