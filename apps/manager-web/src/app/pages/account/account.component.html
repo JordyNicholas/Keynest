@@ -1,4 +1,4 @@
-<h1 class="page-title">{{ auth.signedIn() ? 'Account settings' : authMode() === 'signup' ? 'Create your account' : 'Sign in to Manager' }}</h1>
+<h1 class="page-title">Account settings</h1>
 <kn-inline-error [(message)]="error" />
 
 @if (auth.signedIn()) {
@@ -34,9 +34,6 @@
       }
     </details>
   </section>
-} @else {
-  <p class="page-lede">Sign in or create an account to use your vault.</p>
-  <kn-auth-form [mode]="authMode()" (modeChange)="changeAuthMode($event)" (authenticated)="onAuth()" />
 }
 
 <section id="diagnostics-heading" class="panel" aria-labelledby="diagnostics-title">

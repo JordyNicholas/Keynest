@@ -41,7 +41,7 @@
             @if (data.policy.rules.excludeAmbiguous) { <li>Ambiguous characters excluded</li> }
           </ul>
           <p class="panel-description">Your selected rules guide generation, checking and saved passwords. Existing items are not automatically reassessed when rules change.</p>
-          <div class="heading-actions"><a mat-stroked-button routerLink="/account" fragment="password-policy-heading">Review rules</a><a mat-button routerLink="/tools/check">Check a sample</a></div>
+          <div class="heading-actions"><a mat-stroked-button routerLink="/account" fragment="password-policy-heading">Review rules</a><a mat-button routerLink="/tools" [queryParams]="{ tool: 'check' }" fragment="check">Check a sample</a></div>
         </section>
         <section class="overview-panel" aria-labelledby="recent-heading">
           <h2 id="recent-heading">Recent item changes</h2><p class="panel-description">The latest change to each item currently in your Vault.</p>

@@ -22,18 +22,6 @@ const categoryCodes = {
   symbols: 'password.require_symbol',
 };
 
-export function checkCustomRules(sample: string, minimum: number, required: CharacterSelection): PolicyCheck[] {
-  const characters = Array.from(sample);
-  return [
-    { id: 'length', label: `Use at least ${minimum} characters`, met: characters.length >= minimum },
-    ...characterGroups.filter(({ id }) => required[id]).map(({ id, characters: group }) => ({
-      id: categoryCodes[id],
-      label: categoryLabels[id],
-      met: characters.some((character) => group.includes(character)),
-    })),
-  ];
-}
-
 export function previewBuiltInPolicy(sample: string, rules: BuiltInPolicy['rules']): PolicyCheck[] {
   // Java's Unicode character classifications can differ from the browser's. Let the API
   // resolve categories the ASCII portion of the sample does not already satisfy.

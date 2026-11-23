@@ -1,5 +1,6 @@
-<div class="shell" [class.authenticated]="signedIn()">
-  <a class="skip-link" [href]="signedIn() ? '/overview#workspace-content' : '/tools#workspace-content'" (click)="skipToContent($event, page)">Skip to content</a>
+@if (signedIn()) {
+<div class="shell authenticated">
+  <a class="skip-link" href="/overview#workspace-content" (click)="skipToContent($event, page)">Skip to content</a>
   <aside class="navigation" aria-label="Workspace navigation">
     <header class="brand"><a class="mark" routerLink="/">Keynest<span>.</span></a><p class="product">Your password workspace</p></header>
     <nav class="nav" aria-label="Primary">
@@ -8,7 +9,7 @@
         <a #vault routerLink="/vault" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(vault, $event)">Vault</a>
       }
       <a #tools routerLink="/tools" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(tools, $event)">Password tools</a>
-      <a #account routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(account, $event)">{{ signedIn() ? 'Account settings' : 'Sign in' }}</a>
+      <a #account routerLink="/account" routerLinkActive="active" ariaCurrentWhenActive="page" (isActiveChange)="keepActiveLinkVisible(account, $event)">Account settings</a>
     </nav>
     @if (signedIn()) {
       <div class="session-controls">
@@ -22,3 +23,4 @@
     <router-outlet (activate)="activatePage(page)" />
   </main>
 </div>
+}

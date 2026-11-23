@@ -25,7 +25,6 @@ export class GeneratePasswordPageComponent implements OnDestroy {
     return policy ? generatorOptionsForPolicy(policy.rules) : null;
   });
   private readonly auth = inject(AuthService);
-  readonly signedIn = this.auth.signedIn;
   readonly copyStatus = signal('');
   readonly generated = signal('');
   readonly error = signal('');
@@ -37,7 +36,7 @@ export class GeneratePasswordPageComponent implements OnDestroy {
   loadPolicy(): void {
     this.error.set('');
     this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, {
-      headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined,
+      headers: this.auth.authHeaders(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

@@ -22,14 +22,14 @@ describe('authGuard', () => {
     ));
   }
 
-  function expectAccountRedirect(): void {
+  function expectHomeRedirect(): void {
     const result = activateVault();
     expect(result instanceof UrlTree).toBeTrue();
-    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/account?returnTo=%2Fvault');
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/');
   }
 
-  it('redirects a signed-out visitor to the account route', () => {
-    expectAccountRedirect();
+  it('redirects a signed-out visitor to the landing page', () => {
+    expectHomeRedirect();
   });
 
   it('allows a restored tab session to enter the vault', () => {
@@ -39,7 +39,7 @@ describe('authGuard', () => {
 
   it('rejects a legacy localStorage bearer and removes it', () => {
     localStorage.setItem('keynest.token', 'legacy-token');
-    expectAccountRedirect();
+    expectHomeRedirect();
     expect(localStorage.getItem('keynest.token')).toBeNull();
   });
 
@@ -50,6 +50,6 @@ describe('authGuard', () => {
 
     auth.clearSession();
 
-    expectAccountRedirect();
+    expectHomeRedirect();
   });
 });

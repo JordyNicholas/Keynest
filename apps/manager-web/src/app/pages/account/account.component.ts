@@ -11,13 +11,11 @@ import { PasswordPolicySettingsComponent } from './password-policy-settings.comp
 
 import { ApiHealthPageComponent } from '../tools/api-health.component';
 
-import { AuthFormComponent, AuthMode } from '../../auth/auth-form.component';
-import { authReturnUrl } from '../../auth/auth-return-url';
 import { logoutSession } from '../../auth/logout-session';
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, AuthFormComponent, MatButtonModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
+  imports: [InlineErrorComponent, MatButtonModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
@@ -29,7 +27,6 @@ export class AccountPageComponent {
   readonly auth = inject(AuthService);
 
   private readonly route = inject(ActivatedRoute);
-  readonly authMode = signal<AuthMode>('signin');
   readonly policyOpen = signal(false);
   readonly healthOpen = signal(false);
   readonly error = signal('');
@@ -40,9 +37,6 @@ export class AccountPageComponent {
   constructor() {
     this.route.fragment.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
       if (fragment === 'diagnostics-heading') this.healthOpen.set(true);
-    });
-    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
-      this.authMode.set(params.get('auth') === 'signup' ? 'signup' : 'signin');
     });
     const token = this.auth.token();
     if (!token) return;
@@ -56,23 +50,12 @@ export class AccountPageComponent {
           if (this.auth.token() !== token) return;
           if (response.status === 401) {
             this.auth.clearSession();
-            this.error.set('Your session expired. Sign in again.');
+            void this.router.navigateByUrl('/', { replaceUrl: true });
           } else {
             this.error.set('Could not verify account details.');
           }
         },
       });
-  }
-
-  onAuth(): void {
-    const requested = this.route.snapshot.queryParamMap.get('returnTo');
-    const aiSetup = this.aiSetupRequested ? '/account?ai=policy-explanation#ai-settings' : null;
-    void this.router.navigateByUrl(authReturnUrl(this.router, requested ?? aiSetup), { onSameUrlNavigation: 'reload' });
-  }
-
-  changeAuthMode(mode: AuthMode): void {
-    this.authMode.set(mode);
-    void this.router.navigate([], { relativeTo: this.route, queryParams: { auth: mode }, queryParamsHandling: 'merge', replaceUrl: true });
   }
 
   logout(): void {

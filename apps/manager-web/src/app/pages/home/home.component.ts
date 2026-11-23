@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { PublicGeneratorComponent } from './public-generator.component';
 import { HomePreviewComponent } from './home-preview.component';
 import { PublicHeaderComponent } from './public-header.component';
 import { AuthDialogComponent } from '../../auth/auth-dialog.component';
@@ -11,7 +12,7 @@ import { authReturnUrl } from '../../auth/auth-return-url';
 /** Public product information; account entry is explicit and no account data loads on entry. */
 @Component({
   selector: 'kn-home-page',
-  imports: [RouterLink, MatButtonModule, HomePreviewComponent, PublicHeaderComponent],
+  imports: [RouterLink, MatButtonModule, HomePreviewComponent, PublicHeaderComponent, PublicGeneratorComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })

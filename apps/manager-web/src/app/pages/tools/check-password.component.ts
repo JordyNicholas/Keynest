@@ -2,7 +2,6 @@ import { httpErrorMessage } from '../http-error-message';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, DestroyRef, ElementRef, inject, input, OnDestroy, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -10,12 +9,11 @@ import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
 import { BuiltInPolicy } from './built-in-policy';
-import { characterGroups, CharacterGroup, CharacterSelection, maxPasswordLength, minPasswordLength, validPasswordLength } from './password-options';
-import { checkCustomRules, confirmBuiltInPolicy, PolicyCheck, previewBuiltInPolicy } from './password-policy-checks';
+import { confirmBuiltInPolicy, PolicyCheck, previewBuiltInPolicy } from './password-policy-checks';
 
 @Component({
   selector: 'kn-check-password-page',
-  imports: [FormsModule, InlineErrorComponent, MatButtonModule, RouterLink],
+  imports: [InlineErrorComponent, MatButtonModule, RouterLink],
   templateUrl: './check-password.component.html',
   styleUrls: ['../page-shared.css', './check-password.component.css'],
 })
@@ -30,14 +28,8 @@ export class CheckPasswordPageComponent implements OnDestroy {
   private readonly navigationInfo = inject(Router).currentNavigation()?.extras.info as { policyExplanation?: unknown } | undefined;
   readonly explanation = input(typeof this.navigationInfo?.policyExplanation === 'string' ? this.navigationInfo.policyExplanation : '');
   private readonly sample = viewChild<ElementRef<HTMLInputElement>>('sample');
-  readonly mode = signal<'built-in' | 'custom'>('built-in');
   readonly policy = signal<BuiltInPolicy | null>(null);
   readonly policyError = signal('');
-  readonly minLength = minPasswordLength;
-  readonly maxLength = maxPasswordLength;
-  readonly minimum = signal<number | null>(16);
-  readonly required = signal<CharacterSelection>({ lower: true, upper: true, digits: true, symbols: true });
-  readonly characterGroups = characterGroups;
   readonly validating = signal(false);
   readonly validationError = signal('');
   readonly submitted = signal(false);
@@ -62,29 +54,13 @@ export class CheckPasswordPageComponent implements OnDestroy {
   loadPolicy(): void {
     this.policyError.set('');
     this.http.get<BuiltInPolicy>(`${this.apiBaseUrl}/tools/policy`, {
-      headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined,
+      headers: this.auth.authHeaders(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (policy) => this.policy.set(policy),
         error: ({ status }) => this.policyError.set(httpErrorMessage(status, 'load the selected password rules')),
       });
-  }
-
-  selectMode(mode: 'built-in' | 'custom', input: HTMLInputElement): void {
-    this.mode.set(mode);
-    input.value = '';
-    this.updatePreview(input);
-  }
-
-  changeMinimum(minimum: number | null, input: HTMLInputElement): void {
-    this.minimum.set(minimum);
-    this.updatePreview(input);
-  }
-
-  changeCategory(category: CharacterGroup, checked: boolean, input: HTMLInputElement): void {
-    this.required.update((selection) => ({ ...selection, [category]: checked }));
-    this.updatePreview(input);
   }
 
   updatePreview(input: HTMLInputElement): void {
@@ -96,7 +72,7 @@ export class CheckPasswordPageComponent implements OnDestroy {
   validateSample(event: Event, input: HTMLInputElement): void {
     event.preventDefault();
     const policy = this.policy();
-    if (this.mode() !== 'built-in' || this.validating() || !policy || !input.value) return;
+    if (this.validating() || !policy || !input.value) return;
 
     const password = input.value;
     input.value = '';
@@ -107,7 +83,7 @@ export class CheckPasswordPageComponent implements OnDestroy {
     this.validating.set(true);
     this.http.post<{ valid: boolean; violations: string[]; policyId: string }>(
       `${this.apiBaseUrl}/tools/validate?operation=update`, { password, policyId: policy.id },
-      { headers: this.auth.signedIn() ? this.auth.authHeaders() : undefined },
+      { headers: this.auth.authHeaders() },
     ).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.validating.set(false)))
       .subscribe({
         next: ({ valid, violations, policyId }) => {
@@ -128,10 +104,6 @@ export class CheckPasswordPageComponent implements OnDestroy {
   }
 
   private evaluate(sample: string): PolicyCheck[] | null {
-    if (this.mode() === 'custom') {
-      const minimum = this.minimum();
-      return validPasswordLength(minimum) ? checkCustomRules(sample, minimum, this.required()) : null;
-    }
     const rules = this.policy()?.rules;
     return rules ? previewBuiltInPolicy(sample, rules) : null;
   }

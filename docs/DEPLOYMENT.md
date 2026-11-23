@@ -105,7 +105,7 @@ Use this PowerShell walkthrough when you need to test a Vercel Preview and have 
    curl.exe -i -X OPTIONS "$api/vault/items" -H "Origin: $previewOrigin" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization, content-type"
    ```
 
-5. In Vercel, set `KEYNEST_API_BASE_URL` for **Preview** on the test branch to the value of `$api`, including `/api/v1`. Redeploy that branch and open `/status` on its stable Preview URL. In DevTools, verify that the health request goes to the tunnel URL and returns JSON. Then verify sign-in and a Vault operation with disposable data. A new Quick Tunnel gives you a new URL, which requires another Preview build.
+5. In Vercel, set `KEYNEST_API_BASE_URL` for **Preview** on the test branch to the value of `$api`, including `/api/v1`. Redeploy that branch and sign in on its stable Preview URL, then open `/account#diagnostics-heading`. In DevTools, verify that the health request goes to the tunnel URL and returns JSON. Then verify sign-in and a Vault operation with disposable data. A new Quick Tunnel gives you a new URL, which requires another Preview build.
 6. Stop the tunnel with **Ctrl+C**, then run `docker stop keynest-preview-proxy` and `Remove-Item -LiteralPath $caddyfile` in the first terminal. Remove the temporary Vercel branch override or restore its previous value. Redeploy the test branch if it should point to the restored API, and restore the local test stack’s previous CORS setting.
 
 ## Promote to production
