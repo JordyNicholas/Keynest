@@ -15,6 +15,61 @@ The maintainer has deferred public deployment. The current goal is to verify tha
 
 External reminder email is off the critical path for this target. The in-app expiry list and local reminder rehearsal are available. Keep external delivery disabled until recipient verification and consent are ready.
 
+## November 23 maintainer verification — native restore and core release paths
+
+**Maintainer-reported result:** pass for the checks listed below, performed at **2026-11-23T18:51:17.463945-03:00** on revision **`fda972f070af68e6d957f3c0d88e29181d23307b`**. This is a Chrome/Ubuntu rehearsal; Windows/Edge were unavailable and are not claimed. The report names one tested revision and a local deployment, not separate Web/API image digests. These results were supplied by the maintainer, not independently rerun by the recording agent.
+
+[Exact-revision main CI](https://github.com/JordyNicholas/Keynest/actions/runs/45213003321) passed on the same SHA. This is a verified implementation/rehearsal checkpoint, not a newly frozen release candidate or public-deployment claim. The older `0.1.0-rc.1` record below remains historical.
+
+| Environment | Reported value |
+| --- | --- |
+| OS | Ubuntu 24.04.5 LTS, x86_64 |
+| Browser | Google Chrome 157.0.8103.50 (Official Build), X11 |
+| Docker Engine / Compose | 29.1.3 / 2.40.3 |
+| Node / npm | v22.23.4 / 10.9.9 |
+| Java | OpenJDK 21.0.13.0.3 |
+| PostgreSQL | 16.16, image `postgres:16-alpine` |
+| Supported browser origin in this run | `http://localhost:4200` |
+
+| Check | Maintainer-reported result |
+| --- | --- |
+| Runtime controls | Pass |
+| HTTP smoke and CORS | Pass |
+| Browser checklist | Pass |
+| Mobile layout | Pass |
+| Keyboard/focus | Pass |
+| Reduced motion | Pass |
+| Connection failure/recovery | Pass |
+| AI disabled | Pass |
+| Backup created and copied | Pass |
+| Restore into separate database | Pass |
+| Fresh sign-in after restore | Pass |
+| Original password matches after restore | Pass |
+| Create/reveal after restore | Pass |
+
+### Observations and exact limits of this run
+
+1. This run used Chrome on Ubuntu. Windows and Edge were unavailable; no results for those platforms or versions are claimed.
+2. The supported origin was `http://localhost:4200`. Opening Web at `http://127.0.0.1:4200` was refused by CORS. This records the exact-origin configuration, not a reason to broaden the allowlist.
+3. A burst of restore reviews reached the API limit of 30 requests per minute and returned 429. The same checks passed after the window; limited calls did not change Vault.
+4. At 240px the primary navigation scrolled horizontally and Account settings remained reachable. Below 960px the sidebar Sign out control was hidden; Sign out remained on the Account page.
+5. At 320px Show password and Copy replacement were side by side; at 240px they stacked. At 390px Vault search and Clear search stacked, while Restore, Export and Add Vault item remained visible.
+6. With reduced motion at no preference, one page change animated the main content. With `prefers-reduced-motion: reduce`, the same kind of page change did not.
+7. Closing a restore review removed the dialog and wrote nothing. Hiding the tab cleared the selected file and showed “Choose your file and review again after leaving this tab.” The item count was unchanged.
+8. Aborting the apply connection produced one attempt and no retry. The dialog warned that restore may have finished and would not be retried automatically. The connection was aborted before server acceptance; the empty Vault remained empty after refresh. **This does not verify a lost response after a successful server commit.**
+9. Reimporting the same `.keynest` file into the account already holding its item reviewed as **0 to add, 0 to update, 1 to ignore**. The report does not provide separate manual outcomes for explicit Update existing, Keep both, ambiguous targets or cross-instance native-file restore; retain their automated evidence separately rather than inferring manual passes.
+10. PostgreSQL recovery used a custom dump of the isolated `keynest-verify` database, restored into a separate database with the same vault key ID. Flyway V1–V6 succeeded; orphan session and Vault counts were zero. Fresh sign-in and the existing-password comparison passed; a new item was created and both items survived an API restart. The original database retained its pre-dump row/password and its volume was kept. Only the disposable database was removed. Successful reveal verifies the retained-key recovery path; no key value is recorded.
+11. The production profile rejected the documented demo vault key even with demo-key opt-in set. The process exited 1 without printing the key.
+12. Authenticated policy explanation returned `503 AI_DISABLED`; anonymous explanation returned 401; the Docker-profile seal tool returned 403.
+
+### Closeout and remaining release work
+
+Native encrypted export/restore and reviewed duplicate resolution are merged through #227/#231/#235/#241/#245/#249. The reported browser/recovery checks above and their environment are now recorded. These outcomes do not retroactively fill unknown fields in historical rehearsals or establish every individual pending policy/UX test.
+
+Third-party migration is **deferred by the maintainer on November 23** and is not a release prerequisite. Keep destinations unavailable; the pinned Bitwarden parser/model harness (#247) is limited automated evidence, not destination save/sync verification.
+
+Before release, reconcile individual checks not explicitly reported (including relevant policy/UX follow-ups), run any remaining targeted manual conflict/file scenarios, refresh security/limitations and install/distribution documentation, then select a final candidate SHA and require its own CI and maintainer go/no-go. Public hosting and live BYOK remain deferred; no new tag, publication, deployment or supported Windows/Edge claim is authorized by this test report.
+
 ## Verified baseline
 
 [CI for PR #119](https://github.com/JordyNicholas/Keynest/actions/runs/43629011117) passed the packaged API/PostgreSQL smoke over HTTP, the PostgreSQL restore integration test, the Manager Web build and 18 browser tests, and standalone library consumption on JDK 21 and 25. This is baseline evidence. Reconfirm against the final release candidate.
@@ -144,5 +199,7 @@ The `0.1.0-rc.1` distribution path is a checkout or source archive of the candid
 
 ## Open release gates
 
-- Complete the test date, revision, and environment fields for the maintainer-confirmed rehearsals.
-- Optional live BYOK rehearsal requires maintainer approval. Keep BYOK disabled for core verification. Agent tooling is post-release.
+- Use the dated November 23 checkpoint for its explicitly reported Chrome/Ubuntu browser, runtime and PostgreSQL recovery results. Older rehearsals retain their unknown fields; do not infer platform coverage or unreported individual checks.
+- Finish remaining targeted policy/UX and native-file/conflict human checks, record any platform support limits, and resolve release-blocking defects.
+- Finalize security/limitations, clean-install and source-distribution documentation; freeze a fresh candidate SHA, confirm exact-SHA CI, and obtain the maintainer's release go/no-go before tag/publication.
+- Third-party migration and public hosting are deferred. Optional live BYOK rehearsal requires maintainer approval; keep BYOK disabled for core verification. Agent tooling is post-release.
