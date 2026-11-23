@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for #234 under #154. This is a separate security-sensitive change. The maintainer approved the existing payload/container and export API/UI through #217, #219, #227 and #231; those approvals do not approve this restore implementation.
+Accepted through maintainer-approved PR [#235](https://github.com/JordyNicholas/Keynest/pull/235) for #234 under #154. The internal foundation is merged. The authenticated transport is proposed separately in [ADR-0015](ADR-0015-authenticated-native-restore.md).
 
 ## Decision and boundary
 
@@ -34,6 +34,6 @@ No database or stored-envelope migration is needed. Rollback removes the service
 
 Integration tests must cover exact metadata/password preservation under a stricter receiving policy, receiver isolation, wrong passphrase/tamper/changed file or receiver, empty files, busy work, credential/file/payload cleanup and rollback after a flushed partial insert.
 
-A Testcontainers PostgreSQL test exports from one application/database/key, closes that application, restores to an independently migrated database under another key and owner, retains existing receiving items, checks ownership/readability and metadata, then restarts the receiving application and reveals again. Record actual CI execution rather than counting a skipped Docker test as proof.
+A Testcontainers PostgreSQL test exports from one application/database/key, closes that application, restores to an independently migrated database under another key and owner, retains existing receiving items, checks ownership/readability and metadata, then restarts the receiving application and reveals again. CI for `e8653274ee267a3ba78db79f7055e8262812814d` ran this PostgreSQL test without skips before #235 merged; later candidates must retain that check. A skipped Docker test is not proof.
 
 This foundation does not implement a public restore journey. Authenticated preview/apply HTTP, one-use plan/replay semantics, rate/body/cache/audit boundaries, restoration UI, Windows/Edge handling and third-party importer walkthroughs remain separate gates. Keep #154 open.

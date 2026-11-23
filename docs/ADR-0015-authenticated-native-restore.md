@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for #240 / #154. The internal foundation is accepted through approved #235 / ADR-0014. This transport is a separate security-sensitive PR and is not approved for merge by approval of unrelated UI work.
+Proposed in [#241](https://github.com/JordyNicholas/Keynest/pull/241) for #240 / #154. The internal foundation is accepted through #235 / [ADR-0014](ADR-0014-native-restore-foundation.md).
 
 ## Contract
 
@@ -30,4 +30,4 @@ A path filter sets no-store, Pragma, Expires and nosniff before size/rate/handle
 
 No database, Seal, key, stored payload or session format migration. The existing trusted internal restore overload remains for non-network tests/use cases; the HTTP handler always supplies its authorization callback. No public restore UI or agent tool is added here.
 
-Tests cover exact HTTP restore, no writes during preview, fresh authentication, session/credential/file binding, stale/expired plans, concurrent one-use consumption, malformed/oversized/chunked bodies, admission cleanup, cache/rate/audit boundaries and revocation during receiving work. Retain the independent PostgreSQL database/key/restart test. Rollback removes transport/plans and fixed paths/actions; committed rows remain readable ordinary Vault items. Keep #154 and human file/UI walkthrough gates open.
+Tests cover exact HTTP restore, no writes during preview, fresh authentication, session/credential/file binding, stale/expired plans, concurrent one-use consumption, malformed/oversized/chunked bodies, admission cleanup, cache/rate/audit boundaries and revocation during receiving work. Retain the independent PostgreSQL database/key/restart test. Both packaged and hosted Compose smoke exercises perform encrypted export, receiving-owner preview/apply, replay refusal, fresh identity, exact password reveal and tenant isolation over real HTTP. Rollback removes transport/plans and fixed paths/actions; committed rows remain readable ordinary Vault items. Keep #154 and human file/UI walkthrough gates open.
