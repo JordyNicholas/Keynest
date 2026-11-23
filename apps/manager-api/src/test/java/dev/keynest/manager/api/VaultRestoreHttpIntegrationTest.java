@@ -68,6 +68,14 @@ class VaultRestoreHttpIntegrationTest {
       .content(apply(plan).toString())).andExpect(status().isConflict());
     assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).isEmpty();
   }
+  @Test void anotherOwnerCannotUseThePlan() throws Exception {
+    String plan = preview(bearer);
+    String other = "Bearer " + auth.register("restore-other-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", other).contentType(MediaType.APPLICATION_JSON).content(apply(plan).toString()))
+      .andExpect(status().isConflict());
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(auth.requireUser(other).getId())).isEmpty();
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).isEmpty();
+  }
   @Test void differentSessionAndCredentialEpochCannotApplyAnOldPreview() throws Exception {
     String plan = preview(bearer);String email = auth.requireUser(bearer).getEmail();
     String second = "Bearer " + auth.login(email, ACCOUNT).token();

@@ -20,8 +20,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import static dev.keynest.manager.vault.VaultRestoreFailure.Code.*;
 
 /**
- * Internal restore foundation, not an HTTP or agent capability.
- * A future transport must authenticate/reauthenticate the receiver and bind a one-use plan.
+ * Restore core. The trusted overload is internal; HTTP supplies a transactional authorization guard.
+ * No agent capability is registered.
  */
 @Service
 public class VaultRestoreService {

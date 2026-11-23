@@ -44,6 +44,8 @@ class SecurityEventFilterTest {
   @ParameterizedTest
   @CsvSource({
     "POST,/api/v1/ai/policy/explain,AI_POLICY_EXPLAIN",
+    "POST,/api/v1/vault/restores/preview,VAULT_RESTORE_PREVIEW",
+    "POST,/api/v1/vault/restores/apply,VAULT_RESTORE_APPLY",
     "POST,/api/v1/vault/exports/preview,VAULT_EXPORT_PREVIEW",
     "POST,/api/v1/vault/exports/download,VAULT_EXPORT_DOWNLOAD",
     "POST,/api/v1/auth/register,AUTH_REGISTER", "POST,/api/v1/auth/login,AUTH_LOGIN",
