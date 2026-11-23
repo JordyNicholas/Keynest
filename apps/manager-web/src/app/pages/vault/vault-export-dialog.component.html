@@ -1,0 +1,28 @@
+<h2 mat-dialog-title id="export-title">Export your Vault</h2>
+<mat-dialog-content>
+  <p>Destination: <strong>Keynest encrypted file (.keynest)</strong>. Passwords, login metadata and current account rules are encrypted with your export passphrase. Your server encryption key is excluded.</p>
+  <p>Up to 500 items. Third-party migration formats are not yet available. Application restore is still being built; this file alone is not a verified recovery workflow. Keep your existing database and retained-key backups.</p>
+  <label for="export-scope">Items to export</label>
+  <select id="export-scope" [value]="scope()" (change)="changeScope($any($event.target).value)" [disabled]="busy()">
+    <option value="all">All items in my Vault (all pages and filters)</option>
+    <option value="selected" [disabled]="!ids.length">Selected items ({{ ids.length }})</option>
+  </select>
+  <kn-inline-error [(message)]="error" />
+  @if (preview(); as preview) {
+    <p class="review" role="status">Ready to export {{ preview.itemCount }} item(s) as an encrypted Keynest file. Review checked metadata only; no password has been revealed.</p>
+    <form ngNativeValidate (submit)="download($event)">
+      <p>Verify your account password for this download. Choose a separate export passphrase and keep it safely: Keynest cannot reset it.</p>
+      <label for="export-account-password">Keynest account password</label>
+      <input #account id="export-account-password" type="password" autocomplete="off" required maxlength="32768" [disabled]="busy()" />
+      <label for="export-passphrase">Export passphrase (at least 15 characters)</label>
+      <input #phrase id="export-passphrase" type="password" autocomplete="off" required maxlength="1024" [disabled]="busy()" />
+      <label for="export-passphrase-confirmation">Confirm export passphrase</label>
+      <input #confirmation id="export-passphrase-confirmation" type="password" autocomplete="off" required maxlength="1024" [disabled]="busy()" />
+      <button mat-flat-button type="submit" [disabled]="busy()">{{ busy() ? 'Preparing encrypted file…' : 'Verify and download encrypted file' }}</button>
+    </form>
+  } @else {
+    <button mat-flat-button type="button" (click)="review()" [disabled]="busy()">{{ busy() ? 'Reviewing…' : 'Review export' }}</button>
+  }
+  <p role="status">{{ status() }}</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-stroked-button type="button" mat-dialog-close>Close</button></mat-dialog-actions>

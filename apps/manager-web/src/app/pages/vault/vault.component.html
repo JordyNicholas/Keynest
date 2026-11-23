@@ -1,8 +1,13 @@
 <div class="page-heading">
   <div><h1 class="page-title">Your vault</h1><p class="page-lede">A dedicated place for your saved accounts and passwords.</p></div>
-  <a mat-flat-button routerLink="/vault/new">Add Vault item</a>
+  <div class="row"><button mat-stroked-button type="button" (click)="openExport()">Export</button><a mat-flat-button routerLink="/vault/new">Add Vault item</a></div>
 </div>
 <kn-inline-error [(message)]="error" />
+<kn-inline-error [(message)]="selectionError" />
+<div class="export-selection" aria-label="Export selection">
+  <span role="status">{{ exportIds().size }} selected for export across pages and filters (maximum 500).</span>
+  @if (exportIds().size) { <button mat-button type="button" (click)="clearExportSelection()">Clear export selection</button> }
+</div>
 
 <section class="browse-controls" aria-label="Find Vault items">
   <div class="search-control">
@@ -49,6 +54,8 @@
       <mat-accordion class="saved-items" [multi]="false">
         @for (item of items(); track item.id) {
           @let expiry = expiryStatus(item.expiresAt);
+          <div class="export-item">
+            <label class="export-checkbox"><input type="checkbox" [checked]="exportIds().has(item.id)" [attr.aria-label]="'Select ' + item.label + ' for export'" (change)="selectForExport(item.id, $any($event.target).checked)" /><span class="kn-sr-only">Select for export</span></label>
           <mat-expansion-panel class="vault-card" [expanded]="expandedId() === item.id" (opened)="expandedId.set(item.id)" (closed)="closeItem(item.id)">
             <mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
               <mat-panel-title class="vault-header"><span class="item-avatar" aria-hidden="true">{{ item.label.slice(0, 1) }}</span><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone"><kn-icon [name]="expiry.tone === 'healthy' ? 'check' : expiry.tone === 'urgent' ? 'alert' : expiry.tone === 'warning' ? 'clock' : 'minus'" />{{ expiry.label }}</span></mat-panel-title>
@@ -59,6 +66,7 @@
                                      (reveal)="reveal(item.id)" (conceal)="conceal(item.id)" (remove)="remove(item.id)" />
             </ng-template>
           </mat-expansion-panel>
+          </div>
         }
       </mat-accordion>
     } @else {
