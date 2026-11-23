@@ -9,7 +9,7 @@
       <p class="lede">Generate, store and manage passwords with a policy you control. An open-source manager you can host yourself.</p>
       <div class="actions">
         <a mat-flat-button routerLink="/" [queryParams]="{ auth: 'signup' }">Start your vault</a>
-        <a mat-stroked-button routerLink="/" fragment="generator">Try the generator</a>
+        <a mat-stroked-button routerLink="/" fragment="generator" (click)="openGenerator()">Try the generator</a>
       </div>
       <p class="quiet">A dedicated place for every task. AI is optional.</p>
     </div>
@@ -21,8 +21,8 @@
     <li>Account-controlled rules</li><li>Works with AI disabled</li>
   </ul>
 
-  <section class="section container" id="generator" tabindex="-1" aria-label="Public password generator">
-    <kn-public-generator />
+  <section class="section container" id="password-tools" tabindex="-1" aria-labelledby="public-tools-heading">
+    <kn-public-tools />
   </section>
 
   <section class="section container" id="how" tabindex="-1" aria-labelledby="how-heading">
