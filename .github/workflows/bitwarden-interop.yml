@@ -1,0 +1,45 @@
+name: Bitwarden importer interoperability
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/bitwarden-interop.yml'
+      - 'scripts/interop/**'
+      - 'apps/manager-api/src/main/java/dev/keynest/manager/vault/export/**'
+      - 'apps/manager-api/src/test/java/dev/keynest/manager/vault/export/**'
+      - 'libs/keynest-policy/src/main/resources/policies/keynest.default.v1.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bitwarden:
+    name: Pinned Bitwarden JSON importer
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Generate synthetic output using the actual Keynest serializer
+        run: mvn -B -pl apps/manager-api -am -Dtest=BitwardenInteropFixtureTest -Dsurefire.failIfNoSpecifiedTests=false test
+      - uses: actions/checkout@v4
+        with:
+          repository: bitwarden/clients
+          ref: 91214c3b978edb5496a32a946451960fe7d44531
+          path: upstream-bitwarden
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: upstream-bitwarden/package-lock.json
+      - name: Verify with the pinned upstream importer without a cloud account
+        run: python3 scripts/interop/run-bitwarden.py upstream-bitwarden

@@ -1,6 +1,18 @@
 # Native encrypted-file restore workflow
 
-Proposed UI slice for #244 / #154, building on the authenticated API accepted and merged through #241 / [ADR-0015](ADR-0015-authenticated-native-restore.md). Implementation and automated checks do not close the human Windows/Edge or release gates.
+Implemented through maintainer-approved [#245](https://github.com/JordyNicholas/Keynest/pull/245) for #244 / #154, building on the authenticated API accepted and merged through #241 / [ADR-0015](ADR-0015-authenticated-native-restore.md). Implementation and automated checks do not close the human Windows/Edge or release gates.
+
+## Using a `.keynest` file
+
+1. Run a Keynest API and web build containing #245. Sign in to the account that should receive the items, on this instance or another compatible Keynest instance.
+2. Open **Vault → Restore** and choose the exported `.keynest` file.
+3. Enter the **backup passphrase chosen during export** and select **Review encrypted file**. Review does not write items.
+4. Check the item count and append/duplicate disclosure. Enter the **receiving account’s current password**, then select **Verify and restore items**.
+5. On confirmed success, check the refreshed Vault. Current filters still apply. Verify a restored item before relying on the backup. If the outcome is uncertain, close and refresh before attempting another restore.
+
+The file is an authenticated encrypted container holding Keynest’s versioned native JSON. It does not need the source instance’s encryption key or original account password. The backup passphrase cannot be reset. Restore keeps existing items and the receiving account policy; a repeated backup can add duplicates. Store the passphrase separately from the file. Other password managers require their own migration formats; `.keynest` is the native Keynest restore path. Retained-key database backups remain necessary for complete instance/account recovery.
+
+## Workflow and privacy contract
 
 Enter Restore from the signed-in Vault. Opening it conceals revealed passwords; export and restore dialogs cannot overlap. Select an encrypted `.keynest` file and enter its backup passphrase. The browser checks bounded v1 framing before uploading, reads one file at a time, and sends canonical Base64 only to the configured authenticated API. Ordinary/plaintext files and oversized files are refused locally; cryptographic authentication, schema validation, owner binding and resource limits remain server decisions. No filename is sent.
 
