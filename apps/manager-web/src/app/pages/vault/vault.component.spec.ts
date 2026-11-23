@@ -44,6 +44,15 @@ describe('Bounded Vault browsing', () => {
     request.flush({ password: 'synthetic secret' });
   }
 
+  it('retains only selected identities across pages and filters, and clears them on session change', () => {
+    load([sample]);component.selectForExport(sample.id, true);
+    load([second]);component.selectForExport(second.id, true);
+    component.setExpiry('attention');http.expectOne(endpoint).flush(page());
+    expect([...component.exportIds()]).toEqual([sample.id, second.id]);
+    component.selectForExport('unavailable-id', true);expect(component.exportIds().size).toBe(2);
+    TestBed.inject(AuthService).clearSession();fixture.detectChanges();expect(component.exportIds().size).toBe(0);
+  });
+
   it('keeps collapsed metadata concise, expands explicit actions and never reveals on expansion', () => {
     load();const host: HTMLElement = fixture.nativeElement;
     const header = host.querySelector('mat-expansion-panel-header')!;

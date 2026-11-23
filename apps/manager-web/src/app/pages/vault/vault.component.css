@@ -231,3 +231,8 @@ mat-panel-title.vault-header {
     padding: 1.25rem;
   }
 }
+
+.export-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-block-end: 1rem; color: var(--kn-color-muted); }
+.export-item { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); align-items: start; }
+.export-checkbox { display: grid; place-items: center; min-block-size: 3.5rem; margin: 0; cursor: pointer; }
+.export-checkbox input { inline-size: 1.25rem; min-block-size: 1.25rem; accent-color: var(--kn-color-accent); }
