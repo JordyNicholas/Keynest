@@ -17,6 +17,7 @@ function ticket() { return { planId: 'a'.repeat(43), expiresAt: new Date(Date.no
 describe('Vault encrypted restore dialog', () => {
   let fixture: ComponentFixture<VaultRestoreDialogComponent>, component: VaultRestoreDialogComponent, http: HttpTestingController;
   let closing: Subject<void>, readers: FileReader[];
+  let nativeRead: FileReader['readAsArrayBuffer'];
   beforeEach(() => {
     sessionStorage.clear();closing = new Subject<void>();readers = [];
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting(),
@@ -24,6 +25,7 @@ describe('Vault encrypted restore dialog', () => {
       { provide: MatDialogRef, useValue: { beforeClosed: () => closing, close: jasmine.createSpy('close') } },
     ] });
     TestBed.inject(AuthService).setSession('synthetic-session', 'sample@example.test');
+    nativeRead = FileReader.prototype.readAsArrayBuffer;
     spyOn(FileReader.prototype, 'readAsArrayBuffer').and.callFake(function(this: FileReader) {
       Object.defineProperty(this, 'readyState', { configurable: true, value: FileReader.LOADING });readers.push(this);
     });
@@ -55,6 +57,17 @@ describe('Vault encrypted restore dialog', () => {
     expect(request.request.body).toEqual({ file: encoded, backupPassphrase: phrase });request.flush(ticket());fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Ready to add 2 item(s)');expect(fixture.nativeElement.textContent).toContain('No items have been written');
     expect(field('passphrase').value).toBe(phrase);http.expectNone(applyUrl);
+  });
+
+  it('reads a real browser File after clearing the picker and uploads its exact canonical bytes', async () => {
+    let finished!: Promise<void>, reader!: FileReader;
+    (FileReader.prototype.readAsArrayBuffer as jasmine.Spy).and.callFake(function(this: FileReader, file: Blob) {
+      reader = this;finished = new Promise(resolve => this.addEventListener('loadend', () => resolve(), { once: true }));nativeRead.call(this, file);
+    });
+    const bytes = frame(24_576 + 128);choose(new File([bytes as BlobPart], 'synthetic.keynest'));expect(field('file').value).toBe('');
+    component.review(new Event('submit'));await finished;
+    const request = http.expectOne(previewUrl);expect(request.request.body.file).toBe(btoa(String.fromCharCode(...bytes)));
+    expect(new Uint8Array(reader.result as ArrayBuffer).every(byte => byte === 0)).toBeTrue();request.flush(ticket());
   });
 
   it('applies once with fresh credentials and the exact reviewed file, clears inputs immediately and never persists payloads', () => {
@@ -97,6 +110,21 @@ describe('Vault encrypted restore dialog', () => {
     review();apply().flush({ code: 'RESTORE_REAUTH_FAILED' }, { status: 403, statusText: 'Forbidden' });
     expect(component.blocked()).toBeFalse();expect(component.error()).toContain('Account password verification failed');expect(component.preview()).toBeNull();
     component.apply(new Event('submit'));http.expectNone(applyUrl);expect(component.filename()).toBe('');
+  });
+
+  it('does not interrupt an already-sent apply when the idle review deadline passes', fakeAsync(() => {
+    review();const request = apply();tick(300_001);expect(request.cancelled).toBeFalse();expect(component.applying()).toBeTrue();
+    request.flush({ restoredCount: 2, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalled();
+  }));
+
+  it('treats a generic transaction failure as uncertain rather than assuming the commit was rolled back', () => {
+    review();apply().flush({ code: 'RESTORE_FAILED' }, { status: 503, statusText: 'Unavailable' });
+    expect(component.blocked()).toBeTrue();component.review(new Event('submit'));http.expectNone(previewUrl);
+  });
+
+  it('does not report success for an unrecognized successful apply response', () => {
+    review();apply().flush({ restoredCount: 1, receivingPolicyUnchanged: true });
+    expect(component.blocked()).toBeTrue();expect(TestBed.inject(MatDialogRef).close).not.toHaveBeenCalled();
   });
 
   it('keeps unknown apply outcomes blocked even after the transient error is dismissed', () => {
