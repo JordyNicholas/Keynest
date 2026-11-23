@@ -220,6 +220,22 @@ class VaultRestoreIntegrationTest {
     assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(1);assertThat(SECRET.equals(vault.reveal(receiver, id).password())).isTrue();
   }
 
+  @Test void aLaterFailureRollsBackBothAFlushedReplacementAndNewItems() {
+    var initial = restore.preview(receiver.getId(), file, PHRASE.toCharArray());restore.restore(receiver.getId(), file, PHRASE.toCharArray(), initial.snapshot());
+    UUID id = items.findByUserIdOrderByUpdatedAtDesc(receiver.getId()).getFirst().getId();
+    ObjectNode document = payload();ObjectNode row = (ObjectNode) document.path("items").get(0);row.put("password", "Synthetic replacement for rollback");
+    document.withArray("items").add(row.deepCopy().put("id", UUID.randomUUID().toString()).put("label", "New companion").put("url", "https://other.example.invalid"));
+    byte[] mixed = backups.encrypt(document, PHRASE.toCharArray());
+    var decisions = java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.UPDATE, id), new VaultRestoreDecision(1, VaultRestoreDecision.Action.ADD, null));
+    var preview = restore.preview(receiver.getId(), mixed, PHRASE.toCharArray(), decisions);var calls = new AtomicInteger();
+    doAnswer(call -> {
+      if (calls.incrementAndGet() == 2) { em.flush();throw new IllegalStateException("Synthetic later seal failure"); }
+      return call.callRealMethod();
+    }).when(vault).sealPassword(anyString(), eq(receiver.getId()), any(), anyString());
+    assertCode(() -> restore.restore(receiver.getId(), mixed, PHRASE.toCharArray(), preview.snapshot(), preview.decisions(), () -> {}), VaultRestoreFailure.Code.RESTORE_FAILED);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(1);assertThat(SECRET.equals(vault.reveal(receiver, id).password())).isTrue();
+  }
+
   private ObjectNode payload() {
     var selection = new VaultExportSelection(VaultExportSelection.Scope.ALL, java.util.List.of());
     return exports.preparePayloadForVerifiedUser(source, selection, exports.preview(source, selection).snapshot());

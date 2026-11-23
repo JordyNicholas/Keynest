@@ -210,4 +210,10 @@ describe('Vault encrypted restore dialog', () => {
     component.review(new Event('submit'));http.expectNone(previewUrl);expect(component.error()).toContain('using each target only once');
     component.chooseTarget(1, matches[1].targetId);expect(component.selectionValid()).toBeTrue();
   });
+
+  it('immediately clears an entered account password when a reviewed choice changes', () => {
+    review();const accountInput = field('account-password');accountInput.value = account;
+    component.chooseAction(0, 'ignore');expect(accountInput.value).toBe('');expect(component.preview()?.planId).toBe('');
+    component.apply(new Event('submit'));http.expectNone(applyUrl);fixture.detectChanges();expect(fixture.nativeElement.querySelector('#restore-account-password')).toBeNull();
+  });
 });
