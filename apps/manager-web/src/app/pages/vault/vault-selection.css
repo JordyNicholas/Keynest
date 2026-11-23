@@ -1,0 +1,13 @@
+.export-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-block-end: 1rem; color: var(--kn-color-muted); }
+.export-item { position: relative; margin-block: 0.75rem; border: 1px solid var(--kn-color-outline); border-radius: 1rem; background: var(--kn-color-canvas-mid); }
+.export-item.is-selected { border-color: var(--kn-color-accent); background: color-mix(in srgb, var(--kn-color-accent) 7%, var(--kn-color-canvas-mid)); }
+.selection-badge { position: absolute; z-index: 2; inset-inline-start: 1rem; inset-block-start: 1.125rem; inline-size: 2.75rem; block-size: 2.75rem; margin: 0; cursor: pointer; }
+.selection-badge input { box-sizing: border-box; padding: 0; border: 0; position: absolute; z-index: 1; inset: 0; inline-size: 100%; block-size: 100%; min-block-size: 0; margin: 0; opacity: 0; cursor: pointer; }
+.badge-face { position: relative; display: grid; place-items: center; box-sizing: border-box; inline-size: 100%; block-size: 100%; border: 1px solid var(--kn-color-outline); border-radius: 0.75rem; background: var(--kn-color-surface-raised); color: var(--kn-color-accent); }
+.badge-face::after { content: ''; position: absolute; inset-block-start: 0.25rem; inset-inline-end: 0.25rem; inline-size: 0.4rem; block-size: 0.4rem; border: 1px solid currentColor; border-radius: 0.1rem; }
+.badge-check { position: absolute; visibility: hidden; font-size: 1.35rem; }
+.selection-badge:hover .badge-initial, .selection-badge input:focus-visible + .badge-face .badge-initial, .selection-badge input:checked + .badge-face .badge-initial { visibility: hidden; }
+.selection-badge:hover .badge-check, .selection-badge input:focus-visible + .badge-face .badge-check, .selection-badge input:checked + .badge-face .badge-check { visibility: visible; }
+.selection-badge input:focus-visible + .badge-face { outline: 2px solid var(--kn-color-accent); outline-offset: 3px; }
+.selection-badge input:checked + .badge-face { background: var(--kn-color-accent); color: var(--kn-color-accent-ink); }
+.selection-badge input:checked + .badge-face::after { display: none; }

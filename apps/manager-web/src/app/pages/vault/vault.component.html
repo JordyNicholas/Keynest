@@ -54,11 +54,14 @@
       <mat-accordion class="saved-items" [multi]="false">
         @for (item of items(); track item.id) {
           @let expiry = expiryStatus(item.expiresAt);
-          <div class="export-item">
-            <label class="export-checkbox"><input type="checkbox" [checked]="exportIds().has(item.id)" [attr.aria-label]="'Select ' + item.label + ' for export'" (change)="selectForExport(item.id, $any($event.target).checked)" /><span class="kn-sr-only">Select for export</span></label>
+          <div class="export-item" [class.is-selected]="exportIds().has(item.id)">
+            <label class="selection-badge" [title]="'Select ' + item.label + ' for export'">
+              <input type="checkbox" [checked]="exportIds().has(item.id)" [attr.aria-label]="'Select ' + item.label + ' for export'" (change)="selectForExport(item.id, $any($event.target).checked)" />
+              <span class="badge-face" aria-hidden="true"><span class="badge-initial">{{ item.label.slice(0, 1) }}</span><span class="badge-check">{{ exportIds().has(item.id) ? '✓' : '☐' }}</span></span>
+            </label>
           <mat-expansion-panel class="vault-card" [expanded]="expandedId() === item.id" (opened)="expandedId.set(item.id)" (closed)="closeItem(item.id)">
             <mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
-              <mat-panel-title class="vault-header"><span class="item-avatar" aria-hidden="true">{{ item.label.slice(0, 1) }}</span><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone"><kn-icon [name]="expiry.tone === 'healthy' ? 'check' : expiry.tone === 'urgent' ? 'alert' : expiry.tone === 'warning' ? 'clock' : 'minus'" />{{ expiry.label }}</span></mat-panel-title>
+              <mat-panel-title class="vault-header"><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone"><kn-icon [name]="expiry.tone === 'healthy' ? 'check' : expiry.tone === 'urgent' ? 'alert' : expiry.tone === 'warning' ? 'clock' : 'minus'" />{{ expiry.label }}</span></mat-panel-title>
             </mat-expansion-panel-header>
             <ng-template matExpansionPanelContent>
               <kn-vault-item-details [item]="item" [secret]="revealed()[item.id] ?? ''" [remaining]="remainingSeconds()[item.id] ?? 0"

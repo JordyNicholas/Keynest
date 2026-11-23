@@ -53,6 +53,21 @@ describe('Bounded Vault browsing', () => {
     TestBed.inject(AuthService).clearSession();fixture.detectChanges();expect(component.exportIds().size).toBe(0);
   });
 
+  it('selects through the badge inside the card without expanding it, with an independent keyboard focus target', () => {
+    load();const host: HTMLElement = fixture.nativeElement;
+    const card = host.querySelector<HTMLElement>('.export-item')!;
+    const header = card.querySelector<HTMLElement>('mat-expansion-panel-header')!;
+    const checkbox = card.querySelector<HTMLInputElement>('.selection-badge input')!;
+    expect(header.querySelector('input, button, a')).toBeNull();
+    expect(card.querySelectorAll('.badge-initial').length).toBe(1);expect(card.querySelector('.item-avatar')).toBeNull();
+    expect(checkbox.getAttribute('aria-label')).toContain('Example account');
+    checkbox.focus();expect(document.activeElement).toBe(checkbox);checkbox.click();fixture.detectChanges();
+    expect(component.exportIds().has(sample.id)).toBeTrue();expect(header.getAttribute('aria-expanded')).toBe('false');
+    expect(card.classList.contains('is-selected')).toBeTrue();expect(card.querySelector('.badge-check')?.textContent).toBe('✓');
+    header.click();fixture.detectChanges();expect(header.getAttribute('aria-expanded')).toBe('true');expect(checkbox.checked).toBeTrue();
+    checkbox.click();fixture.detectChanges();expect(header.getAttribute('aria-expanded')).toBe('true');expect(component.exportIds().size).toBe(0);
+  });
+
   it('keeps collapsed metadata concise, expands explicit actions and never reveals on expansion', () => {
     load();const host: HTMLElement = fixture.nativeElement;
     const header = host.querySelector('mat-expansion-panel-header')!;
