@@ -110,7 +110,7 @@ export class VaultRestoreDialogComponent {
     const accountPassword = this.account()?.nativeElement.value ?? '', backupPassphrase = this.phrase()?.nativeElement.value ?? '', confirmUpdates = this.confirmation()?.nativeElement.checked === true;
     this.clearCredentials();this.error.set('');this.status.set('');
     if (!accountPassword || accountPassword.length > 32768 || !this.validPhrase(backupPassphrase) || (preview.updatedItemCount > 0 && !confirmUpdates)) {
-      this.refuse('Enter your current account password and review the file again.');return;
+      this.refuse('Enter the required credentials and confirm any replacements, then review the file again.');return;
     }
     clearTimeout(this.expiry);const version = this.version;this.busy.set(true);
     this.read(version, file => {
@@ -215,7 +215,8 @@ export class VaultRestoreDialogComponent {
       RESTORE_PLAN_INVALID: 409, RESTORE_CHANGED: 409, RESTORE_REQUEST_TOO_LARGE: 413, RESTORE_LIMIT_EXCEEDED: 413, RESTORE_COMPARISON_LIMIT: 413, RESTORE_EMPTY: 422, RESTORE_BUSY: 503 };
     const code = response.error?.code;
     if (applying && (typeof code !== 'string' || !Object.hasOwn(codes, code) || codes[code] !== response.status)) { this.uncertain();return; }
-    this.refuse(response.status === 403 ? 'Account password verification failed. Choose your file and review again.'
+    this.refuse(code === 'RESTORE_SELECTION_INVALID' ? 'The selected actions or confirmation are no longer valid. Choose your file and review again.'
+      : response.status === 403 ? 'Account password verification failed. Choose your file and review again.'
       : response.status === 409 ? 'The file or receiving Vault changed, or the review expired or was used. Choose your file and review again.'
       : code === 'RESTORE_COMPARISON_LIMIT' ? 'Too many similar entries to check safely. Restore a smaller selection.'
       : response.status === 413 ? 'This file exceeds the restore limits. Use a smaller backup.'

@@ -188,6 +188,22 @@ def run(cors_origin):
   restored_path = API + '/vault/items/' + restored_items[0]['id']
   _, restored_secret = expect('POST', restored_path + '/reveal', token=other['token'])
   check(restored_secret['password'] == revealed['password'], 'restore must preserve the password')
+  expect('PUT', restored_path, {'password': 'aB2#mangoC3$deF4%'}, other['token'])
+  selected_review = {'file': restore_request['file'], 'backupPassphrase': restore_request['backupPassphrase'],
+    'decisions': [{'sourceIndex': 0, 'action': 'update', 'targetId': restored_items[0]['id']}]}
+  _, selected = expect('POST', API + '/vault/restores/preview', selected_review, other['token'])
+  check(selected['newItemCount'] == 0 and selected['updatedItemCount'] == 1, 'review must bind the selected replacement')
+  replacement = {'file': restore_request['file'], 'backupPassphrase': restore_request['backupPassphrase'],
+    'accountPassword': other_password, 'planId': selected['planId']}
+  expect('POST', API + '/vault/restores/apply', replacement, other['token'], status=400)
+  _, selected = expect('POST', API + '/vault/restores/preview', selected_review, other['token'])
+  replacement.update(planId=selected['planId'], confirmUpdates=True)
+  _, replaced = expect('POST', API + '/vault/restores/apply', replacement, other['token'])
+  check(replaced['restoredCount'] == 0 and replaced['updatedCount'] == 1, 'confirmed restore must update without adding an identity')
+  _, replaced_secret = expect('POST', restored_path + '/reveal', token=other['token'])
+  check(replaced_secret['password'] == revealed['password'], 'confirmed replacement must restore the exact reviewed password')
+  _, after_replace = expect('GET', API + '/vault/items', token=other['token'])
+  check(len(after_replace) == 1 and after_replace[0]['id'] == restored_items[0]['id'], 'replacement must preserve the existing identity')
   expect('POST', restored_path + '/reveal', token=token, status=404)
   expect('DELETE', restored_path, token=other['token'])
 
@@ -204,7 +220,7 @@ def run(cors_origin):
   expect('POST', API + '/auth/me', token=login_token, status=401)
   expect('POST', API + '/auth/logout', token=token)
   expect('POST', API + '/auth/logout', token=other['token'])
-  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export/restore, identical-entry skips, replay refusal, no-store and tenant isolation')
+  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export/restore, identical-entry skips, confirmed replacements, replay refusal, no-store and tenant isolation')
 
 
 if __name__ == '__main__':
