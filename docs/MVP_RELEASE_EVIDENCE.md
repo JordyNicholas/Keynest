@@ -194,7 +194,13 @@ Use the disposable API/PostgreSQL and separate Manager Web setup in [Compose](./
 
 The [candidate changelog](../CHANGELOG.md) is in place.
 
-## Candidate distribution
+## 0.1.0 source release packaging
+
+The maintainer approved preparing and publishing version **0.1.0** after the recorded release GO. [The release notes](releases/0.1.0.md) define source installation, independent library consumption, upgrade/recovery and verified limitations. The `v0.1.0` GitHub Release must record the final immutable source SHA and its passing main-branch CI; this document does not invent that result before publication. The source package includes no user data, keys or database dumps. Registry publication and public hosting remain deferred.
+
+The November 23 manual rehearsal remains pinned to `fda972f070af68e6d957f3c0d88e29181d23307b`. Subsequent evidence updates and this packaging change do not alter application logic, schema, Seal, key custody or session transport. Version references, the Docker JAR path and startup commands are updated together; verify the resulting versioned build through all seven CI verification jobs before publication.
+
+## Historical candidate distribution
 
 Keynest `0.1.0-rc.1` is pinned to [`3f10d42`](https://github.com/JordyNicholas/Keynest/commit/3f10d42f7a58b726d108b712d8fac00287356599). All six jobs in [the candidate CI run](https://github.com/JordyNicholas/Keynest/actions/runs/44404840850) passed on that exact commit, including 39 Angular browser tests, Maven and the standalone consumer on Java 21 and 25, and packaged Compose smoke.
 
