@@ -1,6 +1,6 @@
 # Bitwarden importer interoperability
 
-Status: verification harness proposed under #246 / #154. This is importer/model verification, not a completed cloud-account import/save walkthrough or a supported production destination. No plaintext download route, destination activation, account credential or Vault secret retrieval is added.
+Status: verification harness merged through maintainer-approved [#247](https://github.com/JordyNicholas/Keynest/pull/247) for #246 / #154. Third-party migration is deferred by the maintainer on November 23; destination downloads remain unavailable. This is importer/model verification, not a completed cloud-account import/save walkthrough or a supported production destination. No plaintext download route, destination activation, account credential or Vault secret retrieval is added.
 
 ## Pinned target and execution
 
@@ -29,6 +29,6 @@ Passing the harness establishes behavior only for this pinned parsing/model path
 
 ## Evidence
 
-Record actual run URL, Keynest SHA, upstream SHA, executed check counts and failures/limitations after CI completes. Do not convert a configured check or skipped test into a passing claim. Native encrypted export/restore remains separately available through #227/#231/#241/#245; see [the `.keynest` user guide](VAULT_RESTORE_WEB.md#using-a-keynest-file).
+[The interoperability workflow](https://github.com/JordyNicholas/Keynest/actions/runs/45193626493) passed on Keynest `a509bdf6058c24b6ffd0e01f4839e98d211c4249`, using upstream `91214c3b978edb5496a32a946451960fe7d44531`. Four checks executed without skips across the 11-login, 500-login and empty batches (511 synthetic logins total). This proves only the pinned parsing/model behavior described above; it does not establish actual destination save/sync or a supported migration download. Further migration work is deferred. Native encrypted export/restore remains separately available through #227/#231/#241/#245; see [the `.keynest` user guide](VAULT_RESTORE_WEB.md#using-a-keynest-file).
 
 Rollback removes the fixture generator, isolated verifier/workflow and this record; no stored data, schema, key or application route is affected.

@@ -4,6 +4,8 @@
 
 Accepted through maintainer-approved [#241](https://github.com/JordyNicholas/Keynest/pull/241) for #240 / #154. The internal foundation is accepted through #235 / [ADR-0014](ADR-0014-native-restore-foundation.md).
 
+The review/result metadata and duplicate/update decisions below were subsequently refined by accepted [ADR-0016](ADR-0016-restore-conflict-resolution.md), merged through #249. Its explicit Update/Ignore/Keep both contract supersedes the original unconditional append and no-deduplication behavior. The original transport decision is retained below as historical context; file, credential and single-use boundaries remain.
+
 ## Contract
 
 Add authenticated POST `/api/v1/vault/restores/preview` and `/api/v1/vault/restores/apply`. Requests are strict JSON; file bytes use canonical padded standard Base64 in `file`. This avoids framework multipart disk spill. Both requests carry `backupPassphrase`. Preview authenticates the file and returns only `planId`, five-minute `expiresAt`, `itemCount` and `receivingPolicyUnchanged`. It returns no plaintext, item metadata or reusable elevated session. Apply sends the same file/passphrase, the current `accountPassword` and `planId`; it returns committed `restoredCount` and the unchanged-policy flag.
