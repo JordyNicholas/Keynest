@@ -20,8 +20,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import static dev.keynest.manager.vault.VaultRestoreFailure.Code.*;
 
 /**
- * Internal restore foundation, not an HTTP or agent capability.
- * A future transport must authenticate/reauthenticate the receiver and bind a one-use plan.
+ * Restore core. The trusted overload is internal; HTTP supplies a transactional authorization guard.
+ * No agent capability is registered.
  */
 @Service
 public class VaultRestoreService {
@@ -51,11 +51,17 @@ public class VaultRestoreService {
 
   /** Repeated internal calls add duplicates; this consistency marker is not an approval token. */
   public Result restore(UUID receiver, byte[] file, char[] passphrase, String reviewedSnapshot) {
+    return restore(receiver, file, passphrase, reviewedSnapshot, () -> {});
+  }
+
+  /** Runs the transport guard inside the receiving transaction before writing and before commit. */
+  public Result restore(UUID receiver, byte[] file, char[] passphrase, String reviewedSnapshot, Runnable authorizationCheck) {
     try (var work = acquire()) {
       if (reviewedSnapshot == null || !reviewedSnapshot.matches("[0-9a-f]{64}")) throw new VaultRestoreFailure(RESTORE_CHANGED);
       try (var decoded = open(receiver, file, passphrase, reviewedSnapshot)) {
         return transaction.execute(status -> {
-          users.findForPolicyUpdate(receiver).orElseThrow(() -> new VaultRestoreFailure(RESTORE_OWNER_UNAVAILABLE));
+          var owner = users.findForPolicyUpdate(receiver).orElseThrow(() -> new VaultRestoreFailure(RESTORE_OWNER_UNAVAILABLE));
+          em.refresh(owner);authorizationCheck.run();
           for (JsonNode row : decoded.payload.path("items")) {
             UUID id = UUID.randomUUID();String policyId = row.path("policyId").textValue();
             // Preserve historical passwords rather than applying today's receiving policy.
@@ -67,7 +73,7 @@ public class VaultRestoreService {
               instant(row, "createdAt"), instant(row, "updatedAt")));
           }
           // persist never merges an existing identity, including an unlikely UUID collision.
-          em.flush();
+          em.flush();authorizationCheck.run();
           return new Result(decoded.payload.path("items").size(), true);
         });
       }

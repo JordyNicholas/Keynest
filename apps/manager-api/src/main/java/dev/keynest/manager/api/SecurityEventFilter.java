@@ -54,6 +54,8 @@ public class SecurityEventFilter extends OncePerRequestFilter {
 
   private static Action action(String method, String path) {
     if ("POST".equals(method)) {
+      if (ApiPaths.VAULT_RESTORE_PREVIEW.equals(path)) return Action.VAULT_RESTORE_PREVIEW;
+      if (ApiPaths.VAULT_RESTORE_APPLY.equals(path)) return Action.VAULT_RESTORE_APPLY;
       if (ApiPaths.VAULT_EXPORT_PREVIEW.equals(path)) return Action.VAULT_EXPORT_PREVIEW;
       if (ApiPaths.VAULT_EXPORT_DOWNLOAD.equals(path)) return Action.VAULT_EXPORT_DOWNLOAD;
       if (ApiPaths.AI_EXPLAIN.equals(path)) return Action.AI_POLICY_EXPLAIN;

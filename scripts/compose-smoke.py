@@ -1,6 +1,7 @@
 """Exercise only the disposable local Compose API; never print secret payloads."""
 
 import argparse
+import base64
 import json
 import secrets
 import sys
@@ -147,9 +148,10 @@ def run(cors_origin):
   check(revealed['password'].encode('utf-8') not in protected, 'export must not expose plaintext')
   check(int.from_bytes(protected[26:30], 'big') == len(protected) - 30, 'export container length must match')
 
+  other_password = secrets.token_urlsafe(32) + 'Aa1!'
   _, other = expect('POST', API + '/auth/register', {
     'email': 'compose-' + secrets.token_hex(12) + '@example.com',
-    'password': secrets.token_urlsafe(32) + 'Aa1!',
+    'password': other_password,
   })
   _, other_items = expect('GET', API + '/vault/items', token=other['token'])
   check(other_items == [], 'other user must have an empty vault')
@@ -162,6 +164,26 @@ def run(cors_origin):
   expect('POST', item_path + '/reveal', token=other['token'], status=404)
   expect('PUT', item_path, {'label': 'Unauthorized edit'}, other['token'], status=404)
   expect('DELETE', item_path, token=other['token'], status=404)
+
+  restore_request = {'file': base64.b64encode(protected).decode('ascii'),
+    'backupPassphrase': export_request['backupPassphrase']}
+  headers, restore_preview = expect('POST', API + '/vault/restores/preview', restore_request, other['token'])
+  check(headers.get('Cache-Control') == 'no-store' and restore_preview['itemCount'] == 1,
+    'restore preview scope/cache boundary')
+  _, before_restore = expect('GET', API + '/vault/items', token=other['token'])
+  check(before_restore == [], 'restore preview must not write')
+  restore_request.update(accountPassword=other_password, planId=restore_preview['planId'])
+  headers, restored = expect('POST', API + '/vault/restores/apply', restore_request, other['token'])
+  check(headers.get('Cache-Control') == 'no-store' and restored['restoredCount'] == 1,
+    'restore apply count/cache boundary')
+  expect('POST', API + '/vault/restores/apply', restore_request, other['token'], status=409)
+  _, restored_items = expect('GET', API + '/vault/items', token=other['token'])
+  check(len(restored_items) == 1 and restored_items[0]['id'] != item['id'], 'restore must create one fresh owner identity')
+  restored_path = API + '/vault/items/' + restored_items[0]['id']
+  _, restored_secret = expect('POST', restored_path + '/reveal', token=other['token'])
+  check(restored_secret['password'] == revealed['password'], 'restore must preserve the password')
+  expect('POST', restored_path + '/reveal', token=token, status=404)
+  expect('DELETE', restored_path, token=other['token'])
 
   _, updated = expect('PUT', item_path, {'label': 'Updated smoke item'}, token)
   check(updated['label'] == 'Updated smoke item', 'owner must be able to update metadata')
@@ -176,7 +198,7 @@ def run(cors_origin):
   expect('POST', API + '/auth/me', token=login_token, status=401)
   expect('POST', API + '/auth/logout', token=token)
   expect('POST', API + '/auth/logout', token=other['token'])
-  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export, no-store and tenant isolation')
+  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export/restore, replay refusal, no-store and tenant isolation')
 
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 # Vault portability
 
-Status: **[proposed]** implementation contract for [#154](https://github.com/JordyNicholas/Keynest/issues/154), following the maintainer's November 22 agreement on destination-first exports and JSON as the native data contract. Encrypted native export is implemented through approved PRs #227/#231. Receiving-database restore and verified third-party migration remain unfinished; this is not a complete public backup/restore claim.
+Status: **[proposed]** implementation contract for [#154](https://github.com/JordyNicholas/Keynest/issues/154), following the maintainer's November 22 agreement on destination-first exports and JSON as the native data contract. Encrypted native export is implemented through approved PRs #227/#231. The internal receiving-database restore foundation is merged through #235; authenticated transport, restoration UI and verified third-party migration remain unfinished; this is not a complete public backup/restore claim.
 
 ## Current implementation boundary
 
@@ -12,7 +12,7 @@ The encrypted-container slice is tracked in [#218](https://github.com/JordyNicho
 
 The authenticated encrypted export API (#226) and Vault UI (#230) are merged through maintainer-approved PRs [#227](https://github.com/JordyNicholas/Keynest/pull/227) and [#231](https://github.com/JordyNicholas/Keynest/pull/231). See [the API contract](VAULT_EXPORT_API.md), [accepted ADR-0013](ADR-0013-authenticated-vault-export.md), and [the web workflow](VAULT_EXPORT_WEB.md).
 
-The next slice is internal native-file restoration [#234](https://github.com/JordyNicholas/Keynest/issues/234), under [proposed ADR-0014](ADR-0014-native-restore-foundation.md). It must prove receiving-owner resealing and a separate-database/key round trip. It adds no public restore route: authentication/reauthentication, expiring single-use apply plans and browser restoration remain follow-ups before exposure.
+The internal native-file restoration foundation [#234](https://github.com/JordyNicholas/Keynest/issues/234) is merged through maintainer-approved [#235](https://github.com/JordyNicholas/Keynest/pull/235), under [accepted ADR-0014](ADR-0014-native-restore-foundation.md). Its PostgreSQL test verifies receiving-owner resealing across separate application contexts/databases/keys and a receiving restart. It adds no public restore route. Authenticated transport and expiring single-use apply plans are proposed separately in [#241](https://github.com/JordyNicholas/Keynest/pull/241) / [ADR-0015](ADR-0015-authenticated-native-restore.md); browser restoration remains a following slice.
 
 ## Product decision
 
