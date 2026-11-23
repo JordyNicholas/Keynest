@@ -2,8 +2,6 @@ import { inject } from '@angular/core';
 import { AuthService } from './auth/auth.service';
 import { Router, Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
-import { VaultCreatePageComponent } from './pages/vault/vault-create.component';
-import { VaultUpdatePageComponent } from './pages/vault/vault-update.component';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
@@ -22,9 +20,9 @@ export const routes: Routes = [
       { path: 'tools/generate', pathMatch: 'full', redirectTo: ({ fragment }) => inject(Router).createUrlTree(['/tools'], { queryParams: { tool: 'generate' }, fragment: fragment ?? 'generate' }) },
       { path: 'tools/check', pathMatch: 'full', redirectTo: ({ fragment }) => inject(Router).createUrlTree(['/tools'], { queryParams: { tool: 'check' }, fragment: fragment ?? 'check' }) },
       { path: 'status', pathMatch: 'full', redirectTo: '/account#diagnostics-heading' },
-      { path: 'vault/new', component: VaultCreatePageComponent, canActivate: [authGuard] },
-      { path: 'vault/edit/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard] },
-      { path: 'vault/rotate/:itemId', component: VaultUpdatePageComponent, canActivate: [authGuard], data: { rotate: true } },
+      { path: 'vault/new', loadComponent: () => import('./pages/vault/vault-create.component').then(page => page.VaultCreatePageComponent), canActivate: [authGuard] },
+      { path: 'vault/edit/:itemId', loadComponent: () => import('./pages/vault/vault-update.component').then(page => page.VaultUpdatePageComponent), canActivate: [authGuard] },
+      { path: 'vault/rotate/:itemId', loadComponent: () => import('./pages/vault/vault-update.component').then(page => page.VaultUpdatePageComponent), canActivate: [authGuard], data: { rotate: true } },
       {
         path: 'vault',
         data: { wide: true },

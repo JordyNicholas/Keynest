@@ -49,9 +49,8 @@
 
   <fieldset [disabled]="saving()">
     <legend>Expiry</legend>
-    <label>Expires in days (optional)
-      <input type="number" min="1" max="2147483647" step="1" [ngModel]="expiryDays()" (ngModelChange)="expiryDays.set($event)" name="expiry" />
-    </label>
+    <kn-expiry-date-picker [(value)]="expiryDate" [disabled]="saving()" />
+    <p>Leave blank for no expiry date.</p>
     <label>Notify before expiry (days)
       <input type="number" min="0" max="2147483647" step="1" [ngModel]="noticeDays()" (ngModelChange)="noticeDays.set($event)" name="notice" />
     </label>

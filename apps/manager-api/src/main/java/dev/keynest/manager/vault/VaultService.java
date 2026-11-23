@@ -71,15 +71,12 @@ public class VaultService {
         if (request.label() == null || request.label().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "label required");
         }
+        Instant now = Instant.now();
+        Instant expiresAt = resolveExpiry(request.expiresInDays(), request.expiresAt(), now);
         PasswordPolicy policy = currentPolicy(user, request.policyId());
         String policyId = policy.id();
         String password = resolvePassword(request, policy);
         assertValid(policy, password, request.username());
-
-        Instant now = Instant.now();
-        Instant expiresAt = request.expiresInDays() == null
-                ? null
-                : now.plus(request.expiresInDays(), ChronoUnit.DAYS);
 
         UUID itemId = UUID.randomUUID();
         VaultItem item = new VaultItem(
@@ -104,6 +101,7 @@ public class VaultService {
     @Transactional
     public VaultItemView update(UserAccount user, UUID id, UpdateVaultItemRequest request) {
         VaultItem item = requireOwned(user, id);
+        Instant expiresAt = resolveExpiry(request.expiresInDays(), request.expiresAt(), Instant.now());
         if (request.label() != null && !request.label().isBlank()) {
             item.setLabel(request.label().trim());
         }
@@ -124,8 +122,8 @@ public class VaultService {
             item.setAadVersion(VaultItemAad.VERSION_ITEM_V1);
             item.setLastRotatedAt(Instant.now());
         }
-        if (request.expiresInDays() != null) {
-            item.setExpiresAt(Instant.now().plus(request.expiresInDays(), ChronoUnit.DAYS));
+        if (expiresAt != null) {
+            item.setExpiresAt(expiresAt);
         }
         if (request.notifyBeforeDays() != null) {
             item.setNotifyBeforeDays(request.notifyBeforeDays());
@@ -138,6 +136,20 @@ public class VaultService {
     @Transactional
     public void delete(UserAccount user, UUID id) {
         items.delete(requireOwned(user, id));
+    }
+
+    private static Instant resolveExpiry(Integer days, Instant absolute, Instant now) {
+        if (days != null && absolute != null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an expiry date or a duration, not both");
+        }
+        if (absolute != null) {
+            if (!absolute.isAfter(now) || absolute.isAfter(Instant.parse("+10000-01-02T00:00:00Z"))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expiry date must be in the future and within the supported calendar");
+            }
+            return absolute;
+        }
+        // Preserve the existing relative-day API, including callers importing already-expired items.
+        return days == null ? null : now.plus(days, ChronoUnit.DAYS);
     }
 
     private PasswordPolicy currentPolicy(UserAccount user, String requestedId) {
@@ -241,8 +253,13 @@ public class VaultService {
             Boolean generate,
             String policyId,
             Integer expiresInDays,
-            Integer notifyBeforeDays
+            Integer notifyBeforeDays,
+            Instant expiresAt
     ) {
+        public CreateVaultItemRequest(String label, String url, String username, String password, Boolean generate,
+                String policyId, Integer expiresInDays, Integer notifyBeforeDays) {
+            this(label, url, username, password, generate, policyId, expiresInDays, notifyBeforeDays, null);
+        }
     }
 
     public record UpdateVaultItemRequest(
@@ -252,8 +269,13 @@ public class VaultService {
             String password,
             String policyId,
             Integer expiresInDays,
-            Integer notifyBeforeDays
+            Integer notifyBeforeDays,
+            Instant expiresAt
     ) {
+        public UpdateVaultItemRequest(String label, String url, String username, String password,
+                String policyId, Integer expiresInDays, Integer notifyBeforeDays) {
+            this(label, url, username, password, policyId, expiresInDays, notifyBeforeDays, null);
+        }
     }
 
     public record VaultItemView(

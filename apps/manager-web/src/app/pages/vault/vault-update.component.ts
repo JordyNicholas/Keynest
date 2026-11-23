@@ -1,3 +1,5 @@
+import { ExpiryDatePickerComponent } from '../../ui/expiry-date-picker.component';
+import { expiryInstant, localDateAfterDays } from '../../ui/expiry-date-adapter';
 import { httpErrorMessage } from '../http-error-message';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -20,7 +22,7 @@ import { VaultItem } from './vault-item';
 
 @Component({
   selector: 'kn-vault-update-page',
-  imports: [FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
+  imports: [ExpiryDatePickerComponent, FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
   templateUrl: './vault-update.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css', './vault-update.component.css'],
 })
@@ -43,7 +45,8 @@ export class VaultUpdatePageComponent {
   readonly label = signal('');
   readonly username = signal('');
   readonly url = signal('');
-  readonly expiryDays = signal<number | null>(null);
+  readonly expiryDate = signal<Date | null>(null);
+  private readonly expiryPicker = viewChild(ExpiryDatePickerComponent);
   readonly noticeDays = signal<number | null>(null);
   readonly error = signal('');
   readonly details = signal<string[]>([]);
@@ -104,7 +107,7 @@ export class VaultUpdatePageComponent {
       this.label.set(item.label);
       this.username.set(item.username ?? '');
       this.url.set(item.url ?? '');
-      this.expiryDays.set(null);
+      this.expiryDate.set(null);
       this.noticeDays.set(item.notifyBeforeDays ?? null);
       this.item.set(item);
     });
@@ -185,6 +188,8 @@ export class VaultUpdatePageComponent {
     this.error.set('');
     this.details.set([]);
 
+    if (this.expiryPicker()?.valid() === false) { this.error.set('Choose a valid expiry date.');return; }
+
     let changes: { password?: string; policyId?: string; label?: string; username?: string; url?: string };
     if (this.rotating) {
       const password = input?.value;
@@ -208,9 +213,9 @@ export class VaultUpdatePageComponent {
       if (url !== (item.url ?? '')) changes.url = url;
     }
 
-    const expiresInDays = this.expiryDays();
+    const expiresAt = expiryInstant(this.expiryDate());
     const notifyBeforeDays = this.noticeDays();
-    if (!Object.keys(changes).length && expiresInDays === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) {
+    if (!Object.keys(changes).length && expiresAt === null && notifyBeforeDays === (item.notifyBeforeDays ?? null)) {
       void this.router.navigateByUrl('/vault');
       return;
     }
@@ -219,7 +224,7 @@ export class VaultUpdatePageComponent {
       this.replacementChanged(input);
     }
     this.pending.set(true);
-    this.http.put(this.itemUrl(item.id), { ...changes, expiresInDays, notifyBeforeDays }, {
+    this.http.put(this.itemUrl(item.id), { ...changes, expiresAt, notifyBeforeDays }, {
       headers: this.auth.authHeaders(),
     }).pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.pending.set(false)))
       .subscribe({
