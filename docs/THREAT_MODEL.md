@@ -1,6 +1,6 @@
 # Keynest threat model
 
-**Status:** Release review accepted in maintainer-approved PR #81; refresh against the final release commit
+**Status:** Original release review accepted in maintainer-approved PR #81; November 23 source-release boundary refresh below
 
 **Snapshot:** `3e203bb` (November 11, 2026)
 
@@ -41,6 +41,20 @@ Evidence reviewed for #43:
 - rate-limit path coverage and proxy-identity behavior;
 - the PostgreSQL migration and legacy-schema verification added by #79/#80.
 
+## November 23 release boundary refresh
+
+This update covers the source state `d065faf2515fc7b7ea8ee22eda2ea539b05a9418` and approved 0.1.0 version/documentation packaging. It preserves the original snapshot and does not claim a new independent security audit. Applicable accepted contracts now include account policy (ADR-0011), the portable container (ADR-0012), authenticated export (ADR-0013), receiving-key restore (ADR-0014), single-use authenticated transport (ADR-0015) and reviewed conflicts (ADR-0016).
+
+Export uses owner-scoped bounded snapshots, immediate account-password verification, a separately entered backup passphrase, authenticated encryption and no-store responses. Restore authenticates and bounds the file before using its payload, derives the receiving owner from the session and reseals writes with receiving key/item context. Source identities do not grant authority. Identical/matched items default to Ignore; replacements require immutable reviewed target choices, fresh account authentication and explicit acknowledgment. Parent-account locking, state rechecks and atomic transactions coordinate application writers. See [ADR-0016](ADR-0016-restore-conflict-resolution.md) for bounds, concurrency and compatibility.
+
+Restore plans are limited to 64 per process, expire after five minutes and store digests/bindings and decisions rather than files or passwords. Preview/apply must reach the same process. Restart, expiry or changed receiving state requires a new review. Lost responses can leave an outcome uncertain; unsubscribing does not undo a server commit and the client never automatically retries apply. Native files require the backup passphrase and do not replace full PostgreSQL/retained-key recovery.
+
+The public homepage tools operate on transient browser samples. Workspace routes are guarded, while API ownership/session checks remain the authorization authority. Browser cleanup is best effort; JavaScript strings and privileged browser/process memory cannot be reliably erased. No AI/agent access to Vault export/restore is added.
+
+The November 23 logging scan covered production Java and Web TypeScript. The Java logger sites are `SecurityEventLogger` (fixed action/outcome/status and generated event ID/time) and the opt-in console reminder adapter (fixed simulation text). Web retains its bootstrap-failure `console.error`. No `System.out/err` or `printStackTrace` call was found in these production paths. This source scan does not verify external proxy/APM capture or arbitrary runtime logging overrides.
+
+[Exact application-SHA CI](https://github.com/JordyNicholas/Keynest/actions/runs/45213003321) and the [maintainer's Chrome/Ubuntu and retained-key recovery report](MVP_RELEASE_EVIDENCE.md#november-23-maintainer-verification--native-restore-and-core-release-paths) provide separate automated/human evidence. Final source-SHA CI remains required before publication. The maintainer recorded release GO for the verified scope and documented limitations; public-host TLS/ingress verification, live BYOK, third-party migration, registry publication, SBOM/signing and independent auditing are not claimed by this source release.
+
 ## System and trust boundaries
 
 ```mermaid
@@ -62,7 +76,7 @@ The API and libraries are one trust zone. Compromise of the API process exposes 
 | Direct peer → API | Forwarding headers are ignored unless the direct peer is in an explicit trusted CIDR | Rate-limit identity spoofing |
 | API → database | Private authenticated network; least-privileged DB credential; backups protected | Envelopes, account hashes, session digests, and sensitive metadata disclosed or modified |
 | Operator → runtime | Secrets supplied outside source control; demo values never used for deployment | Universal vault disclosure or service impersonation |
-| API → future providers | No boundary exists yet; outbound AI/notification traffic is disabled until designed | Provider credential or user-data egress |
+| API → optional provider | Read-only ephemeral BYOK explanation is disabled by default; fixed-destination adapter and ADR-0010 bound opt-in processing | Third-party policy/provider-credential processing if enabled; live-provider evidence remains pending |
 
 ## Security objectives
 
@@ -97,20 +111,22 @@ Risk describes the remaining release concern after the listed implemented contro
 | T01 | Login brute force and account enumeration | Argon2id verification; generic login failure; bounded per-identity login/register limiter | Registration still distinguishes an existing email; limiter is per JVM. Add edge/shared enforcement for multi-replica deployment and decide enumeration semantics | Medium, open |
 | T02 | Bearer theft through XSS or malicious dependency | 256-bit opaque bearer; tab-scoped `sessionStorage`; seven-day expiry; logout revocation; legacy `localStorage` cleared | JavaScript can read the bearer. Add CSP/dependency hardening and reassess HttpOnly cookies with CSRF/CORS before public Internet deployment | High, open |
 | T03 | Database disclosure yields active sessions | Only SHA-256 token digests are stored; raw bearers have 256 bits of entropy | A live bearer stolen elsewhere remains usable until logout/expiry; expired-session cleanup is not implemented | Low |
-| T04 | Cross-tenant vault access or existence leak | Every item lookup uses `(id, userId)`; foreign keys preserve ownership; list/read/reveal/update/delete negative tests cover two users; misses return 404 | Repeat these tests for new export, search, notification, agent, and admin paths | Low |
+| T04 | Cross-tenant vault access or existence leak | Owner-scoped item queries and foreign keys; two-user negatives cover CRUD/reveal and bounded export/restore; misses return 404 | Continue isolation checks for future notification, agent and admin paths | Low |
 | T05 | Envelope substitution, tampering, or wrong-context open | AES-256-GCM; versioned owner/item/policy AAD for new and resealed rows; unknown AAD versions fail closed; golden/negative tests | Legacy null-version rows bind only policy ID until password update/reseal | Medium, open migration debt |
 | T06 | API process or host compromise exposes every vault item | Key is separate from DB; deployed profiles reject missing/demo key; buffers are cleared best-effort | One server-wide key and server-side open make process compromise critical. KeyProvider/per-user wrapped DEKs require a future ADR and migration | High, accepted MVP limitation |
 | T07 | Database or backup disclosure exposes metadata | Secrets remain envelopes; password hashes use Argon2id; token digests are not bearers | Labels, URLs, usernames, emails, timing, and policy metadata are plaintext. Encrypt/minimize metadata only through a versioned design; protect backups separately from keys | Medium, open |
 | T08 | Demo key or demo decrypt endpoint reaches production | The standalone API binds to loopback by default. The Docker profile has no key default and disables tool seal/open by default. `prod` and `production` reject the demo vault key | Local Compose uses public demo credentials and keys. Verify active profiles, host port bindings, and ingress before deploying | Medium, operational |
 | T09 | Forged forwarding headers bypass throttling or exhaust limiter memory | Direct peer used by default; explicit trusted CIDRs; right-to-left hop resolution; header/hop/map bounds | Per-instance fixed windows are not distributed and may permit aggregate abuse; trusted proxy ranges can be misconfigured | Medium, open |
 | T10 | Public tools become password oracle or secret-ingestion surface | Validate, hash-password, and verify-password are rate-limited. Demo seal/open are gated. No application request logging | Validate/hash/verify accept secret candidates and generate returns a secret. Document intended exposure, bound request sizes, and consider authentication or deployment-level restriction | Medium, open |
-| T11 | Logs, traces, errors, or support artifacts leak secrets | No Java application logger calls or body-logging middleware at reviewed snapshot; Angular only reports bootstrap failure; no raw tokens/envelopes/plaintext are intentionally logged | Framework debug logging, proxy access logs, APM auto-capture, heap dumps, or future code can reintroduce leakage. Enforce the logging rules below and review every sensitive PR | High, open process control |
-| T12 | Migration or rollback corrupts/loses data | Flyway checksummed migrations; Hibernate validation; H2 legacy-upgrade and PostgreSQL 16 integration tests; backup/preflight/single-instance runbook | V2 is not application-only reversible; untested operator backups or loss of the vault key make envelopes unrecoverable. Complete a restore rehearsal before release | High, open release gate |
+| T11 | Logs, traces, errors, or support artifacts leak secrets | Fixed-field security outcomes and opt-in fixed-text reminder simulation; no payload logging found in the November 23 production-source scan; Angular reports bootstrap failure | Framework debug logging, proxy access logs, APM auto-capture, heap dumps, or future code can reintroduce leakage. Enforce the logging rules below and review every sensitive PR | High, open process control |
+| T12 | Migration or rollback corrupts/loses data | Flyway checksummed migrations; Hibernate validation; H2 legacy-upgrade and PostgreSQL 16 integration tests; backup/preflight/single-instance runbook | V2 is not application-only reversible; untested operator backups or loss of the vault key make envelopes unrecoverable. November 23 local retained-key recovery passed; each operator must still rehearse its own recovery | High, operational |
 | T13 | Oversized/malformed requests or expensive crypto cause denial of service | Selected auth/tools endpoints are rate-limited. HTTP verification bounds per-request work. Manager shares a configurable per-instance limit across Argon2 operations | Request-size limits, timeouts and aggregate capacity across replicas require deployment controls. Parsing paths can still be resource intensive | Medium, open |
 | T14 | CORS/TLS/proxy deployment error exposes API | Exact configured CORS origins; bearer sent in `Authorization`; no cookie-auth CSRF surface; forwarding headers untrusted by default | TLS is external; wildcard headers are allowed for configured origins; origin lists and proxy topology need deployment verification | Medium, operational |
 | T15 | Vulnerable dependency or build workflow compromises release | Java/Angular builds run in CI; version policy is documented | Dependency update automation, CodeQL/SAST, SBOM, artifact signing/provenance, and pinned third-party actions are not yet release evidence | High, open release hardening |
 | T16 | Future AI/provider/agent feature leaks secrets or grants model authority | ADR-0010 limits the optional runtime to one read-only explanation of a built-in policy with an ephemeral provider key; agent/MCP runtime is deferred | Live-provider verification remains pending. Agent identity, scopes and approval flows require separate design and tests | High, gated |
 | T17 | Future notifications copy plaintext into an outbox/provider | The outbox stores item references and expiry timestamps. The opt-in console adapter emits a fixed simulation event | External delivery remains deferred pending verified recipient consent, redaction, and transport review | Medium, gated |
+| T18 | Native backup theft or offline passphrase guessing | Authenticated passphrase-protected container, bounded Argon2id parameters and strict decoding | File possession permits offline guessing; choose a strong distinct passphrase and retain it separately. Passphrase loss is unrecoverable | High, custody limitation |
+| T19 | Wrong-target, stale or replayed restore changes Vault | Safe Ignore defaults, owner/session/file/state-bound single-use plans, explicit target/acknowledgment, parent locks and atomic writes | Plans are process-local; direct SQL writers are outside coordination. Lost commit acknowledgments require refresh/review, never automatic replay | Medium, operational |
 
 ## Logging and diagnostic-data policy
 

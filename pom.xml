@@ -6,7 +6,7 @@
 
   <groupId>dev.keynest</groupId>
   <artifactId>keynest</artifactId>
-  <version>0.1.0-rc.1</version>
+  <version>0.1.0</version>
   <packaging>pom</packaging>
   <name>Keynest</name>
   <description>Password tools platform and Manager product</description>

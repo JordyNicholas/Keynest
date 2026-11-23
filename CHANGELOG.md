@@ -2,12 +2,19 @@
 
 ## Unreleased
 
-Changes on `main` after the frozen `0.1.0-rc.1` candidate. These changes do not retag that candidate.
+No changes recorded.
+
+## 0.1.0 — 2026-11-23
+
+First source-based MVP release. Includes the libraries and Manager described under the historical `0.1.0-rc.1` checkpoint, plus the changes below. See [release notes, setup and limitations](docs/releases/0.1.0.md).
 
 - Select default or custom account password rules shared by generation, checking, new Vault items and rotation. The V6 migration retains default rules for existing accounts and keeps saved secrets readable. See [account password policy](./docs/ACCOUNT_PASSWORD_POLICY.md).
 - Apply ambiguity, blocked-string and repeated-character rules to browser generation, including transformed keywords.
 - Clarify account validation and API failures, display dismissible viewport error notifications, explain policy restrictions, and show a live reveal countdown.
 - Reduce login-form heuristics on the sample checker. Edge password-manager behavior and the other affected human checks remain pending in [release evidence](./docs/MVP_RELEASE_EVIDENCE.md#november-20-policy-and-ux-fix-checkpoint).
+
+- Introduce the public homepage with collapsed generator/checker tools, shared sign-in dialog, guarded account workspace, metadata overview and bounded Vault search/browsing.
+- Add localized calendar-based expiry entry and a Show/Hide control to the public checker.
 
 ### Native backup and restore
 
@@ -19,7 +26,7 @@ Changes on `main` after the frozen `0.1.0-rc.1` candidate. These changes do not 
 
 The maintainer reported **PASS** for **Update existing**, **Keep both** and **ambiguous-target selection**, supplementing the Chrome/Ubuntu rehearsal at `2026-11-23T18:51:17.463945-03:00` on `fda972f070af68e6d957f3c0d88e29181d23307b`. Browser/runtime/accessibility, AI-disabled operation and separate-database retained-key recovery also passed as recorded in [release evidence](./docs/MVP_RELEASE_EVIDENCE.md#november-23-maintainer-verification--native-restore-and-core-release-paths).
 
-**Maintainer release decision: GO**, confirmed in chat on November 23, 2026, for the verified scope and documented limitations. This records the decision; it does not retag the historical `0.1.0-rc.1` candidate or claim an artifact publication.
+**Maintainer release decision: GO**, confirmed in chat on November 23, 2026, for the verified scope and documented limitations. The `0.1.0` source release preserves the historical `0.1.0-rc.1` checkpoint. Final source/tag and CI provenance are recorded in the GitHub Release.
 
 Windows/Edge, a separate browser-file cross-instance round trip and a lost response after server commit are not claimed by this rehearsal. Third-party migration and public hosting remain deferred; BYOK remains disabled for core verification. Final release artifacts retain exact-SHA CI and version/provenance requirements.
 
