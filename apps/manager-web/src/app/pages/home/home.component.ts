@@ -1,9 +1,9 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, viewChild } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { PublicGeneratorComponent } from './public-generator.component';
+import { PublicToolsComponent } from './public-tools.component';
 import { HomePreviewComponent } from './home-preview.component';
 import { PublicHeaderComponent } from './public-header.component';
 import { AuthDialogComponent } from '../../auth/auth-dialog.component';
@@ -12,7 +12,7 @@ import { authReturnUrl } from '../../auth/auth-return-url';
 /** Public product information; account entry is explicit and no account data loads on entry. */
 @Component({
   selector: 'kn-home-page',
-  imports: [RouterLink, MatButtonModule, HomePreviewComponent, PublicHeaderComponent, PublicGeneratorComponent],
+  imports: [RouterLink, MatButtonModule, HomePreviewComponent, PublicHeaderComponent, PublicToolsComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
 })
@@ -21,6 +21,9 @@ export class HomePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  readonly tools = viewChild(PublicToolsComponent);
+  openGenerator(): void { this.tools()?.open('generate', true); }
+
   private activeDialog?: MatDialogRef<AuthDialogComponent, boolean>;
 
   constructor() {

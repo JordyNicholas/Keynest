@@ -1,5 +1,5 @@
 :host { display: block; }
-.generator { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding: 2.5rem; border: 1px solid var(--kn-color-outline); border-radius: 1.5rem; background: var(--kn-color-surface); }
+.generator { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding-block: 1rem; }
 h2 { margin: 0 0 1rem; font: 500 clamp(2rem, 4vw, 2.875rem)/1.2 var(--kn-font-display); letter-spacing: -0.025em; }
 p { color: var(--kn-color-muted); }
 .eyebrow { font-size: 0.875rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--kn-color-subtle); }
@@ -8,4 +8,4 @@ p { color: var(--kn-color-muted); }
 .password { font: 1.25rem/1.7 monospace; overflow-wrap: anywhere; user-select: all; }
 .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1rem; }
 .status { min-block-size: 1.65em; margin-block-end: 0; }
-@media (max-width: 48rem) { .generator { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; } }
+@media (max-width: 48rem) { .generator { grid-template-columns: 1fr; gap: 1rem; padding-block: 1rem; } }
