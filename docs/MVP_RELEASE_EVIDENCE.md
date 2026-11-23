@@ -46,6 +46,9 @@ External reminder email is off the critical path for this target. The in-app exp
 | Fresh sign-in after restore | Pass |
 | Original password matches after restore | Pass |
 | Create/reveal after restore | Pass |
+| Restore: Update existing | Pass — maintainer follow-up clarification |
+| Restore: Keep both | Pass — maintainer follow-up clarification |
+| Restore: ambiguous-target selection | Pass — maintainer follow-up clarification |
 
 ### Observations and exact limits of this run
 
@@ -57,7 +60,7 @@ External reminder email is off the critical path for this target. The in-app exp
 6. With reduced motion at no preference, one page change animated the main content. With `prefers-reduced-motion: reduce`, the same kind of page change did not.
 7. Closing a restore review removed the dialog and wrote nothing. Hiding the tab cleared the selected file and showed “Choose your file and review again after leaving this tab.” The item count was unchanged.
 8. Aborting the apply connection produced one attempt and no retry. The dialog warned that restore may have finished and would not be retried automatically. The connection was aborted before server acceptance; the empty Vault remained empty after refresh. **This does not verify a lost response after a successful server commit.**
-9. Reimporting the same `.keynest` file into the account already holding its item reviewed as **0 to add, 0 to update, 1 to ignore**. The report does not provide separate manual outcomes for explicit Update existing, Keep both, ambiguous targets or cross-instance native-file restore; retain their automated evidence separately rather than inferring manual passes.
+9. Reimporting the same `.keynest` file into the account already holding its item reviewed as **0 to add, 0 to update, 1 to ignore**. In a follow-up clarification, the maintainer confirmed **Update existing**, **Keep both** and **ambiguous-target selection** all passed in this test run. The separate cross-instance native browser-file scenario is not claimed by that clarification.
 10. PostgreSQL recovery used a custom dump of the isolated `keynest-verify` database, restored into a separate database with the same vault key ID. Flyway V1–V6 succeeded; orphan session and Vault counts were zero. Fresh sign-in and the existing-password comparison passed; a new item was created and both items survived an API restart. The original database retained its pre-dump row/password and its volume was kept. Only the disposable database was removed. Successful reveal verifies the retained-key recovery path; no key value is recorded.
 11. The production profile rejected the documented demo vault key even with demo-key opt-in set. The process exited 1 without printing the key.
 12. Authenticated policy explanation returned `503 AI_DISABLED`; anonymous explanation returned 401; the Docker-profile seal tool returned 403.
@@ -68,7 +71,7 @@ Native encrypted export/restore and reviewed duplicate resolution are merged thr
 
 Third-party migration is **deferred by the maintainer on November 23** and is not a release prerequisite. Keep destinations unavailable; the pinned Bitwarden parser/model harness (#247) is limited automated evidence, not destination save/sync verification.
 
-Before release, reconcile individual checks not explicitly reported (including relevant policy/UX follow-ups), run any remaining targeted manual conflict/file scenarios, refresh security/limitations and install/distribution documentation, then select a final candidate SHA and require its own CI and maintainer go/no-go. Public hosting and live BYOK remain deferred; no new tag, publication, deployment or supported Windows/Edge claim is authorized by this test report.
+**Maintainer release decision: GO**, explicitly confirmed in chat on November 23, 2026, alongside the three additional passing conflict scenarios. This closes the pending maintainer go/no-go decision for the verified scope and documented limitations. It does not manufacture unreported platform/scenario results or waive security gates. Final release preparation still records the chosen version/artifact SHA and its passing CI, with accurate security/limitations and install/distribution documentation. Public hosting and live BYOK remain deferred; the historical `0.1.0-rc.1` candidate is not retagged by this evidence update.
 
 ## Verified baseline
 
@@ -200,6 +203,6 @@ The `0.1.0-rc.1` distribution path is a checkout or source archive of the candid
 ## Open release gates
 
 - Use the dated November 23 checkpoint for its explicitly reported Chrome/Ubuntu browser, runtime and PostgreSQL recovery results. Older rehearsals retain their unknown fields; do not infer platform coverage or unreported individual checks.
-- Finish remaining targeted policy/UX and native-file/conflict human checks, record any platform support limits, and resolve release-blocking defects.
-- Finalize security/limitations, clean-install and source-distribution documentation; freeze a fresh candidate SHA, confirm exact-SHA CI, and obtain the maintainer's release go/no-go before tag/publication.
+- Update existing, Keep both and ambiguous-target selection are now maintainer-confirmed passes for the November 23 run. Retain platform/scenario limits and unresolved individual historical checks honestly; resolve any release-blocking defect before publishing.
+- Maintainer release go is recorded above. Finalize security/limitations, clean-install and source-distribution documentation; record the final version/artifact SHA and passing exact-SHA CI before tag/publication.
 - Third-party migration and public hosting are deferred. Optional live BYOK rehearsal requires maintainer approval; keep BYOK disabled for core verification. Agent tooling is post-release.
