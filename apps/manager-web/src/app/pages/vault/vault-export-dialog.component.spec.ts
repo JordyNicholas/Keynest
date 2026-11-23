@@ -41,7 +41,7 @@ describe('Vault encrypted export dialog', () => {
     const { fixture, component, http, review } = open();http.expectNone(() => true);
     const request = review();expect(request.request.headers.get('Authorization')).toBe('Bearer synthetic-session');
     expect(request.request.body).toEqual({ destination: 'keynest', scope: 'selected', itemIds: [id] });
-    expect(fixture.nativeElement.textContent).toContain('Application restore is still being built');
+    expect(fixture.nativeElement.textContent).toContain('Use Restore in your Vault');
     expect(fixture.nativeElement.querySelector('#export-account-password')).not.toBeNull();
     component.changeScope('all');expect(component.preview()).toBeNull();
     component.review();const all = http.expectOne('/api/v1/vault/exports/preview');
