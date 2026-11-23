@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 
 OUTPUT = Path('target/dependency-security')
 MAVEN_PLUGIN = 'org.cyclonedx:cyclonedx-maven-plugin:2.9.3'
+NPM_VERSION = '11.19.1'
 OSV_VERSION = '2.7.1'
 OSV_SHA256 = 'fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8'
 INPUTS = ['pom.xml', 'libs/keynest-seal/pom.xml', 'libs/keynest-policy/pom.xml',
@@ -92,6 +93,9 @@ def main():
   if not re.fullmatch('[0-9a-f]{40}', sha):
     raise ValueError('invalid source commit')
   subprocess.run(['git', 'diff', '--quiet', 'HEAD', '--'], check=True)
+  npm_version = subprocess.check_output(['npm', '--version'], text=True).strip()
+  if npm_version != NPM_VERSION:
+    raise ValueError('inventory generation requires the pinned npm version')
   ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
   version = ET.parse('pom.xml').getroot().find('m:version', ns).text
   web = json.loads(Path('apps/manager-web/package.json').read_text())
@@ -112,7 +116,7 @@ def main():
     'tools': {'mavenPlugin': MAVEN_PLUGIN, 'osvScannerVersion': OSV_VERSION,
               'osvScannerLinuxAmd64Sha256': OSV_SHA256,
               'node': subprocess.check_output(['node', '--version'], text=True).strip(),
-              'npm': subprocess.check_output(['npm', '--version'], text=True).strip()},
+              'npm': npm_version},
     'inputs': {name: digest(Path(name)) for name in INPUTS},
     'inventories': {name: {'sha256': digest(OUTPUT / name), **summary} for name, summary in summaries.items()},
     'vulnerabilityStatus': 'not established by inventory generation; inspect the separate OSV step and report',

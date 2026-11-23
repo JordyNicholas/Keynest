@@ -43,6 +43,7 @@ jobs:
         run: |
           mkdir -p target/dependency-security
           cp target/bom.json target/dependency-security/java.cdx.json
+          npm install --global npm@11.19.1 --ignore-scripts --no-audit --no-fund
           npm --prefix apps/manager-web sbom --package-lock-only --sbom-format=cyclonedx --include=dev --include=optional --include=peer --ignore-scripts > target/dependency-security/web.cdx.json
           python3 scripts/dependency_inventory.py
 
