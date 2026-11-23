@@ -2,11 +2,14 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { VaultPageComponent } from './vault.component';
 import { VaultItem } from './vault-item';
 import { VaultPage } from './vault-metadata';
+import { RestoreResult } from './vault-restore-dialog.component';
 
 const sample: VaultItem = { id: '00000000-0000-0000-0000-000000000001', label: 'Example account', username: 'demo-user', url: 'https://example.test/login', policyId: 'keynest.default.v1' };
 const second: VaultItem = { ...sample, id: '00000000-0000-0000-0000-000000000002', label: 'Second account' };
@@ -51,6 +54,24 @@ describe('Bounded Vault browsing', () => {
     expect([...component.exportIds()]).toEqual([sample.id, second.id]);
     component.selectForExport('unavailable-id', true);expect(component.exportIds().size).toBe(2);
     TestBed.inject(AuthService).clearSession();fixture.detectChanges();expect(component.exportIds().size).toBe(0);
+  });
+
+  it('conceals before restore, prevents overlapping dialogs and refreshes only after confirmed success for the same session', () => {
+    load();open();reveal();let closed = new Subject<RestoreResult | undefined>();
+    const dialog = { afterClosed: () => closed, close: jasmine.createSpy('close') };
+    const launch = spyOn(TestBed.inject(MatDialog), 'open').and.returnValue(dialog as never);
+    component.openRestore();expect(component.revealed()).toEqual({});expect(launch).toHaveBeenCalledTimes(1);
+    component.openRestore();component.openExport();expect(launch).toHaveBeenCalledTimes(1);http.expectNone(endpoint);
+    closed.next(undefined);closed.complete();http.expectNone(endpoint);closed = new Subject<RestoreResult | undefined>();
+    component.openRestore();closed.next({ restoredCount: 2, receivingPolicyUnchanged: true });http.expectOne(endpoint).flush(page([sample]));
+    closed.complete();
+  });
+
+  it('closes restore on a session change and never refreshes another account from an old result', () => {
+    const closed = new Subject<RestoreResult>();const dialog = { afterClosed: () => closed, close: jasmine.createSpy('close') };
+    spyOn(TestBed.inject(MatDialog), 'open').and.returnValue(dialog as never);component.openRestore();
+    TestBed.inject(AuthService).setSession('different-session', 'other@example.test');fixture.detectChanges();expect(dialog.close).toHaveBeenCalled();
+    closed.next({ restoredCount: 2, receivingPolicyUnchanged: true });http.expectNone(endpoint);closed.complete();
   });
 
   it('selects through the badge inside the card without expanding it, with an independent keyboard focus target', () => {

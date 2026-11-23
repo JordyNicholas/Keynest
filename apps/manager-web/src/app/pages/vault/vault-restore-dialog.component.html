@@ -1,0 +1,28 @@
+<h2 mat-dialog-title id="restore-title">Restore a Keynest file</h2>
+<mat-dialog-content>
+  <p>Add items from an encrypted <strong>.keynest</strong> backup to this account. Existing items stay as they are. Restoring the same backup again creates duplicates.</p>
+  <p>Your current account policy stays in place. Original passwords and supported dates are preserved, including expired dates. Third-party files are not supported.</p>
+  <kn-inline-error [(message)]="error" />
+  @if (blocked()) {
+    <p class="review" role="status">The restore may have finished. Close this dialog and refresh your Vault before starting another restore. This request will not be retried automatically.</p>
+  } @else {
+    <form ngNativeValidate (submit)="preview() ? apply($event) : review($event)">
+      <label for="restore-file">Keynest encrypted file (up to 500 items)</label>
+      <input #picker id="restore-file" type="file" accept=".keynest,application/octet-stream" (change)="choose($event)" [disabled]="busy()" />
+      @if (filename()) { <p class="filename">Selected: {{ filename() }}</p> }
+      <label for="restore-passphrase">Backup passphrase</label>
+      <input #phrase id="restore-passphrase" type="password" autocomplete="off" required maxlength="1024" (input)="invalidateReview()" [disabled]="busy()" />
+      @if (preview(); as preview) {
+        <p class="review" role="status">Ready to add {{ preview.itemCount }} item(s). This review expires at {{ preview.expiresAt | date:'shortTime' }}. No items have been written.</p>
+        <label for="restore-account-password">Current Keynest account password</label>
+        <input #account id="restore-account-password" type="password" autocomplete="off" required maxlength="32768" [disabled]="busy()" />
+        <button mat-flat-button type="submit" [disabled]="busy()">{{ busy() ? 'Restoring…' : 'Verify and restore items' }}</button>
+      } @else {
+        <button mat-flat-button type="submit" [disabled]="busy() || !filename()">{{ busy() ? 'Reviewing file…' : 'Review encrypted file' }}</button>
+      }
+    </form>
+  }
+  <p role="status">{{ status() }}</p>
+  <p>Once sent, a restore may finish even if you close this dialog or lose connection. Check your Vault before repeating an interrupted restore.</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end"><button mat-stroked-button type="button" mat-dialog-close>Close</button></mat-dialog-actions>

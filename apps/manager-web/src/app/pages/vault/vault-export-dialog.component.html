@@ -1,7 +1,7 @@
 <h2 mat-dialog-title id="export-title">Export your Vault</h2>
 <mat-dialog-content>
   <p>Destination: <strong>Keynest encrypted file (.keynest)</strong>. Passwords, login metadata and current account rules are encrypted with your export passphrase. Your server encryption key is excluded.</p>
-  <p>Up to 500 items. Third-party migration formats are not yet available. Application restore is still being built; this file alone is not a verified recovery workflow. Keep your existing database and retained-key backups.</p>
+  <p>Up to 500 items. Use Restore in your Vault to add this encrypted file to an account. Third-party migration formats are not yet available. Keep your existing database and retained-key backups.</p>
   <label for="export-scope">Items to export</label>
   <select id="export-scope" [value]="scope()" (change)="changeScope($any($event.target).value)" [disabled]="busy()">
     <option value="all">All items in my Vault (all pages and filters)</option>

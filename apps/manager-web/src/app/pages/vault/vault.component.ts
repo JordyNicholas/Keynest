@@ -6,6 +6,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { VaultExportDialogComponent } from './vault-export-dialog.component';
+import { RestoreResult, VaultRestoreDialogComponent } from './vault-restore-dialog.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
@@ -29,8 +30,10 @@ import { ExpiryCounts, ExpiryFilter, expiryFilters, expiryStatus, SearchField, V
 export class VaultPageComponent implements OnDestroy {
   private readonly dialogs = inject(MatDialog);
   private exportDialog?: MatDialogRef<VaultExportDialogComponent>;
+  private restoreDialog?: MatDialogRef<VaultRestoreDialogComponent, RestoreResult>;
   readonly exportIds = signal<ReadonlySet<string>>(new Set());
   readonly selectionError = signal('');
+  readonly restoreStatus = signal('');
   private readonly api = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
@@ -78,7 +81,7 @@ export class VaultPageComponent implements OnDestroy {
     effect(() => {
       const token = this.auth.token();
       if (session !== token) {
-        session = token;this.exportIds.set(new Set());this.selectionError.set('');this.exportDialog?.close();this.cancelPage();this.deleteRequest?.unsubscribe();this.clearPage();this.query.set('');this.selectedItem.set(null);
+        session = token;this.exportIds.set(new Set());this.selectionError.set('');this.restoreStatus.set('');this.exportDialog?.close();this.restoreDialog?.close();this.cancelPage();this.deleteRequest?.unsubscribe();this.clearPage();this.query.set('');this.selectedItem.set(null);
         this.expiry.set('all');this.page.set(0);this.loading.set(false);
         this.loadFailure.set(token ? 'Your session changed. Refresh to load this account’s Vault.' : 'Your session ended. Sign in to load your Vault.');
       }
@@ -108,7 +111,7 @@ export class VaultPageComponent implements OnDestroy {
   clearExportSelection(): void { this.exportIds.set(new Set());this.selectionError.set(''); }
 
   openExport(): void {
-    if (!this.auth.signedIn() || this.exportDialog) return;
+    if (!this.auth.signedIn() || this.exportDialog || this.restoreDialog) return;
     this.concealAll();
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dialog = this.dialogs.open(VaultExportDialogComponent, {
@@ -118,6 +121,25 @@ export class VaultPageComponent implements OnDestroy {
     });
     this.exportDialog = dialog;
     dialog.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => { if (this.exportDialog === dialog) this.exportDialog = undefined; });
+  }
+
+  openRestore(): void {
+    if (!this.auth.signedIn() || this.restoreDialog || this.exportDialog || this.pending()) return;
+    this.concealAll();this.restoreStatus.set('');const token = this.auth.token();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dialog = this.dialogs.open<VaultRestoreDialogComponent, undefined, RestoreResult>(VaultRestoreDialogComponent, {
+      width: '40rem', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100dvh - 2rem)',
+      ariaLabelledBy: 'restore-title', autoFocus: 'first-header', restoreFocus: true,
+      enterAnimationDuration: reduced ? 0 : 180, exitAnimationDuration: reduced ? 0 : 160,
+    });
+    this.restoreDialog = dialog;
+    dialog.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+      if (this.restoreDialog === dialog) this.restoreDialog = undefined;
+      if (!this.destroyRef.destroyed && this.auth.token() === token && result?.receivingPolicyUnchanged === true
+        && Number.isInteger(result.restoredCount) && result.restoredCount > 0 && result.restoredCount <= 500) {
+        this.restoreStatus.set(`Restored ${result.restoredCount} item(s). Your current filters still apply.`);this.refreshVault();
+      }
+    });
   }
 
   expiryStatus(expiresAt: VaultItem['expiresAt']) {
@@ -241,7 +263,7 @@ export class VaultPageComponent implements OnDestroy {
       });
   }
 
-  ngOnDestroy(): void { this.exportDialog?.close();this.exportIds.set(new Set());this.cancelPage();this.deleteRequest?.unsubscribe();this.concealAll(); }
+  ngOnDestroy(): void { this.exportDialog?.close();this.restoreDialog?.close();this.exportIds.set(new Set());this.cancelPage();this.deleteRequest?.unsubscribe();this.concealAll(); }
 
   private syncRoute(): void {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { expiry: this.expiry() === 'all' ? null : this.expiry(), item: this.selectedItem() }, queryParamsHandling: 'merge', replaceUrl: true });

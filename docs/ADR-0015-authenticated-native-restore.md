@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed in [#241](https://github.com/JordyNicholas/Keynest/pull/241) for #240 / #154. The internal foundation is accepted through #235 / [ADR-0014](ADR-0014-native-restore-foundation.md).
+Accepted through maintainer-approved [#241](https://github.com/JordyNicholas/Keynest/pull/241) for #240 / #154. The internal foundation is accepted through #235 / [ADR-0014](ADR-0014-native-restore-foundation.md).
 
 ## Contract
 

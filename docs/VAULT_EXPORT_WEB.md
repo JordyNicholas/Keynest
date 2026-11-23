@@ -10,7 +10,7 @@ After review, supply the current account password and a separate export passphra
 
 The HTTP response remains an encrypted Blob. A temporary object URL starts a generic `keynest-vault.keynest` browser download; it is revoked shortly afterward or when the dialog is destroyed. Success says download *started*, not file receipt/import verified. Errors are fixed UI messages based on status; Blob error bodies are not decoded or displayed. Session expiry clears the local session; selection changes cannot reuse a previous preview. No plaintext export destination or AI access is added.
 
-The dialog explicitly states that application restore is still being built and that retained-key database backups remain necessary. Do not claim offline recovery, close #154, or advertise third-party compatibility before separate-instance restoration and importer walkthroughs pass.
+The dialog points to Restore in the Vault; see [the proposed restoration workflow](VAULT_RESTORE_WEB.md). Retained-key database backups remain necessary. Do not claim offline recovery, close #154, or advertise third-party compatibility before separate-instance restoration and importer walkthroughs pass.
 
 ## Verification
 

@@ -1,9 +1,10 @@
 <div class="page-heading">
   <div><h1 class="page-title">Your vault</h1><p class="page-lede">A dedicated place for your saved accounts and passwords.</p></div>
-  <div class="row"><button mat-stroked-button type="button" (click)="openExport()">Export</button><a mat-flat-button routerLink="/vault/new">Add Vault item</a></div>
+  <div class="row"><button mat-stroked-button type="button" (click)="openRestore()" [disabled]="pending()">Restore</button><button mat-stroked-button type="button" (click)="openExport()">Export</button><a mat-flat-button routerLink="/vault/new">Add Vault item</a></div>
 </div>
 <kn-inline-error [(message)]="error" />
 <kn-inline-error [(message)]="selectionError" />
+@if (restoreStatus()) { <p role="status">{{ restoreStatus() }}</p> }
 <div class="export-selection" aria-label="Export selection">
   <span role="status">{{ exportIds().size }} selected for export across pages and filters (maximum 500).</span>
   @if (exportIds().size) { <button mat-button type="button" (click)="clearExportSelection()">Clear export selection</button> }
