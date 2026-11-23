@@ -3,13 +3,15 @@
   <label for="auth-email">Email</label>
   <input id="auth-email" type="email" name="email" autocomplete="username" required
          [disabled]="pending()" [ngModel]="email()" (ngModelChange)="email.set($event)" />
-  <label for="auth-password">Master password</label>
+  <label for="auth-password">Keynest password</label>
   <input id="auth-password" type="password" name="password" required
          [attr.autocomplete]="mode() === 'signup' ? 'new-password' : 'current-password'"
-         [attr.aria-describedby]="mode() === 'signup' ? 'master-password-requirement' : null"
+         aria-describedby="keynest-password-help"
          [disabled]="pending()" [ngModel]="password()" (ngModelChange)="password.set($event)" />
   @if (mode() === 'signup') {
-    <p id="master-password-requirement">Your master password needs at least {{ minimumMasterPasswordLength }} characters. It signs you in to this Keynest instance.</p>
+    <p id="keynest-password-help">Use at least {{ minimumMasterPasswordLength }} characters for your Keynest account password.</p>
+  } @else {
+    <p id="keynest-password-help">Use your account password to sign in to this Keynest instance.</p>
   }
   @if (pending()) {
     <p role="status">{{ mode() === 'signup' ? 'Creating your account…' : 'Signing in…' }}</p>

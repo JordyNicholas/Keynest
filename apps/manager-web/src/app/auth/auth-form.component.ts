@@ -52,10 +52,10 @@ export class AuthFormComponent {
       this.error.set('Enter a valid email address, such as name@example.com.');return;
     }
     if (this.mode() === 'signup' && [...this.password()].length < this.minimumMasterPasswordLength) {
-      this.error.set(`Your master password must contain at least ${this.minimumMasterPasswordLength} characters to create an account.`);return;
+      this.error.set(`Your Keynest password must contain at least ${this.minimumMasterPasswordLength} characters to create an account.`);return;
     }
     if (!this.password()) {
-      this.error.set('Enter your master password.');return;
+      this.error.set('Enter your Keynest password.');return;
     }
     const mode = this.mode();
     const attempt = ++this.attempt;
@@ -73,9 +73,9 @@ export class AuthFormComponent {
       error: ({ status }) => {
         if (attempt !== this.attempt || this.auth.token() !== this.requestToken) return;
         this.pending.set(false);
-        this.error.set(status === 401 ? 'The email address or master password is incorrect.'
+        this.error.set(status === 401 ? 'The email address or Keynest password is incorrect.'
           : status === 409 && mode === 'signup' ? 'An account with this email already exists. Try signing in.'
-          : status === 400 ? 'Check the email address and master password requirements.'
+          : status === 400 ? 'Check the email address and Keynest password requirements.'
           : status === 429 ? 'Too many attempts. Wait a minute and try again.'
           : status === 503 ? 'Password operations are busy. Wait a moment and try again.'
           : 'Could not connect to Manager. Check API health and try again.');
