@@ -160,13 +160,14 @@ export class VaultRestoreDialogComponent {
   }
   private validEntries(preview: Preview): boolean {
     if (!Array.isArray(preview.entries) || preview.entries.length !== preview.itemCount) return false;let matches = 0;
-    return preview.entries.every((entry, index) => entry && entry.sourceIndex === index && typeof entry.label === 'string' && entry.label.length <= 200
-      && (entry.url === null || typeof entry.url === 'string' && entry.url.length <= 2000) && (entry.username === null || typeof entry.username === 'string' && entry.username.length <= 320)
+    return preview.entries.every((entry, index) => entry && entry.sourceIndex === index && this.boundedText(entry.label, 200)
+      && (entry.url === null || this.boundedText(entry.url, 2000)) && (entry.username === null || this.boundedText(entry.username, 320))
       && ['new', 'identical', 'conflict', 'repeated'].includes(entry.matchKind) && (entry.repeatedOf === null || Number.isInteger(entry.repeatedOf) && entry.repeatedOf >= 0 && entry.repeatedOf < index)
       && Array.isArray(entry.matches) && (matches += entry.matches.length) <= 5000 && entry.matches.every(match => match && /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(match.targetId)
-        && typeof match.label === 'string' && match.label.length <= 200 && Number.isFinite(Date.parse(match.createdAt)) && Number.isFinite(Date.parse(match.updatedAt))
+        && this.boundedText(match.label, 200) && Number.isFinite(Date.parse(match.createdAt)) && Number.isFinite(Date.parse(match.updatedAt))
         && Array.isArray(match.changedFields) && match.changedFields.length <= 8 && match.changedFields.every(field => Object.hasOwn(FIELD_LABELS, field))));
   }
+  private boundedText(value: unknown, limit: number): boolean { return typeof value === 'string' && value.length <= limit * 2 && Array.from(value).length <= limit; }
 
   private read(version: number, next: (file: string) => void): void {
     if (!this.file) { this.refuse('Choose your encrypted file and review again.');return; }

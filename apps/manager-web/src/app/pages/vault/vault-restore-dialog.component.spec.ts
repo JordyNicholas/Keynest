@@ -216,4 +216,12 @@ describe('Vault encrypted restore dialog', () => {
     component.chooseAction(0, 'ignore');expect(accountInput.value).toBe('');expect(component.preview()?.planId).toBe('');
     component.apply(new Event('submit'));http.expectNone(applyUrl);fixture.detectChanges();expect(fixture.nativeElement.querySelector('#restore-account-password')).toBeNull();
   });
+
+  it('keeps native code-point limits for Unicode review labels rather than rejecting valid surrogate pairs', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    http.expectOne(previewUrl).flush({ ...ticket(), entries: [{ ...entry(0), label: '🔑'.repeat(200) }, entry(1)] });
+    expect(component.preview()?.entries[0].label).toBe('🔑'.repeat(200));
+    choose();component.review(new Event('submit'));finishRead();http.expectOne(previewUrl).flush({ ...ticket(), entries: [{ ...entry(0), label: '🔑'.repeat(201) }, entry(1)] });
+    expect(component.preview()).toBeNull();
+  });
 });
