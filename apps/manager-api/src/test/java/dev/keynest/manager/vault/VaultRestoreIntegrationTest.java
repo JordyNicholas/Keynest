@@ -31,6 +31,7 @@ class VaultRestoreIntegrationTest {
   @Autowired VaultExportAdmission admission;
   @Autowired AccountPasswordPolicyService policies;
   @Autowired EntityManager em;
+  @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
   @MockitoSpyBean VaultService vault;
   @MockitoSpyBean EncryptedVaultBackup backups;
   private UserAccount source, receiver;
@@ -121,6 +122,102 @@ class VaultRestoreIntegrationTest {
     ObjectNode document = payload();document.putArray("items");byte[] empty = backups.encrypt(document, PHRASE.toCharArray());
     assertCode(() -> restore.preview(receiver.getId(), empty, PHRASE.toCharArray()), VaultRestoreFailure.Code.RESTORE_EMPTY);
     assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).isEmpty();
+  }
+
+  @Test void skipsExistingEntriesAndRepeatedRestoresWithoutRewritingTheirIdentitiesOrCiphertext() {
+    var existing = restore.preview(source.getId(), file, PHRASE.toCharArray());
+    assertThat(existing.newItemCount()).isZero();assertThat(existing.skippedCount()).isEqualTo(1);
+    byte[] envelope = items.findById(original).orElseThrow().getEnvelopeBytes().clone();
+    var unchanged = restore.restore(source.getId(), file, PHRASE.toCharArray(), existing.snapshot());
+    assertThat(unchanged.restoredCount()).isZero();assertThat(unchanged.skippedCount()).isEqualTo(1);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(source.getId())).hasSize(1);
+    assertThat(Arrays.equals(envelope, items.findById(original).orElseThrow().getEnvelopeBytes())).isTrue();
+    verify(vault, never()).sealPassword(anyString(), any(), any(), anyString());
+
+    var first = restore.preview(receiver.getId(), file, PHRASE.toCharArray());assertThat(first.newItemCount()).isEqualTo(1);
+    restore.restore(receiver.getId(), file, PHRASE.toCharArray(), first.snapshot());
+    assertCode(() -> restore.restore(receiver.getId(), file, PHRASE.toCharArray(), first.snapshot()), VaultRestoreFailure.Code.RESTORE_CHANGED);
+    var again = restore.preview(receiver.getId(), file, PHRASE.toCharArray());
+    assertThat(again.newItemCount()).isZero();assertThat(again.skippedCount()).isEqualTo(1);
+    assertThat(restore.restore(receiver.getId(), file, PHRASE.toCharArray(), again.snapshot()).skippedCount()).isEqualTo(1);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(1);
+  }
+
+  @Test void skipsExactRepeatsInsideTheFileButPreservesChangedPasswordsAndMetadata() {
+    ObjectNode document = payload();var first = (ObjectNode) document.path("items").get(0);
+    document.withArray("items").add(first.deepCopy().put("id", UUID.randomUUID().toString()));
+    byte[] repeated = backups.encrypt(document, PHRASE.toCharArray());
+    var preview = restore.preview(receiver.getId(), repeated, PHRASE.toCharArray());
+    assertThat(preview.itemCount()).isEqualTo(2);assertThat(preview.newItemCount()).isEqualTo(1);assertThat(preview.skippedCount()).isEqualTo(1);
+    var result = restore.restore(receiver.getId(), repeated, PHRASE.toCharArray(), preview.snapshot());
+    assertThat(result.restoredCount()).isEqualTo(1);assertThat(result.skippedCount()).isEqualTo(1);
+    assertThat(restore.preview(receiver.getId(), repeated, PHRASE.toCharArray()).skippedCount()).isEqualTo(2);
+    for (String field : java.util.List.of("password", "label", "url", "username", "policyId", "expiresAt", "notifyBeforeDays")) {
+      ObjectNode changed = payload();ObjectNode row = (ObjectNode) changed.path("items").get(0);
+      if (field.equals("notifyBeforeDays")) row.put(field, 2);
+      else row.put(field, field.endsWith("At") ? "2027-01-01T00:00:00Z" : "changed synthetic " + field);
+      var review = restore.preview(receiver.getId(), backups.encrypt(changed, PHRASE.toCharArray()), PHRASE.toCharArray());
+      if (field.equals("url") || field.equals("username")) assertThat(review.newItemCount()).isEqualTo(1);
+      else { assertThat(review.skippedCount()).isEqualTo(1);assertThat(review.entries().getFirst().matchKind()).isEqualTo("conflict"); }
+    }
+  }
+
+  @Test void comparesTimestampStoragePrecisionAndInvalidatesReviewWhenReceivingDataChanges() {
+    ObjectNode document = payload();var row = (ObjectNode) document.path("items").get(0);
+    for (String field : java.util.List.of("createdAt", "updatedAt", "lastRotatedAt", "expiresAt")) row.put(field, "2026-11-20T00:00:00.123456789Z");
+    byte[] precise = backups.encrypt(document, PHRASE.toCharArray());
+    var preview = restore.preview(receiver.getId(), precise, PHRASE.toCharArray());restore.restore(receiver.getId(), precise, PHRASE.toCharArray(), preview.snapshot());
+    var existing = restore.preview(receiver.getId(), precise, PHRASE.toCharArray());assertThat(existing.skippedCount()).isEqualTo(1);
+    UUID id = items.findByUserIdOrderByUpdatedAtDesc(receiver.getId()).getFirst().getId();
+    vault.update(receiver, id, new VaultService.UpdateVaultItemRequest("Changed after review", null, null, null, null, null, null));
+    assertCode(() -> restore.restore(receiver.getId(), precise, PHRASE.toCharArray(), existing.snapshot()), VaultRestoreFailure.Code.RESTORE_CHANGED);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(1);assertThat(vault.get(receiver, id).label()).isEqualTo("Changed after review");
+  }
+
+  @Test void boundsCandidateMembershipBeforeFetchingOrOpeningReceivingCiphertext() {
+    var arguments = new java.util.ArrayList<Object[]>();
+    for (int index = 0; index <= VaultRestoreComparison.MAX_CANDIDATES; index++) arguments.add(new Object[]{UUID.randomUUID(), receiver.getId(), original});
+    jdbc.batchUpdate("insert into vault_items (id,user_id,label,url,username,envelope_bytes,policy_id,aad_version,expires_at,last_rotated_at,notify_before_days,created_at,updated_at) "
+      + "select ?,?,label,url,username,envelope_bytes,policy_id,aad_version,expires_at,last_rotated_at,notify_before_days,created_at,updated_at from vault_items where id=?", arguments);
+    char[] phrase = PHRASE.toCharArray();
+    assertCode(() -> restore.preview(receiver.getId(), file, phrase), VaultRestoreFailure.Code.RESTORE_COMPARISON_LIMIT);
+    assertThat(phrase).containsOnly('\0');verify(vault, never()).openPassword(any());
+  }
+
+  @Test void reviewsExplicitUpdatesAndKeepBothWithoutReplacingIdentitiesOrAccountPolicy() {
+    var initial = restore.preview(receiver.getId(), file, PHRASE.toCharArray());restore.restore(receiver.getId(), file, PHRASE.toCharArray(), initial.snapshot());
+    var target = items.findByUserIdOrderByUpdatedAtDesc(receiver.getId()).getFirst();UUID id = target.getId();var created = target.getCreatedAt();String policy = policies.inspect(receiver).id();
+    ObjectNode document = payload();ObjectNode row = (ObjectNode) document.path("items").get(0);row.put("label", "Incoming replacement").put("password", "Synthetic different historical secret").put("policyId", "synthetic.historical.other");
+    byte[] changed = backups.encrypt(document, PHRASE.toCharArray());
+    var safe = restore.preview(receiver.getId(), changed, PHRASE.toCharArray());assertThat(safe.skippedCount()).isEqualTo(1);assertThat(safe.updatedItemCount()).isZero();
+    assertThat(safe.entries().getFirst().matches().getFirst().changedFields()).contains("label", "password", "policyId");
+    var choices = java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.UPDATE, id));
+    var preview = restore.preview(receiver.getId(), changed, PHRASE.toCharArray(), choices);assertThat(preview.updatedItemCount()).isEqualTo(1);
+    assertThat(items.findById(id).orElseThrow().getLabel()).isEqualTo("Synthetic source");
+    var applied = restore.restore(receiver.getId(), changed, PHRASE.toCharArray(), preview.snapshot(), preview.decisions(), () -> {});
+    assertThat(applied.restoredCount()).isZero();assertThat(applied.updatedCount()).isEqualTo(1);assertThat(applied.skippedCount()).isZero();
+    var updated = items.findById(id).orElseThrow();assertThat(updated.getCreatedAt()).isEqualTo(created);assertThat(updated.getUserId()).isEqualTo(receiver.getId());
+    assertThat(updated.getLabel()).isEqualTo("Incoming replacement");assertThat("Synthetic different historical secret".equals(vault.reveal(receiver, id).password())).isTrue();
+    assertThat(policies.inspect(receiver).id()).isEqualTo(policy);assertThat(restore.preview(receiver.getId(), changed, PHRASE.toCharArray()).entries().getFirst().matchKind()).isEqualTo("identical");
+    var keep = restore.preview(receiver.getId(), changed, PHRASE.toCharArray(), java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.ADD, null)));
+    assertThat(restore.restore(receiver.getId(), changed, PHRASE.toCharArray(), keep.snapshot(), keep.decisions(), () -> {}).restoredCount()).isEqualTo(1);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(2);assertThat(items.findById(original).orElseThrow().getLabel()).isEqualTo("Synthetic source");
+  }
+
+  @Test void rejectsForeignAndMultiplySelectedTargetsBeforeWritesAndRechecksSelectedTargetChanges() {
+    var initial = restore.preview(receiver.getId(), file, PHRASE.toCharArray());restore.restore(receiver.getId(), file, PHRASE.toCharArray(), initial.snapshot());
+    UUID id = items.findByUserIdOrderByUpdatedAtDesc(receiver.getId()).getFirst().getId();
+    ObjectNode document = payload();((ObjectNode) document.path("items").get(0)).put("password", "Synthetic replacement secret");
+    byte[] changed = backups.encrypt(document, PHRASE.toCharArray());
+    assertCode(() -> restore.preview(receiver.getId(), changed, PHRASE.toCharArray(), java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.UPDATE, original))), VaultRestoreFailure.Code.RESTORE_SELECTION_INVALID);
+    var valid = java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.UPDATE, id));
+    var preview = restore.preview(receiver.getId(), changed, PHRASE.toCharArray(), valid);
+    vault.update(receiver, id, new VaultService.UpdateVaultItemRequest("Edited while reviewing", null, null, null, null, null, null));
+    assertCode(() -> restore.restore(receiver.getId(), changed, PHRASE.toCharArray(), preview.snapshot(), preview.decisions(), () -> {}), VaultRestoreFailure.Code.RESTORE_CHANGED);
+    document.withArray("items").add(document.path("items").get(0).deepCopy());((ObjectNode) document.path("items").get(1)).put("id", UUID.randomUUID().toString());
+    byte[] repeated = backups.encrypt(document, PHRASE.toCharArray());
+    assertCode(() -> restore.preview(receiver.getId(), repeated, PHRASE.toCharArray(), java.util.List.of(new VaultRestoreDecision(0, VaultRestoreDecision.Action.UPDATE, id), new VaultRestoreDecision(1, VaultRestoreDecision.Action.UPDATE, id))), VaultRestoreFailure.Code.RESTORE_SELECTION_INVALID);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).hasSize(1);assertThat(SECRET.equals(vault.reveal(receiver, id).password())).isTrue();
   }
 
   private ObjectNode payload() {

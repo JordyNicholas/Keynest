@@ -177,6 +177,12 @@ def run(cors_origin):
   check(headers.get('Cache-Control') == 'no-store' and restored['restoredCount'] == 1,
     'restore apply count/cache boundary')
   expect('POST', API + '/vault/restores/apply', restore_request, other['token'], status=409)
+  repeat_body = {'file': restore_request['file'], 'backupPassphrase': restore_request['backupPassphrase']}
+  _, repeated = expect('POST', API + '/vault/restores/preview', repeat_body, other['token'])
+  check(repeated['newItemCount'] == 0 and repeated['skippedCount'] == 1, 'repeat preview must identify identical entries')
+  repeat_body.update(accountPassword=other_password, planId=repeated['planId'])
+  _, skipped = expect('POST', API + '/vault/restores/apply', repeat_body, other['token'])
+  check(skipped['restoredCount'] == 0 and skipped['skippedCount'] == 1, 'repeat restore must not create duplicates')
   _, restored_items = expect('GET', API + '/vault/items', token=other['token'])
   check(len(restored_items) == 1 and restored_items[0]['id'] != item['id'], 'restore must create one fresh owner identity')
   restored_path = API + '/vault/items/' + restored_items[0]['id']
@@ -198,7 +204,7 @@ def run(cors_origin):
   expect('POST', API + '/auth/me', token=login_token, status=401)
   expect('POST', API + '/auth/logout', token=token)
   expect('POST', API + '/auth/logout', token=other['token'])
-  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export/restore, replay refusal, no-store and tenant isolation')
+  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export/restore, identical-entry skips, replay refusal, no-store and tenant isolation')
 
 
 if __name__ == '__main__':

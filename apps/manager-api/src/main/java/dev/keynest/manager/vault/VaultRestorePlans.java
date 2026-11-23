@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import static dev.keynest.manager.vault.VaultRestoreFailure.Code.*;
 
@@ -30,8 +31,8 @@ public class VaultRestorePlans {
     do { random.nextBytes(bytes);token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes); } while (plans.containsKey(hash(token)));
     Arrays.fill(bytes, (byte) 0);
     Instant expires = clock.instant().plusSeconds(300);
-    plans.put(hash(token), new Plan(binding, preview.snapshot(), preview.itemCount(), expires));
-    return new Ticket(token, expires, preview.itemCount(), true);
+    plans.put(hash(token), new Plan(binding, preview.snapshot(), preview.itemCount(), expires, preview.decisions()));
+    return new Ticket(token, expires, preview.itemCount(), preview.newItemCount(), preview.updatedItemCount(), preview.skippedCount(), preview.entries(), true);
   }
 
   public synchronized Plan consume(String token, Binding binding) {
@@ -55,6 +56,9 @@ public class VaultRestorePlans {
     finally { Arrays.fill(value, (byte) 0); }
   }
   public record Binding(UUID owner, String session, String credential) { @Override public String toString() { return "RestoreBinding[redacted]"; } }
-  public record Plan(Binding binding, String snapshot, int itemCount, Instant expiresAt) { @Override public String toString() { return "RestorePlan[redacted]"; } }
-  public record Ticket(String planId, Instant expiresAt, int itemCount, boolean receivingPolicyUnchanged) { @Override public String toString() { return "RestoreTicket[redacted]"; } }
+  public record Plan(Binding binding, String snapshot, int itemCount, Instant expiresAt, List<VaultRestoreDecision> decisions) {
+    public Plan { decisions = List.copyOf(decisions); }
+    @Override public String toString() { return "RestorePlan[redacted]"; }
+  }
+  public record Ticket(String planId, Instant expiresAt, int itemCount, int newItemCount, int updatedItemCount, int skippedCount, List<VaultRestoreEntry> entries, boolean receivingPolicyUnchanged) { @Override public String toString() { return "RestoreTicket[redacted]"; } }
 }
