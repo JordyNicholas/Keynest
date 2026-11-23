@@ -89,6 +89,19 @@ describe('Vault encrypted export dialog', () => {
     for (const field of Object.values(fields)) expect(field.value).toBe('');
   });
 
+  it('rejects non-binary responses and never creates a download URL for them', () => {
+    const { component, http, review, fill } = open();review();fill();
+    const create = spyOn(URL, 'createObjectURL');component.download(new Event('submit'));
+    http.expectOne('/api/v1/vault/exports/download').flush(new Blob(['{}'], { type: 'application/json' }));
+    expect(create).not.toHaveBeenCalled();expect(component.preview()).toBeNull();expect(component.error()).toContain('unavailable');
+  });
+
+  it('clears the session after an unauthenticated export response', () => {
+    const { component, http } = open();component.review();
+    http.expectOne('/api/v1/vault/exports/preview').flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(TestBed.inject(AuthService).signedIn()).toBeFalse();expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalled();
+  });
+
   it('cancels pending previews and closes when the account session changes', () => {
     const { fixture, component, http } = open();component.review();const request = http.expectOne('/api/v1/vault/exports/preview');
     TestBed.inject(AuthService).setSession('different-session', 'other@example.test');fixture.detectChanges();
