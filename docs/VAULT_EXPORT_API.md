@@ -1,6 +1,6 @@
 # Encrypted Vault export API
 
-Implementation proposal for #226; see [ADR-0013](ADR-0013-authenticated-vault-export.md). Requires the normal feature/security PR review. The portable file format is defined in [ADR-0012](ADR-0012-portable-backup-container.md) and [Vault portability](VAULT_PORTABILITY.md).
+Implemented through maintainer-approved PR #227; see [accepted ADR-0013](ADR-0013-authenticated-vault-export.md). The portable file format is defined in [ADR-0012](ADR-0012-portable-backup-container.md) and [Vault portability](VAULT_PORTABILITY.md).
 
 ## Preview
 
@@ -47,4 +47,4 @@ The existing generic rate limiter returns its existing 429 shape and Retry-After
 
 ## Remaining feature work
 
-A Vault UI with all/selected selection, compatibility review, passphrase entry and download lifecycle is still required. Application/database restoration needs separate preview/apply semantics and receiving-owner/item resealing; a file-codec round trip is not that evidence. Candidate browser/Bitwarden serializers remain unavailable until their actual destination import walkthroughs pass. Keep #154 and the human release walkthrough open.
+The Vault UI with all/selected selection, preview, credential/passphrase entry and download lifecycle is merged through approved PR #231; see [the web workflow](VAULT_EXPORT_WEB.md). Application/database restoration needs separate preview/apply semantics and receiving-owner/item resealing; a file-codec round trip is not that evidence. Candidate browser/Bitwarden serializers remain unavailable until their actual destination import walkthroughs pass. Keep #154 and the human release walkthrough open.

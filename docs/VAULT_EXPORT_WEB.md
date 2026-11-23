@@ -1,6 +1,6 @@
 # Vault encrypted export workflow
 
-Proposed UI slice for #230 / #154, dependent on the authenticated API in #227. Neither this workflow nor file-codec tests complete the application/database restore gate.
+Implemented through maintainer-approved PR #231 (#230 / #154), using the authenticated API merged in #227. Neither this workflow nor file-codec tests complete the application/database restore gate.
 
 Enter Export from the signed-in Vault. Select individual rows with the labelled checkboxes outside each expansion header. The selection stores IDs only, persists across pages/search/expiry filters, and displays a total plus Clear selection. It is limited to 500 and clears on account/session change or leaving the Vault. Opening Export conceals revealed passwords.
 
