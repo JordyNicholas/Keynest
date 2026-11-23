@@ -6,7 +6,7 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
 import { By } from '@angular/platform-browser';
 import { VaultUpdatePageComponent } from './vault-update.component';
-import { expiryInstant } from '../../ui/expiry-date-adapter';
+import { expiryInstant } from '../../ui/expiry-date';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 
@@ -52,6 +52,16 @@ describe('Vault update routes', () => {
     const date = new Date(2032, 4, 20);component.expiryDate.set(date);submit();
     const request = http.expectOne(endpoint);expect(request.request.body.expiresAt).toBe(expiryInstant(date));
     expect(request.request.body.expiresInDays).toBeUndefined();request.flush({});
+  });
+
+  it('saves a selected expiry date during password rotation', async () => {
+    const { harness, content, http, submit } = await open('/vault/rotate/item-1');
+    const component = harness.fixture.debugElement.query(By.directive(VaultUpdatePageComponent)).componentInstance as VaultUpdatePageComponent;
+    const date = new Date(2032, 4, 21);component.expiryDate.set(date);
+    content.querySelector<HTMLInputElement>('input[autocomplete=new-password]')!.value = 'Synthetic replacement';
+    spyOn(window, 'confirm').and.returnValue(true);submit();
+    const request = http.expectOne(endpoint);expect(request.request.body.expiresAt).toBe(expiryInstant(date));
+    expect(request.request.body.password).toBe('Synthetic replacement');request.flush({});
   });
 
   it('edits details without including a password or asking for replacement confirmation', async () => {

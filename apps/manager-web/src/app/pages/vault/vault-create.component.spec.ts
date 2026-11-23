@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
-import { expiryInstant } from '../../ui/expiry-date-adapter';
+import { expiryInstant } from '../../ui/expiry-date';
 import { VaultCreatePageComponent } from './vault-create.component';
 
 describe('VaultCreatePageComponent', () => {

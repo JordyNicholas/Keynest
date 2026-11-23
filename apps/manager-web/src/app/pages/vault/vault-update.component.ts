@@ -1,5 +1,5 @@
 import { ExpiryDatePickerComponent } from '../../ui/expiry-date-picker.component';
-import { expiryInstant, localDateAfterDays } from '../../ui/expiry-date-adapter';
+import { expiryInstant, localDateAfterDays } from '../../ui/expiry-date';
 import { httpErrorMessage } from '../http-error-message';
 import { NgTemplateOutlet } from '@angular/common';
 import { HttpClient } from '@angular/common/http';

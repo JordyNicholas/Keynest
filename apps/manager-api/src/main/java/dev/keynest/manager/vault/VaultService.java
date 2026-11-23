@@ -25,6 +25,7 @@ import java.util.UUID;
 @Service
 public class VaultService {
 
+    private static final Instant MAX_CALENDAR_EXPIRY = Instant.parse("+10000-01-02T00:00:00Z");
     private final VaultItemRepository items;
     private final AccountPasswordPolicyService accountPolicies;
     private final PasswordGenerator passwordGenerator;
@@ -143,7 +144,7 @@ public class VaultService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose an expiry date or a duration, not both");
         }
         if (absolute != null) {
-            if (!absolute.isAfter(now) || absolute.isAfter(Instant.parse("+10000-01-02T00:00:00Z"))) {
+            if (!absolute.isAfter(now) || absolute.isAfter(MAX_CALENDAR_EXPIRY)) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Expiry date must be in the future and within the supported calendar");
             }
             return absolute;

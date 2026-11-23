@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MatDatepicker } from '@angular/material/datepicker';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
-import { ExpiryDateAdapter, expiryInstant, localDateAfterDays } from './expiry-date-adapter';
+import { ExpiryDateAdapter } from './expiry-date-adapter';
+import { expiryInstant, localDateAfterDays } from './expiry-date';
 import { ExpiryDatePickerComponent } from './expiry-date-picker.component';
 
 describe('Localized expiry date parsing', () => {
