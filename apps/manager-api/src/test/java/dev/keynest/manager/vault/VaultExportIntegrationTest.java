@@ -40,6 +40,7 @@ class VaultExportIntegrationTest {
   @Autowired VaultItemRepository items;
   @Autowired VaultService vault;
   @Autowired VaultExportAdmission admission;
+  @Autowired jakarta.persistence.EntityManager entityManager;
   @MockitoSpyBean KeynestSeal seal;
   @MockitoSpyBean EncryptedVaultBackup backups;
   @MockitoSpyBean PasswordHashingService passwords;
@@ -51,6 +52,19 @@ class VaultExportIntegrationTest {
     bearer = "Bearer " + auth.register("export-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
     owner = auth.requireUser(bearer);first = add("Synthetic first", "sample", "https://example.invalid/login");
     clearInvocations(seal, backups, passwords);
+  }
+
+  @Test void databaseProjectionMeasuresOnlyOwnedCiphertextLengths() {
+    var cb = entityManager.getCriteriaBuilder();
+    var query = cb.createTupleQuery();var row = query.from(VaultItem.class);
+    query.multiselect(row.get("id"), cb.function("octet_length", Integer.class, row.get("envelopeBytes")));
+    query.where(cb.equal(row.get("userId"), owner.getId()));
+    var result = entityManager.createQuery(query).setMaxResults(501).getResultList();
+    assertThat(result).hasSize(1);
+    assertThat(result.getFirst().get(0)).isEqualTo(first);
+    assertThat(((Number) result.getFirst().get(1)).intValue()).isEqualTo(items.findById(first).orElseThrow().getEnvelopeBytes().length);
+    assertThat(JSON.valueToTree(policies.inspect(owner)).path("rules").isObject()).isTrue();
+    verify(seal, never()).open(any(), any(byte[].class), any(byte[].class));
   }
 
   @Test void encryptedAllDownloadPreservesSecretsMetadataAndUsesTheReviewedPortableFormat() throws Exception {
