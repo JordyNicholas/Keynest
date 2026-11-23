@@ -24,7 +24,7 @@ export class ExpiryDistributionComponent {
     { id: 'expired', label: 'Expired', color: 'var(--kn-color-danger)' },
     { id: 'soon', label: 'Less than 14 days', color: 'color-mix(in srgb, var(--kn-color-danger) 65%, var(--kn-color-canvas-mid))' },
     { id: 'upcoming', label: '14–29 days', color: 'var(--kn-color-warning)' },
-    { id: 'later', label: '30+ days', color: 'var(--kn-color-accent)' },
+    { id: 'later', label: '30+ days', color: 'var(--kn-color-success)' },
     { id: 'unset', label: 'No expiry', color: 'var(--kn-color-subtle)' },
   ];
   readonly gradient = computed(() => {

@@ -19,14 +19,11 @@
   <label>Sort by
     <select [ngModel]="order()" (ngModelChange)="setOrder($event)"><option value="label">Label A–Z</option><option value="expiry">Earliest expiry</option></select>
   </label>
-  <label>Items per page
-    <select [ngModel]="size()" (ngModelChange)="setSize(+$event)">@for (count of [10, 25, 30, 50]; track count) { <option [ngValue]="count">{{ count }}</option> }</select>
-  </label>
 </section>
 <div class="expiry-filters" aria-label="Filter by expiry">
   @for (filter of filters; track filter.id) {
-    <button mat-stroked-button type="button" [class.selected]="expiry() === filter.id" [attr.aria-pressed]="expiry() === filter.id" (click)="setExpiry(filter.id)">
-      {{ filter.label }}@if (counts(); as counts) { <span class="filter-count">{{ filter.count(counts) }}</span> }
+    <button mat-stroked-button type="button" [class.selected]="expiry() === filter.id" [attr.data-tone]="filter.tone" [attr.aria-pressed]="expiry() === filter.id" (click)="setExpiry(filter.id)">
+      <kn-icon [name]="filter.icon" /><span>{{ filter.label }}</span>@if (counts(); as counts) { <span class="filter-count">{{ filter.count(counts) }}</span> }
     </button>
   }
 </div>
@@ -37,7 +34,7 @@
 
 <section aria-labelledby="vault-heading" [attr.aria-busy]="loading()">
   <div class="results-heading">
-    <h2 id="vault-heading">Saved items</h2>
+    <h2 #resultsHeading id="vault-heading" tabindex="-1">Saved items</h2>
     <button mat-stroked-button type="button" [disabled]="loading() || pending()" (click)="refreshVault()">Refresh</button>
   </div>
   @if (loading()) {
@@ -54,11 +51,11 @@
           @let expiry = expiryStatus(item.expiresAt);
           <mat-expansion-panel class="vault-card" [expanded]="expandedId() === item.id" (opened)="expandedId.set(item.id)" (closed)="closeItem(item.id)">
             <mat-expansion-panel-header collapsedHeight="auto" expandedHeight="auto">
-              <mat-panel-title class="vault-header"><span class="item-avatar" aria-hidden="true">{{ item.label.slice(0, 1) }}</span><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone">{{ expiry.label }}</span></mat-panel-title>
+              <mat-panel-title class="vault-header"><span class="item-avatar" aria-hidden="true">{{ item.label.slice(0, 1) }}</span><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone"><kn-icon [name]="expiry.tone === 'healthy' ? 'check' : expiry.tone === 'urgent' ? 'alert' : expiry.tone === 'warning' ? 'clock' : 'minus'" />{{ expiry.label }}</span></mat-panel-title>
             </mat-expansion-panel-header>
             <ng-template matExpansionPanelContent>
               <kn-vault-item-details [item]="item" [secret]="revealed()[item.id] ?? ''" [remaining]="remainingSeconds()[item.id] ?? 0"
-                                     [pending]="pending()" [revealing]="revealingId() === item.id"
+                                     [pending]="pending()" [revealSeconds]="revealDurationSeconds" [revealing]="revealingId() === item.id"
                                      (reveal)="reveal(item.id)" (conceal)="conceal(item.id)" (remove)="remove(item.id)" />
             </ng-template>
           </mat-expansion-panel>
@@ -72,15 +69,8 @@
         @if (query() || expiry() !== 'all' || selectedItem()) { <button mat-stroked-button type="button" (click)="clearFilters()">Clear filters</button> }
       </div>
     }
-    <nav class="pagination" aria-label="Vault pages">
-      <span>Page {{ totalPages() ? page() + 1 : 0 }} of {{ totalPages() }}</span>
-      <div class="page-buttons">
-        <button mat-stroked-button type="button" [disabled]="page() === 0" (click)="goToPage(0)">First</button>
-        <button mat-stroked-button type="button" [disabled]="page() === 0" (click)="goToPage(page() - 1)">Previous</button>
-        <button mat-stroked-button type="button" [disabled]="page() + 1 >= totalPages()" (click)="goToPage(page() + 1)">Next</button>
-        <button mat-stroked-button type="button" [disabled]="page() + 1 >= totalPages()" (click)="goToPage(totalPages() - 1)">Last</button>
-      </div>
-    </nav>
+    <kn-pagination [page]="page()" [totalPages]="totalPages()" [size]="size()" [busy]="loading() || pending()"
+      (pageChange)="goToPage($event)" (sizeChange)="setSize($event)" />
     <p class="scope-note">Snapshot from {{ asOf() | date:'medium' }}. Expiry status helps plan rotation; it is not a password strength score.</p>
   }
 </section>

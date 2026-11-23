@@ -1,3 +1,5 @@
+:host { display: block; container-type: inline-size; }
+
 .item-metadata {
   display: grid;
   grid-template-columns: minmax(6rem, 1fr) minmax(0, 3fr);
@@ -17,22 +19,32 @@
 
 .vault-actions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.75rem;
   margin-block: 1rem 0.25rem;
 }
-
 .vault-actions > * {
-  min-block-size: 2.75rem;
+  --mat-button-outlined-horizontal-padding: 12px;
+  --mat-button-outlined-label-text-color: var(--kn-color-ink);
+  min-inline-size: 0;
+  inline-size: 100%;
+  min-block-size: 2.875rem;
+  padding-inline: 0.75rem;
 }
-
+.action-label { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; white-space: nowrap; font-size: 0.875rem; line-height: 1.2; }
+.vault-actions .reveal-action {
+  --mat-button-outlined-label-text-color: var(--kn-color-accent);
+  background: color-mix(in srgb, var(--kn-color-accent) 8%, var(--kn-color-canvas));
+}
+.vault-actions .rotate-action { --mat-button-outlined-label-text-color: var(--kn-color-info); }
 .vault-actions .delete-button {
-  grid-column: 1 / -1;
-  justify-self: start;
-  color: var(--kn-color-danger);
-  border-color: var(--kn-color-danger);
-  margin-block-start: 0.5rem;
+  --mat-button-outlined-label-text-color: var(--kn-color-danger);
+  --mat-button-outlined-state-layer-color: var(--kn-color-danger);
+  border-color: color-mix(in srgb, var(--kn-color-danger) 65%, transparent);
+  background: var(--kn-color-danger-surface);
 }
+@container (min-width: 36rem) { .vault-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@container (max-width: 17rem) { .vault-actions { grid-template-columns: 1fr; } }
 
 .concealed-note, .conceal-countdown {
   color: var(--kn-color-muted);
@@ -58,12 +70,6 @@
 }
 
 @media (max-width: 40rem) {
-  .vault-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .vault-actions .delete-button {
-    justify-self: stretch;
-  }
   .item-metadata {
     grid-template-columns: 1fr;
     gap: 0.35rem;

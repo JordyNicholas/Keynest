@@ -1,0 +1,22 @@
+<nav aria-label="Vault pages">
+  <div class="pagination-summary">
+    <span>{{ totalPages() ? 'Page ' + (page() + 1) + ' of ' + totalPages() : 'No matching pages' }}</span>
+    <label>Items per page
+      <select #pageSize [value]="size()" [disabled]="busy()" (change)="resize(+pageSize.value)">
+        @for (count of [10, 25, 30, 50]; track count) { <option [value]="count">{{ count }}</option> }
+      </select>
+    </label>
+  </div>
+  <div class="page-controls">
+    <button mat-stroked-button type="button" class="direction" aria-label="Previous page" title="Previous page" [disabled]="busy() || page() <= 0" (click)="move(page() - 1)"><kn-icon name="previous" /></button>
+    <div class="page-numbers">
+      @for (token of tokens(); track token.key) {
+        @if (token.page !== null) {
+          <button mat-button type="button" class="page-number" [class.nearby]="token.nearby" [class.current]="token.page === page()" [disabled]="busy()"
+            [attr.aria-label]="'Page ' + (token.page + 1)" [attr.aria-current]="token.page === page() ? 'page' : null" (click)="move(token.page)">{{ token.page + 1 }}</button>
+        } @else { <span class="page-gap" aria-hidden="true">…</span> }
+      }
+    </div>
+    <button mat-stroked-button type="button" class="direction" aria-label="Next page" title="Next page" [disabled]="busy() || page() + 1 >= totalPages()" (click)="move(page() + 1)"><kn-icon name="next" /></button>
+  </div>
+</nav>
