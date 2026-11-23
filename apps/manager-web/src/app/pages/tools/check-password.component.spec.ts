@@ -93,28 +93,9 @@ describe('CheckPasswordPageComponent', () => {
     http.verify();
   });
 
-  it('rechecks a custom sample when the selected rules change and makes no request', async () => {
-    const { fixture, host, http, input, status, type } = open();
-    await fixture.whenStable();
-
-    const mode = host.querySelector<HTMLSelectElement>('select[name=policy]')!;
-    mode.value = 'custom';
-    mode.dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-    const sample = 'Abcdefgh23456789';
-    type(sample);
-    expect(status('Include a symbol')).toContain('Not met');
-    const symbolOption = Array.from(host.querySelectorAll('fieldset label'))
-      .find((label) => label.textContent?.trim() === 'Symbols')!;
-    const symbols = symbolOption.querySelector('input')!;
-    await fixture.whenStable();
-    symbols.click();
-    fixture.detectChanges();
-
-    expect(host.querySelector('.meter-label')?.getAttribute('data-tone')).toBe('strong');
-    expect(status('Include a symbol')).toBeUndefined();
-    expect(input.value).toBe(sample);
-    expect(host.querySelector('button[type=submit]')).toBeNull();
+  it('offers only the current account policy', () => {
+    const { host, http } = open();
+    expect(host.querySelector('select[name=policy], fieldset')).toBeNull();
     http.verify();
   });
 });

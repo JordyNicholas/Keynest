@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -28,7 +28,10 @@ export class ShellComponent {
   readonly loggingOut = signal(false);
   private transition?: Animation;
 
-  constructor() { this.destroyRef.onDestroy(() => this.transition?.cancel()); }
+  constructor() {
+    this.destroyRef.onDestroy(() => this.transition?.cancel());
+    effect(() => { if (!this.signedIn()) void this.router.navigateByUrl('/', { replaceUrl: true }); });
+  }
 
   keepActiveLinkVisible(link: HTMLElement, active: boolean): void {
     const nav = link.parentElement;

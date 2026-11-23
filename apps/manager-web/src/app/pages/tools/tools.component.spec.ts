@@ -16,6 +16,7 @@ describe('Password tools in context', () => {
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideRouter(routes), provideHttpClient(), provideHttpClientTesting(), { provide: API_BASE_URL, useValue: '/api/v1' }] });
+    TestBed.inject(AuthService).setSession('test-session', 'sample@example.test');
   });
   afterEach(() => { TestBed.inject(HttpTestingController).verify();TestBed.inject(AuthService).clearSession(); });
 
@@ -26,14 +27,12 @@ describe('Password tools in context', () => {
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
-  it('opens bookmarked tools through compatibility redirects and preserves explanation fragments', async () => {
-    const harness = await RouterTestingHarness.create('/tools/generate');
+  it('opens the active tools through their canonical query destinations', async () => {
+    const harness = await RouterTestingHarness.create('/tools?tool=generate#generate');
     const http = TestBed.inject(HttpTestingController);http.expectOne('/api/v1/tools/policy').flush(policy);
-    expect(TestBed.inject(Router).url).toBe('/tools?tool=generate#generate');
     expect(harness.routeNativeElement!.querySelector('kn-generate-password-page')).not.toBeNull();
-    await harness.navigateByUrl('/tools/check#why-these-rules');
+    await harness.navigateByUrl('/tools?tool=check#why-these-rules');
     http.expectOne('/api/v1/tools/policy').flush(policy);harness.detectChanges();
-    expect(TestBed.inject(Router).url).toBe('/tools?tool=check#why-these-rules');
     expect(harness.routeNativeElement!.querySelector('kn-check-password-page')).not.toBeNull();
     expect(harness.routeNativeElement!.querySelector('kn-generate-password-page')).toBeNull();
   });

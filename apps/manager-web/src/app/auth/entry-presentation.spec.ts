@@ -39,7 +39,9 @@ describe('Account entry and reference presentation', () => {
   });
 
   it('keeps account help and workspace security references in separate tabs', async () => {
+    TestBed.inject(AuthService).setSession('test-session', 'test@example.com');
     const harness = await RouterTestingHarness.create('/account');
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/me').flush({ email: 'test@example.com' });
     checkReferences(harness.routeNativeElement!);
   });
 

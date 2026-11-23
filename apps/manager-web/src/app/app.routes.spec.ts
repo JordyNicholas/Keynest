@@ -41,19 +41,27 @@ describe('Manager entry routes', () => {
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
-  it('opens anonymous generation in the shared tools page and fetches only the rules', async () => {
+  it('links to the local homepage generator without fetching rules or account data', async () => {
     const harness = await RouterTestingHarness.create('/');
-    const generator = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/tools/generate"]')!;
+    const generator = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/#generator"]')!;
     expect(generator.textContent).toContain('Try the generator');
     await harness.navigateByUrl(generator.getAttribute('href')!);
-    expect(TestBed.inject(Router).url).toBe('/tools?tool=generate#generate');
-    expect(harness.routeNativeElement?.textContent).toContain('Sign in to Manager');
-    const http = TestBed.inject(HttpTestingController);
-    const policy = http.expectOne('/api/v1/tools/policy');
-    expect(policy.request.headers.has('Authorization')).toBeFalse();
-    policy.flush({ id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } });
-    http.expectNone('/api/v1/tools/generate');
+    expect(TestBed.inject(Router).url).toBe('/#generator');
+    expect(harness.routeNativeElement!.querySelector('kn-public-generator')).not.toBeNull();
+    TestBed.inject(HttpTestingController).expectNone(() => true);
   });
+
+  for (const path of ['/overview', '/vault', '/vault/new', '/vault/edit/sample', '/vault/rotate/sample',
+    '/account', '/account?returnTo=%2Fvault', '/account?ai=policy-explanation#ai-settings',
+    '/tools', '/tools?tool=check#check', '/tools/generate', '/tools/check', '/status', '/policy-explanation', '/unknown']) {
+    it(`returns anonymous ${path} visits to the landing page without workspace content or requests`, async () => {
+      const harness = await RouterTestingHarness.create(path);
+      expect(TestBed.inject(Router).url).toBe('/');
+      expect(harness.routeNativeElement!.querySelector('kn-shell, kn-account-page, kn-tools-page, kn-vault-page')).toBeNull();
+      expect(TestBed.inject(MatDialog).openDialogs.length).toBe(0);
+      TestBed.inject(HttpTestingController).expectNone(() => true);
+    });
+  }
 
   it('keeps public section destinations and account entry reachable without account data', async () => {
     const harness = await RouterTestingHarness.create('/#security');
@@ -92,24 +100,6 @@ describe('Manager entry routes', () => {
     expect(TestBed.inject(Router).url).toBe('/');
   });
 
-  it('resumes a guarded Vault deep link using the shared direct-account fallback', async () => {
-    const harness = await RouterTestingHarness.create('/vault/new');
-    const router = TestBed.inject(Router);
-    expect(router.url).toBe('/account?returnTo=%2Fvault%2Fnew');
-    harness.detectChanges();
-    const form = harness.routeNativeElement!.querySelector('form')!;
-    const email = form.querySelector<HTMLInputElement>('input[type=email]')!;
-    const password = form.querySelector<HTMLInputElement>('input[type=password]')!;
-    email.value = 'sample@example.test';email.dispatchEvent(new Event('input'));
-    password.value = 'Legacy password';password.dispatchEvent(new Event('input'));
-    form.dispatchEvent(new Event('submit', { cancelable: true }));
-    const http = TestBed.inject(HttpTestingController);
-    http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/vault/new');
-    http.expectNone('/api/v1/tools/policy');
-  });
-
   it('takes a newly created account to an empty real overview', async () => {
     const harness = await RouterTestingHarness.create('/?auth=signup');await harness.fixture.whenStable();
     const dialog = TestBed.inject(MatDialog).openDialogs[0];
@@ -143,9 +133,9 @@ describe('Manager entry routes', () => {
     http.expectOne('/api/v1/vault/items/search').flush(emptyVaultPage);
   });
 
-  it('redirects the legacy explanation page and resumes through Account settings', async () => {
+  it('opens signed-in tools and resumes the explanation through Account settings', async () => {
     TestBed.inject(AuthService).setSession('test-session', 'demo@example.test');
-    const harness = await RouterTestingHarness.create('/policy-explanation');
+    const harness = await RouterTestingHarness.create('/tools?tool=check#why-these-rules');
     const http = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     expect(router.url).toBe('/tools?tool=check#why-these-rules');
@@ -188,19 +178,14 @@ describe('Manager entry routes', () => {
     TestBed.inject(HttpTestingController).expectNone('/api/v1/vault/items');
   });
 
-  it('preserves the existing AI-setup handoff when its visitor needs to sign in first', async () => {
-    const destination = '/account?ai=policy-explanation#ai-settings';
-    const harness = await RouterTestingHarness.create(destination);harness.detectChanges();
-    const form = harness.routeNativeElement!.querySelector('form')!;
-    const email = form.querySelector<HTMLInputElement>('input[type=email]')!, password = form.querySelector<HTMLInputElement>('input[type=password]')!;
-    email.value = 'sample@example.test';email.dispatchEvent(new Event('input'));
-    password.value = 'Sample master password';password.dispatchEvent(new Event('input'));
-    form.dispatchEvent(new Event('submit', { cancelable: true }));
-    const http = TestBed.inject(HttpTestingController);http.expectOne('/api/v1/auth/login').flush({ token: 'test-session', email: 'sample@example.test' });
-    await harness.fixture.whenStable();harness.detectChanges();
-    expect(TestBed.inject(Router).url).toBe(destination);
-    expect(harness.routeNativeElement!.querySelector<HTMLDetailsElement>('#ai-settings details')?.open).toBeTrue();
-    http.expectNone('/api/v1/vault/overview');http.expectNone('/api/v1/ai/policy/explain');
+  it('removes the workspace immediately when its session is cleared', async () => {
+    const auth = TestBed.inject(AuthService);auth.setSession('test-session', 'sample@example.test');
+    const harness = await RouterTestingHarness.create('/tools');
+    expect(harness.routeNativeElement!.querySelector('nav[aria-label=Primary]')).not.toBeNull();
+    auth.clearSession();harness.detectChanges();await harness.fixture.whenStable();harness.detectChanges();
+    expect(TestBed.inject(Router).url).toBe('/');
+    expect(harness.routeNativeElement!.querySelector('kn-tools-page')).toBeNull();
+    TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
   it('navigates from a real overview card to an expanded bounded Vault result', async () => {

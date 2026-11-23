@@ -9,7 +9,7 @@
       <p class="lede">Generate, store and manage passwords with a policy you control. An open-source manager you can host yourself.</p>
       <div class="actions">
         <a mat-flat-button routerLink="/" [queryParams]="{ auth: 'signup' }">Start your vault</a>
-        <a mat-stroked-button routerLink="/tools/generate">Try the generator</a>
+        <a mat-stroked-button routerLink="/" fragment="generator">Try the generator</a>
       </div>
       <p class="quiet">A dedicated place for every task. AI is optional.</p>
     </div>
@@ -20,6 +20,10 @@
     <li>Apache-2.0 / open source</li><li>Self-hostable deployment</li>
     <li>Account-controlled rules</li><li>Works with AI disabled</li>
   </ul>
+
+  <section class="section container" id="generator" tabindex="-1" aria-label="Public password generator">
+    <kn-public-generator />
+  </section>
 
   <section class="section container" id="how" tabindex="-1" aria-labelledby="how-heading">
     <div class="section-intro">
@@ -60,7 +64,7 @@
 
   <section class="section container faq" aria-labelledby="faq-heading">
     <p class="eyebrow">Before you begin</p><h2 id="faq-heading">A few useful answers.</h2>
-    <details><summary>Do I need an account to generate a password?</summary><p>The generator is available without an account using default rules. Sign in to use saved custom account rules. It loads the rules from the API, then generates locally.</p></details>
+    <details><summary>Do I need an account to generate a password?</summary><p>Generate and copy a password here without an account using fixed default rules. Generation stays in this browser; Keynest does not send or save the password. Sign in to use your own account rules in the workspace.</p></details>
     <details><summary>Does Keynest change passwords on other websites?</summary><p>No. Rotation is guided: change the password at the external service, then save the replacement in Keynest. Keynest cannot confirm which password an external service currently accepts.</p></details>
     <details><summary>Is Keynest independently audited?</summary><p>Keynest does not claim an independent audit or certification. Review its source, documented security model and release evidence.</p></details>
   </section>
