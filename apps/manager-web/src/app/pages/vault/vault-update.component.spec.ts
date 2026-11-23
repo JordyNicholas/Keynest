@@ -4,6 +4,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { routes } from '../../app.routes';
+import { By } from '@angular/platform-browser';
+import { VaultUpdatePageComponent } from './vault-update.component';
+import { expiryInstant } from '../../ui/expiry-date';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 
@@ -43,6 +46,24 @@ describe('Vault update routes', () => {
     return { harness, content, http, submit };
   }
 
+  it('saves the selected expiry date in edit without rounding it to days', async () => {
+    const { harness, http, submit } = await open('/vault/edit/item-1');
+    const component = harness.fixture.debugElement.query(By.directive(VaultUpdatePageComponent)).componentInstance as VaultUpdatePageComponent;
+    const date = new Date(2032, 4, 20);component.expiryDate.set(date);submit();
+    const request = http.expectOne(endpoint);expect(request.request.body.expiresAt).toBe(expiryInstant(date));
+    expect(request.request.body.expiresInDays).toBeUndefined();request.flush({});
+  });
+
+  it('saves a selected expiry date during password rotation', async () => {
+    const { harness, content, http, submit } = await open('/vault/rotate/item-1');
+    const component = harness.fixture.debugElement.query(By.directive(VaultUpdatePageComponent)).componentInstance as VaultUpdatePageComponent;
+    const date = new Date(2032, 4, 21);component.expiryDate.set(date);
+    content.querySelector<HTMLInputElement>('input[autocomplete=new-password]')!.value = 'Synthetic replacement';
+    spyOn(window, 'confirm').and.returnValue(true);submit();
+    const request = http.expectOne(endpoint);expect(request.request.body.expiresAt).toBe(expiryInstant(date));
+    expect(request.request.body.password).toBe('Synthetic replacement');request.flush({});
+  });
+
   it('edits details without including a password or asking for replacement confirmation', async () => {
     const { content, http, submit } = await open('/vault/edit/item-1');
     expect(content.querySelector('h1')?.textContent).toContain('Edit vault item');
@@ -61,7 +82,7 @@ describe('Vault update routes', () => {
     const request = http.expectOne(endpoint);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
-      label: 'Updated label', username: '', expiresInDays: null, notifyBeforeDays: 14,
+      label: 'Updated label', username: '', expiresAt: null, notifyBeforeDays: 14,
     });
     request.flush({});
     expect(navigate).toHaveBeenCalledWith('/vault');
@@ -198,7 +219,7 @@ describe('Vault update routes', () => {
     const request = http.expectOne(endpoint);
     expect(request.request.method).toBe('PUT');
     expect(request.request.body).toEqual({
-      password: replacement, policyId, expiresInDays: null, notifyBeforeDays: 14,
+      password: replacement, policyId, expiresAt: null, notifyBeforeDays: 14,
     });
     expect(input.value).toBe('');
     request.flush({});

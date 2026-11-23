@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
+import { expiryInstant } from '../../ui/expiry-date';
 import { VaultCreatePageComponent } from './vault-create.component';
 
 describe('VaultCreatePageComponent', () => {
@@ -24,6 +25,26 @@ describe('VaultCreatePageComponent', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.inject(AuthService).clearSession();
+  });
+
+  it('submits the chosen local calendar day as an exact expiry instant', () => {
+    const fixture = TestBed.createComponent(VaultCreatePageComponent);fixture.detectChanges();
+    const component = fixture.componentInstance;component.label.set('Calendar example');
+    const date = new Date(2032, 4, 20);component.expiryDate.set(date);
+    const password = document.createElement('input');password.value = 'Synthetic password';
+    component.save(new Event('submit'), password);
+    const request = TestBed.inject(HttpTestingController).expectOne(endpoint);
+    expect(request.request.body.expiresAt).toBe(expiryInstant(date));expect(request.request.body.expiresInDays).toBeUndefined();request.flush({});
+  });
+
+  it('blocks saving invalid date input before sending or clearing the password', async () => {
+    const fixture = TestBed.createComponent(VaultCreatePageComponent);fixture.detectChanges();await fixture.whenStable();
+    fixture.componentInstance.label.set('Calendar example');
+    const date = fixture.nativeElement.querySelector('kn-expiry-date-picker input') as HTMLInputElement;
+    date.value = 'invalid date';date.dispatchEvent(new Event('input'));fixture.detectChanges();await fixture.whenStable();
+    const password = document.createElement('input');password.value = 'Synthetic password';
+    fixture.componentInstance.save(new Event('submit'), password);
+    TestBed.inject(HttpTestingController).expectNone(endpoint);expect(password.value).toBe('Synthetic password');
   });
 
   it('clears the entered password on submit and shows policy feedback', () => {
@@ -84,7 +105,7 @@ describe('VaultCreatePageComponent', () => {
     const request = http.expectOne(endpoint);
     const { password, ...fields } = request.request.body;
     expect(fields).toEqual({
-      label: 'Example login', policyId: 'keynest.default.v1', username: '', url: '', expiresInDays: 90, notifyBeforeDays: 14, generate: false,
+      label: 'Example login', policyId: 'keynest.default.v1', username: '', url: '', expiresAt: jasmine.any(String), notifyBeforeDays: 14, generate: false,
     });
     expect(password.length).toBe(22);
     expect(password).toMatch(/m[@a4]ngo/i);

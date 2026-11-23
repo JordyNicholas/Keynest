@@ -1,3 +1,5 @@
+import { ExpiryDatePickerComponent } from '../../ui/expiry-date-picker.component';
+import { expiryInstant, localDateAfterDays } from '../../ui/expiry-date';
 import { httpErrorMessage } from '../http-error-message';
 import { HttpClient } from '@angular/common/http';
 import { Component, computed, DestroyRef, effect, inject, signal, viewChild } from '@angular/core';
@@ -15,7 +17,7 @@ import { PasswordGeneratorOptionsComponent } from '../tools/password-generator-o
 
 @Component({
   selector: 'kn-vault-create-page',
-  imports: [FormsModule, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
+  imports: [ExpiryDatePickerComponent, FormsModule, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
   templateUrl: './vault-create.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css'],
 })
@@ -38,7 +40,8 @@ export class VaultCreatePageComponent {
   readonly label = signal('');
   readonly username = signal('');
   readonly url = signal('');
-  readonly expiryDays = signal<number | null>(90);
+  readonly expiryDate = signal<Date | null>(localDateAfterDays(90));
+  private readonly expiryPicker = viewChild(ExpiryDatePickerComponent);
   readonly noticeDays = signal<number | null>(14);
   readonly mode = signal<'existing' | 'generate'>('existing');
   readonly saving = signal(false);
@@ -80,6 +83,8 @@ export class VaultCreatePageComponent {
       return;
     }
 
+    if (this.expiryPicker()?.valid() === false) { this.error.set('Choose a valid expiry date.');return; }
+
     let password = passwordInput.value;
     if (this.mode() === 'generate') {
       const options = this.options();
@@ -104,7 +109,7 @@ export class VaultCreatePageComponent {
       label,
       username: this.username(),
       url: this.url(),
-      expiresInDays: this.expiryDays(),
+      expiresAt: expiryInstant(this.expiryDate()),
       notifyBeforeDays: this.noticeDays(),
       generate: false,
       policyId: this.policy()?.id,
