@@ -1,7 +1,18 @@
 <h1 class="page-title">Password tools</h1>
-<p class="page-lede">Generate a password or check a sample against Keynest’s password policy.</p>
-
-<nav class="tool-links" aria-label="Password tools">
-  <a routerLink="/tools/generate">Generate password</a>
-  <a routerLink="/tools/check">Check password policy</a>
-</nav>
+<p class="page-lede">Choose a tool below. Generate a new password or check which rules a sample meets.</p>
+<mat-accordion class="tool-panels" [multi]="false">
+  <mat-expansion-panel id="generate" [expanded]="active() === 'generate'" (opened)="open('generate')" (closed)="close('generate')">
+    <mat-expansion-panel-header>
+      <mat-panel-title>Generate password</mat-panel-title>
+      <mat-panel-description>Create and copy a password</mat-panel-description>
+    </mat-expansion-panel-header>
+    @if (active() === 'generate') { <kn-generate-password-page /> }
+  </mat-expansion-panel>
+  <mat-expansion-panel id="check" [expanded]="active() === 'check'" (opened)="open('check')" (closed)="close('check')">
+    <mat-expansion-panel-header>
+      <mat-panel-title>Check password policy</mat-panel-title>
+      <mat-panel-description>Understand the selected rules</mat-panel-description>
+    </mat-expansion-panel-header>
+    @if (active() === 'check') { <kn-check-password-page [explanation]="explanation" /> }
+  </mat-expansion-panel>
+</mat-accordion>

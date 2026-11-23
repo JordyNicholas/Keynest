@@ -1,6 +1,6 @@
 import { httpErrorMessage } from '../http-error-message';
 import { HttpClient } from '@angular/common/http';
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, ElementRef, inject, input, OnDestroy, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,7 +19,7 @@ import { checkCustomRules, confirmBuiltInPolicy, PolicyCheck, previewBuiltInPoli
   templateUrl: './check-password.component.html',
   styleUrls: ['../page-shared.css', './check-password.component.css'],
 })
-export class CheckPasswordPageComponent {
+export class CheckPasswordPageComponent implements OnDestroy {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
@@ -28,7 +28,8 @@ export class CheckPasswordPageComponent {
   private readonly auth = inject(AuthService);
   readonly signedIn = this.auth.signedIn;
   private readonly navigationInfo = inject(Router).currentNavigation()?.extras.info as { policyExplanation?: unknown } | undefined;
-  readonly explanation = typeof this.navigationInfo?.policyExplanation === 'string' ? this.navigationInfo.policyExplanation : '';
+  readonly explanation = input(typeof this.navigationInfo?.policyExplanation === 'string' ? this.navigationInfo.policyExplanation : '');
+  private readonly sample = viewChild<ElementRef<HTMLInputElement>>('sample');
   readonly mode = signal<'built-in' | 'custom'>('built-in');
   readonly policy = signal<BuiltInPolicy | null>(null);
   readonly policyError = signal('');
@@ -118,6 +119,12 @@ export class CheckPasswordPageComponent {
         },
         error: ({ status }) => this.validationError.set(httpErrorMessage(status, 'check this sample password')),
       });
+  }
+
+  ngOnDestroy(): void {
+    const sample = this.sample();
+    if (sample) sample.nativeElement.value = '';
+    this.assessment.set(null);
   }
 
   private evaluate(sample: string): PolicyCheck[] | null {

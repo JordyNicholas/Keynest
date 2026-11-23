@@ -41,12 +41,12 @@ describe('Manager entry routes', () => {
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
-  it('keeps anonymous generation on its dedicated route and fetches only the rules', async () => {
+  it('opens anonymous generation in the shared tools page and fetches only the rules', async () => {
     const harness = await RouterTestingHarness.create('/');
     const generator = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href="/tools/generate"]')!;
     expect(generator.textContent).toContain('Try the generator');
     await harness.navigateByUrl(generator.getAttribute('href')!);
-    expect(TestBed.inject(Router).url).toBe('/tools/generate');
+    expect(TestBed.inject(Router).url).toBe('/tools?tool=generate#generate');
     expect(harness.routeNativeElement?.textContent).toContain('Sign in to Manager');
     const http = TestBed.inject(HttpTestingController);
     const policy = http.expectOne('/api/v1/tools/policy');
@@ -148,7 +148,7 @@ describe('Manager entry routes', () => {
     const harness = await RouterTestingHarness.create('/policy-explanation');
     const http = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
-    expect(router.url).toBe('/tools/check#why-these-rules');
+    expect(router.url).toBe('/tools?tool=check#why-these-rules');
     const policy = { id: 'keynest.default.v1', rules: { minLength: 16, maxLength: 128, bannedSubstrings: [] } };
     http.expectOne('/api/v1/tools/policy').flush(policy);
     harness.detectChanges();
@@ -166,8 +166,8 @@ describe('Manager entry routes', () => {
     input.form!.dispatchEvent(new Event('submit', { cancelable: true }));
     expect(input.value).toBe('');
     http.expectOne('/api/v1/ai/policy/explain').flush({ explanation: '<strong>Policy example</strong>' });
-    await harness.fixture.whenStable();
-    expect(router.url).toBe('/tools/check#why-these-rules');
+    await harness.fixture.whenStable();harness.detectChanges();
+    expect(router.url).toBe('/tools?tool=check#why-these-rules');
     http.expectOne('/api/v1/tools/policy').flush(policy);
     harness.detectChanges();
     const inline = harness.routeNativeElement!.querySelector('[aria-labelledby=why-these-rules]')!;

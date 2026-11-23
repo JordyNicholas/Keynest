@@ -1,24 +1,15 @@
-<h1 class="page-title" id="health-heading">API health</h1>
-<p class="page-lede">Check whether this Manager Web instance can reach its configured API.</p>
-<kn-inline-error [(message)]="error" />
-
-<section class="panel" aria-labelledby="health-heading">
-  @if (checking()) {
-    <p role="status">Checking API health…</p>
-  }
-  @if (health(); as result) {
-    <div animate.enter="kn-enter">
-      <p role="status">{{ result.status === 'ok' ? 'Connected to Manager API' : 'Manager API reported a problem' }}</p>
-      <dl class="data-list">
-        <dt>Service</dt>
-        <dd>{{ result.product }}</dd>
-        <dt>Default policy</dt>
-        <dd>{{ result.policyId }}</dd>
-      </dl>
-    </div>
-  }
-  <div class="row">
-    <button mat-flat-button type="button" [disabled]="checking()" (click)="refreshHealth()">Refresh health</button>
-    <button mat-stroked-button type="button" (click)="back()">Back</button>
+<div class="connection-check" aria-labelledby="connection-heading">
+  <h3 id="connection-heading">API connection</h3>
+  <p>Check whether this Keynest interface can reach its configured Manager API.</p>
+  <kn-inline-error [(message)]="error" />
+  <div class="connection-summary" role="status" [attr.data-state]="checking() ? 'checking' : health()?.status === 'ok' ? 'connected' : 'unconfirmed'">
+    <span class="connection-dot" aria-hidden="true"></span>
+    @if (checking()) { Checking connection… }
+    @else if (health(); as result) { {{ result.status === 'ok' ? 'Connected to Manager API' : 'Manager API reported a problem' }} }
+    @else if (attempted()) { Connection not confirmed. You can try again. }
   </div>
-</section>
+  @if (health(); as result) {
+    <dl class="data-list"><dt>Service</dt><dd>{{ result.product }}</dd><dt>Default policy</dt><dd>{{ result.policyId }}</dd></dl>
+  }
+  <button mat-stroked-button type="button" [disabled]="checking()" (click)="refreshHealth()">{{ checking() ? 'Checking…' : 'Check again' }}</button>
+</div>
