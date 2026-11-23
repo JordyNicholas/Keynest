@@ -5,43 +5,33 @@ import { MatButtonModule } from '@angular/material/button';
 import { finalize } from 'rxjs';
 import { API_BASE_URL } from '../../injectionTokens';
 import { InlineErrorComponent } from '../inline-error.component';
-import { Location } from '@angular/common';
-import { Router } from '@angular/router';
 
 type ApiHealth = { status: string; product: string; policyId: string };
 
 @Component({
-  selector: 'kn-api-health-page',
+  selector: 'kn-api-health',
   imports: [InlineErrorComponent, MatButtonModule],
   templateUrl: './api-health.component.html',
-  styleUrl: '../page-shared.css',
+  styleUrls: ['../page-shared.css', './api-health.component.css'],
 })
 export class ApiHealthPageComponent {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly router = inject(Router);
-  private readonly location = inject(Location);
 
   readonly health = signal<ApiHealth | null>(null);
   readonly checking = signal(false);
   readonly error = signal('');
+  readonly attempted = signal(false);
 
   constructor() {
     this.refreshHealth();
   }
 
-  back(): void {
-    if (this.router.lastSuccessfulNavigation()?.previousNavigation) {
-      this.location.back();
-    } else {
-      void this.router.navigateByUrl('/account');
-    }
-  }
-
   refreshHealth(): void {
     if (this.checking()) return;
+    this.attempted.set(true);
     this.health.set(null);
     this.error.set('');
     this.checking.set(true);

@@ -46,7 +46,8 @@ describe('PolicyExplanationComponent', () => {
     expect(request.request.headers.get('X-Keynest-AI-Key')).toBe('test-provider-key');
     expect(request.request.body).toEqual({ providerId: 'openai', policyId: 'keynest.default.v1' });
     request.flush({ explanation: '<strong>Example</strong>' });
-    expect(navigate).toHaveBeenCalledOnceWith(['/tools/check'], {
+    expect(navigate).toHaveBeenCalledOnceWith(['/tools'], {
+      queryParams: { tool: 'check' },
       fragment: 'why-these-rules',
       info: { policyExplanation: '<strong>Example</strong>' },
     });

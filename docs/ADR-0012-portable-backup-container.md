@@ -2,7 +2,7 @@
 
 ## Status
 
-**Proposed** in the encrypted-container PR for [#218](https://github.com/JordyNicholas/Keynest/issues/218), following the approved native JSON foundation in [#217](https://github.com/JordyNicholas/Keynest/pull/217). The maintainer approved starting portability; the concrete container and custody choices below remain subject to review of this change before merge. Parent [#154](https://github.com/JordyNicholas/Keynest/issues/154) remains open for application export, restoration and UI.
+Accepted following the maintainer's explicit approval of [PR #219](https://github.com/JordyNicholas/Keynest/pull/219) in chat on November 22, 2026. The change builds on the approved native JSON foundation in [#217](https://github.com/JordyNicholas/Keynest/pull/217). The codec is a file-format layer; parent [#154](https://github.com/JordyNicholas/Keynest/issues/154) remains open for application export, restoration and UI.
 
 ## Context and scope
 
@@ -10,7 +10,7 @@ A portable backup must open independently of the source installation's server ke
 
 The implementation is a pure file codec in `manager-api`: no bean registration, route, filesystem output, bulk Vault retrieval, database mutation, AI service or cloud dependency. It is **not** a working backup/restore journey yet.
 
-## Decision proposed for review
+## Decision
 
 1. The user chooses a **backup passphrase** for this file. The container never incorporates a server key, account master-password hash, session token or AI key. The future UX should recommend a separate passphrase and explain that losing it makes this file unrecoverable; Keynest has no escrow/reset mechanism for this container.
 2. Passphrases contain at least 15 Unicode code points, at most 1024 UTF-16 code units, and are not entirely whitespace. Valid surrogate pairs are required. Encode as UTF-8 without trimming or Unicode normalization. These bounds are fixed for both v1 creation and opening, rather than dependent on the current account's password policy. A passphrase is not stored or returned; the codec consumes and clears the caller's `char[]` even after invalid-input/busy failures. Caller-owned JSON trees and input files are not modified.
@@ -22,7 +22,7 @@ The implementation is a pure file codec in `manager-api`: no bean registration, 
 
 ## Wire contract v1
 
-Proposed filename extension: `.keynest`; content type: `application/octet-stream`. A native JSON payload is still the data contract; encryption changes its on-disk representation.
+Filename extension: `.keynest`; content type: `application/octet-stream`. A native JSON payload is still the data contract; encryption changes its on-disk representation.
 
 | Offset | Length | Encoding / expected value |
 |---|---:|---|

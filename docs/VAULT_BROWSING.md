@@ -68,3 +68,13 @@ One Angular Material expansion panel opens at a time. Its header contains label/
 Loading, first-use, filtered-empty, selected-item-unavailable and persistent failure/retry states are distinct. Deletion refreshes counts and lets the server clamp the last page. The former duplicate upcoming-expiry list is replaced by explicit expiry filters; per-item notification lead time remains visible metadata, separate from the fixed overview buckets. No export or tracking capability is introduced by this change.
 
 Manual Windows/Edge checks: browse each page size; combine label/URL/username queries with every expiry group; clear only search; follow/refresh a selected-item URL; navigate headers with keyboard and open one panel; reveal/collapse and wait for the countdown; change page/filter during a pending request; delete the last item on a page; verify 320px/enlarged-text reflow, action alignment, reduced motion, empty/failure recovery and logout concealment. Browser unit tests and a build do not replace that walkthrough.
+
+## Validation follow-up: visual controls (#222)
+
+Semantic expiry colors are shared with the overview: red for expired/less than 14 days and the aggregate attention group, amber for 14–29 days, green for 30+ days, and neutral for no expiry/all-items controls. Labels, counts, icons and aria-pressed selection remain present; color does not replace the meaning. The exact duration buckets and “expiry is not strength” explanation are unchanged.
+
+The page footer combines a compact numbered paginator and the existing 10/25/30/50 size choices. It shows a bounded number window with ellipses/edge pages on wider containers and three nearby numbers with previous/next at mobile widths. The current number has aria-current, inaccessible directions are disabled, repeated current-page clicks do not request data, and successful page changes focus the results heading. No unbounded list of page buttons is generated.
+
+Item actions use local decorative SVGs, shorter labels, consistent touch targets and a two-column compact/four-column wide layout, falling back to one column in especially narrow content. Delete has explicit text, a destructive color and its existing confirmation; reveal/conceal, editing and rotation keep their original behavior. Timed reveals retain their countdown and lifetime. No icon font or network icon service is required.
+
+Focused browser tests exercise bounded pagination, current/disabled states, small-container reflow, page-result focus, labels and action layout/behavior. Actual Windows/Edge visual review, reduced-motion and keyboard walkthrough remain human verification before closing #199.

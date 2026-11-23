@@ -1,0 +1,6 @@
+.connection-check { padding-block: 1rem; }
+h3 { margin-block-start: 0; }
+.connection-summary { display: flex; align-items: center; gap: 0.65rem; margin-block: 1rem; color: var(--kn-color-warning); }
+.connection-summary[data-state='connected'] { color: var(--kn-color-accent); }
+.connection-summary[data-state='checking'] { color: var(--kn-color-muted); }
+.connection-dot { inline-size: 0.65rem; block-size: 0.65rem; flex-shrink: 0; border-radius: 50%; background: currentColor; }

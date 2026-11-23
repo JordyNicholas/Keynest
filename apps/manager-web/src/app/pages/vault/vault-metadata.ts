@@ -1,3 +1,4 @@
+import { IconName } from '../../ui/icon.component';
 import { BuiltInPolicy } from '../tools/built-in-policy';
 import { VaultItem } from './vault-item';
 
@@ -12,14 +13,14 @@ export type VaultSummary = Pick<VaultItem, 'id' | 'label' | 'url' | 'expiresAt' 
 export type VaultOverview = {
   asOf: string; counts: ExpiryCounts; nextExpiry: VaultSummary | null; attention: VaultSummary[]; recent: VaultSummary[]; policy: BuiltInPolicy;
 };
-export const expiryFilters: { id: ExpiryFilter; label: string; count: (counts: ExpiryCounts) => number }[] = [
-  { id: 'all', label: 'All items', count: counts => counts.total },
-  { id: 'attention', label: 'Need attention', count: counts => counts.expired + counts.soon },
-  { id: 'expired', label: 'Expired', count: counts => counts.expired },
-  { id: 'soon', label: 'Less than 14 days', count: counts => counts.soon },
-  { id: 'upcoming', label: '14–29 days', count: counts => counts.upcoming },
-  { id: 'later', label: '30+ days', count: counts => counts.later },
-  { id: 'unset', label: 'No expiry', count: counts => counts.unset },
+export const expiryFilters: { id: ExpiryFilter; label: string; tone: 'neutral' | 'urgent' | 'warning' | 'healthy'; icon: IconName; count: (counts: ExpiryCounts) => number }[] = [
+  { id: 'all', tone: 'neutral', icon: 'list', label: 'All items', count: counts => counts.total },
+  { id: 'attention', tone: 'urgent', icon: 'alert', label: 'Need attention', count: counts => counts.expired + counts.soon },
+  { id: 'expired', tone: 'urgent', icon: 'alert', label: 'Expired', count: counts => counts.expired },
+  { id: 'soon', tone: 'urgent', icon: 'clock', label: 'Less than 14 days', count: counts => counts.soon },
+  { id: 'upcoming', tone: 'warning', icon: 'clock', label: '14–29 days', count: counts => counts.upcoming },
+  { id: 'later', tone: 'healthy', icon: 'check', label: '30+ days', count: counts => counts.later },
+  { id: 'unset', tone: 'neutral', icon: 'minus', label: 'No expiry', count: counts => counts.unset },
 ];
 
 /** Classification uses the exact remaining duration; rounded labels never decide buckets. */

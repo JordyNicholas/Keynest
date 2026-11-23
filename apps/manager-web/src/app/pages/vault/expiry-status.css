@@ -1,0 +1,33 @@
+.expiry-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.expiry-status[data-tone='healthy'] {
+  color: var(--kn-color-success);
+}
+
+.expiry-status[data-tone='warning'] {
+  color: var(--kn-color-warning);
+}
+
+.expiry-status[data-tone='urgent'] {
+  color: var(--kn-color-danger);
+}
+
+.expiry-status kn-icon { inline-size: 0.875rem; block-size: 0.875rem; }
+
+.expiry-status[data-tone='neutral'] {
+  color: var(--kn-color-muted);
+}
+
+.status-badge[data-tone='healthy'] { color: var(--kn-color-success); }
+.status-badge[data-tone='warning'] { color: var(--kn-color-warning); }
+.status-badge[data-tone='urgent'] { color: var(--kn-color-danger); }
+.status-badge[data-tone='neutral'] { color: var(--kn-color-muted); }

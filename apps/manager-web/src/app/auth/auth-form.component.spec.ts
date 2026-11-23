@@ -32,7 +32,7 @@ describe('Shared account-entry form', () => {
     form.password.set('🔑'.repeat(14));form.submit();
     const request = http.expectOne('/api/v1/auth/login');expect(request.request.body.password).toBe('🔑'.repeat(14));
     request.flush({}, { status: 401, statusText: 'Unauthorized' });
-    expect(form.error()).toBe('The email address or master password is incorrect.');
+    expect(form.error()).toBe('The email address or Keynest password is incorrect.');
   });
 
   it('submits once, announces pending state, then establishes a session and clears the password', async () => {

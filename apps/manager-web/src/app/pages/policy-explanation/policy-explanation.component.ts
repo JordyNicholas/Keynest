@@ -52,7 +52,8 @@ export class PolicyExplanationComponent {
     ).subscribe({
       next: ({ explanation }) => {
         if (this.auth.token() !== session) return;
-        void this.router.navigate(['/tools/check'], {
+        void this.router.navigate(['/tools'], {
+          queryParams: { tool: 'check' },
           fragment: 'why-these-rules',
           info: { policyExplanation: explanation },
         });

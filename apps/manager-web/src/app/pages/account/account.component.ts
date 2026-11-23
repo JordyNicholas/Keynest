@@ -2,12 +2,14 @@ import { InlineErrorComponent } from '../inline-error.component';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
 import { PolicyExplanationComponent } from '../policy-explanation/policy-explanation.component';
 import { PasswordPolicySettingsComponent } from './password-policy-settings.component';
+
+import { ApiHealthPageComponent } from '../tools/api-health.component';
 
 import { AuthFormComponent, AuthMode } from '../../auth/auth-form.component';
 import { authReturnUrl } from '../../auth/auth-return-url';
@@ -15,7 +17,7 @@ import { logoutSession } from '../../auth/logout-session';
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, AuthFormComponent, MatButtonModule, RouterLink, PolicyExplanationComponent, PasswordPolicySettingsComponent],
+  imports: [InlineErrorComponent, AuthFormComponent, MatButtonModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
@@ -29,12 +31,16 @@ export class AccountPageComponent {
   private readonly route = inject(ActivatedRoute);
   readonly authMode = signal<AuthMode>('signin');
   readonly policyOpen = signal(false);
+  readonly healthOpen = signal(false);
   readonly error = signal('');
   readonly loggingOut = signal(false);
   readonly aiSetupRequested = this.route.snapshot.queryParamMap.get('ai') === 'policy-explanation';
   readonly aiSetupOpen = signal(this.aiSetupRequested);
 
   constructor() {
+    this.route.fragment.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(fragment => {
+      if (fragment === 'diagnostics-heading') this.healthOpen.set(true);
+    });
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       this.authMode.set(params.get('auth') === 'signup' ? 'signup' : 'signin');
     });

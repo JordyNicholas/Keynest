@@ -1,5 +1,8 @@
 # Keynest public home and account overview
 
+**November 22 validation refinement:** the maintainer now requests both password workflows in one selectable accordion page, and API health inline under Account settings. The route-presentation descriptions below record the original approved preview; they are superseded for these workflows by [the current tools/diagnostics contract](../../TOOLS_AND_DIAGNOSTICS.md) and #221 / PR #224. Existing generator/check/status paths remain compatibility entry points, and the standalone synthetic prototype is retained as historical design evidence. The overview still does not embed password tools or reveal forms. Account/reference polish (#220) and Vault controls (#222) are separate validation follow-ups; their implementation does not close the human walkthrough.
+
+
 **Status: reviewed design implemented through focused production slices; Windows/Edge walkthrough remains pending.**
 
 Issue [#199](https://github.com/JordyNicholas/Keynest/issues/199). Baseline inspected: `3e9ca6222649cb0ad9bf30c51fd2323c4c3a3528`, November 20, 2026. After reviewing the prototype and accordion-motion refinement in #206, the maintainer confirmed: “I figure we are good to go with the design!” This approves the reviewed composition and interactions for implementation. It does not approve unresolved history/retention choices, declare a new release date, close release gates or waive production PR review. The maintainer wants a complete, tailored design and has explicitly removed rush from this feature.

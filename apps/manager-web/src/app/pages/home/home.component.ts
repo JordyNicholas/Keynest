@@ -33,7 +33,7 @@ export class HomePageComponent {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       const dialog = this.dialog.open<AuthDialogComponent, { mode: 'signin' | 'signup' }, boolean>(AuthDialogComponent, {
         data: { mode }, width: '30rem', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100dvh - 2rem)',
-        autoFocus: 'first-header', ariaLabelledBy: 'auth-dialog-title', restoreFocus: true,
+        backdropClass: 'kn-auth-backdrop', autoFocus: 'first-header', ariaLabelledBy: 'auth-dialog-title', restoreFocus: true,
         enterAnimationDuration: reduced ? 0 : 180, exitAnimationDuration: reduced ? 0 : 160,
       });
       this.activeDialog = dialog;
