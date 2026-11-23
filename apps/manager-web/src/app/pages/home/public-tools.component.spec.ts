@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { PublicToolsComponent } from './public-tools.component';
 import { PublicGeneratorComponent } from './public-generator.component';
+import { PublicCheckerComponent } from './public-checker.component';
 
 describe('Public homepage tools', () => {
   beforeEach(() => TestBed.configureTestingModule({ providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()] }));
@@ -45,5 +46,38 @@ describe('Public homepage tools', () => {
     expect(header.getAttribute('aria-expanded')).toBe('true');
     const input = fixture.nativeElement.querySelector('#public-check-sample') as HTMLInputElement;input.value = 'Synthetic temporary sample';
     window.dispatchEvent(new Event('pagehide'));fixture.detectChanges();expect(input.value).toBe('');expect(fixture.componentInstance.active()).toBeNull();
+  });
+
+  it('reveals only on request without changing the sample or sending or persisting it, then remasks on clear', () => {
+    const fixture = TestBed.createComponent(PublicCheckerComponent);fixture.detectChanges();
+    const host: HTMLElement = fixture.nativeElement;
+    const input = host.querySelector<HTMLInputElement>('#public-check-sample')!;
+    const toggle = host.querySelector<HTMLButtonElement>('button[aria-controls="public-check-sample"]')!;
+    const persistent = spyOn(localStorage, 'setItem'), tab = spyOn(sessionStorage, 'setItem');
+    expect(input.type).toBe('password');expect(toggle.textContent).toContain('Show password');
+    input.value = 'Synthetic visibility sample';input.dispatchEvent(new Event('input'));fixture.detectChanges();
+    const feedback = fixture.componentInstance.checks();
+    toggle.click();fixture.detectChanges();
+    expect(input.type).toBe('text');expect(input.value).toBe('Synthetic visibility sample');expect(fixture.componentInstance.checks()).toBe(feedback);
+    expect(toggle.textContent).toContain('Hide password');
+    toggle.click();fixture.detectChanges();expect(input.type).toBe('password');expect(input.value).toBe('Synthetic visibility sample');
+    toggle.click();fixture.detectChanges();
+    fixture.componentInstance.clear();expect(input.type).toBe('password');expect(input.value).toBe('');
+    fixture.detectChanges();
+    expect(persistent).not.toHaveBeenCalled();expect(tab).not.toHaveBeenCalled();TestBed.inject(HttpTestingController).expectNone(() => true);
+  });
+
+  it('remasks and clears a visible sample immediately on close and page hide', () => {
+    const fixture = TestBed.createComponent(PublicToolsComponent);fixture.detectChanges();fixture.componentInstance.open('check');fixture.detectChanges();
+    const host: HTMLElement = fixture.nativeElement;
+    const input = host.querySelector<HTMLInputElement>('#public-check-sample')!;
+    const toggle = host.querySelector<HTMLButtonElement>('button[aria-controls="public-check-sample"]')!;
+    input.value = 'Synthetic visibility sample';toggle.click();fixture.detectChanges();expect(input.type).toBe('text');
+    fixture.componentInstance.close('check');expect(input.value).toBe('');expect(input.type).toBe('password');
+    fixture.detectChanges();fixture.componentInstance.open('check');fixture.detectChanges();
+    const reopened = host.querySelector<HTMLInputElement>('#public-check-sample')!;
+    expect(reopened.type).toBe('password');expect(reopened.value).toBe('');
+    reopened.value = 'Synthetic next sample';host.querySelector<HTMLButtonElement>('button[aria-controls="public-check-sample"]')!.click();fixture.detectChanges();
+    window.dispatchEvent(new Event('pagehide'));expect(reopened.value).toBe('');expect(reopened.type).toBe('password');
   });
 });
