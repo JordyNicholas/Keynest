@@ -31,7 +31,7 @@ def check(condition, step):
     raise SmokeFailure(step)
 
 
-def request(method, path, body=None, token=None):
+def request(method, path, body=None, token=None, binary=False):
   headers = {'Content-Type': 'application/json'}
   if token:
     headers['Authorization'] = 'Bearer ' + token
@@ -39,7 +39,7 @@ def request(method, path, body=None, token=None):
   req = Request(BASE + path, data=data, headers=headers, method=method)
   try:
     with opener.open(req, timeout=5) as response:
-      return response.status, response.headers, json.load(response)
+      return response.status, response.headers, response.read() if binary else json.load(response)
   except HTTPError as error:
     # Error payloads can contain user data; callers need only the status.
     status = error.code
@@ -136,6 +136,17 @@ def run(cors_origin):
   check(isinstance(revealed['password'], str) and len(revealed['password']) > 0, 'generated secret must be readable')
   expect('GET', item_path + '/reveal', token=token, status=405)
 
+  selection = {'destination': 'keynest', 'scope': 'selected', 'itemIds': [item['id']]}
+  export_headers, preview = expect('POST', API + '/vault/exports/preview', selection, token)
+  check(export_headers.get('Cache-Control') == 'no-store' and preview['itemCount'] == 1, 'export preview scope/cache boundary')
+  export_request = dict(selection, snapshot=preview['snapshot'], accountPassword=password,
+    backupPassphrase=secrets.token_urlsafe(32))
+  export_status, export_headers, protected = request('POST', API + '/vault/exports/download', export_request, token, binary=True)
+  check(export_status == 200 and protected[:10] == b'KEYNESTB\x01\x01', 'encrypted export container framing')
+  check(export_headers.get('Cache-Control') == 'no-store', 'encrypted export must be no-store')
+  check(revealed['password'].encode('utf-8') not in protected, 'export must not expose plaintext')
+  check(int.from_bytes(protected[26:30], 'big') == len(protected) - 30, 'export container length must match')
+
   _, other = expect('POST', API + '/auth/register', {
     'email': 'compose-' + secrets.token_hex(12) + '@example.com',
     'password': secrets.token_urlsafe(32) + 'Aa1!',
@@ -146,6 +157,7 @@ def run(cors_origin):
   check(other_overview['counts']['total'] == 0, 'overview must isolate owners')
   _, other_page = expect('POST', API + '/vault/items/search', {'itemId': item['id']}, other['token'])
   check(other_page['totalMatches'] == 0 and other_page['items'] == [], 'selected-item search must isolate owners')
+  expect('POST', API + '/vault/exports/preview', selection, other['token'], status=404)
   expect('GET', item_path, token=other['token'], status=404)
   expect('POST', item_path + '/reveal', token=other['token'], status=404)
   expect('PUT', item_path, {'label': 'Unauthorized edit'}, other['token'], status=404)
@@ -153,6 +165,7 @@ def run(cors_origin):
 
   _, updated = expect('PUT', item_path, {'label': 'Updated smoke item'}, token)
   check(updated['label'] == 'Updated smoke item', 'owner must be able to update metadata')
+  expect('POST', API + '/vault/exports/download', export_request, token, status=409)
   _, again = expect('POST', item_path + '/reveal', token=token)
   check(again['password'] == revealed['password'], 'metadata update must preserve the secret')
   expect('DELETE', item_path, token=token)
@@ -163,7 +176,7 @@ def run(cors_origin):
   expect('POST', API + '/auth/me', token=login_token, status=401)
   expect('POST', API + '/auth/logout', token=token)
   expect('POST', API + '/auth/logout', token=other['token'])
-  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, no-store and tenant isolation')
+  print('PASS: packaged API health, auth, vault CRUD, bounded metadata queries, encrypted export, no-store and tenant isolation')
 
 
 if __name__ == '__main__':
