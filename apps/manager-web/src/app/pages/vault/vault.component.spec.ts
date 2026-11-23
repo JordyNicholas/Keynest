@@ -74,6 +74,20 @@ describe('Bounded Vault browsing', () => {
     component.setOrder('expiry');const sorted = http.expectOne(endpoint);expect(sorted.request.body.sort).toBe('expiry');expect(sorted.request.body.page).toBe(0);sorted.flush(page());
   });
 
+  it('keeps labeled semantic filters and returns focus to results after numbered page navigation', () => {
+    load([sample], { totalMatches: 30, totalPages: 3 });
+    const host: HTMLElement = fixture.nativeElement;
+    expect(host.querySelector('.expiry-filters button[data-tone=healthy]')?.textContent).toContain('30+ days');
+    expect(host.querySelectorAll('.expiry-filters button[data-tone=urgent]').length).toBe(3);
+    const focus = spyOn(host.querySelector<HTMLElement>('#vault-heading')!, 'focus');
+    host.querySelector<HTMLButtonElement>('kn-pagination [aria-label="Page 2"]')!.click();
+    const request = http.expectOne(endpoint);expect(request.request.body.page).toBe(1);
+    request.flush(page([sample], { page: 1, totalMatches: 30, totalPages: 3 }));fixture.detectChanges();
+    expect(focus).toHaveBeenCalledTimes(1);
+    expect(host.querySelector('kn-pagination [aria-current=page]')?.textContent?.trim()).toBe('2');
+    host.querySelector<HTMLButtonElement>('kn-pagination [aria-label="Page 2"]')!.click();http.expectNone(endpoint);
+  });
+
   it('clears search while retaining the expiry filter and restoring input focus', fakeAsync(() => {
     component.setExpiry('later');http.expectOne(endpoint).flush(page());component.search('label');tick(250);http.expectOne(endpoint).flush(page());
     fixture.detectChanges();const input = fixture.nativeElement.querySelector('#vault-search');spyOn(input, 'focus');

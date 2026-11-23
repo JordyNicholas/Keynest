@@ -8,14 +8,14 @@
 </dl>
 @if (secret(); as secret) {
   <output class="secret" aria-live="polite">{{ secret }}</output><p class="conceal-countdown">Concealing in {{ remaining() }} seconds.</p>
-} @else { <p class="concealed-note">Password concealed. Reveal only when you need it.</p> }
-<div class="vault-actions" [attr.aria-label]="'Actions for ' + details.label">
+} @else { <p class="concealed-note">Password concealed. Reveals last {{ revealSeconds() }} seconds.</p> }
+<div class="vault-actions" role="group" [attr.aria-label]="'Actions for ' + details.label">
   @if (secret()) {
-    <button mat-stroked-button type="button" (click)="conceal.emit()">Conceal</button>
+    <button mat-stroked-button type="button" class="reveal-action" [attr.aria-label]="'Conceal password for ' + details.label" (click)="conceal.emit()"><span class="action-label"><kn-icon name="conceal" />Conceal</span></button>
   } @else {
-    <button mat-stroked-button type="button" [disabled]="pending() || revealing()" (click)="reveal.emit()">{{ revealing() ? 'Revealing…' : 'Reveal for 15s' }}</button>
+    <button mat-stroked-button type="button" class="reveal-action" [disabled]="pending() || revealing()" [attr.aria-label]="'Reveal password for ' + revealSeconds() + ' seconds for ' + details.label" (click)="reveal.emit()"><span class="action-label"><kn-icon name="eye" />{{ revealing() ? 'Revealing…' : 'Reveal' }}</span></button>
   }
-  <a mat-stroked-button [routerLink]="['/vault', 'edit', details.id]">Edit details</a>
-  <a mat-stroked-button [routerLink]="['/vault', 'rotate', details.id]">Rotate password</a>
-  <button mat-stroked-button type="button" class="delete-button" [disabled]="pending()" (click)="remove.emit()">Delete item</button>
+  <a mat-stroked-button [routerLink]="['/vault', 'edit', details.id]" [attr.aria-label]="'Edit details for ' + details.label"><span class="action-label"><kn-icon name="edit" />Edit details</span></a>
+  <a mat-stroked-button class="rotate-action" [routerLink]="['/vault', 'rotate', details.id]" [attr.aria-label]="'Rotate password for ' + details.label"><span class="action-label"><kn-icon name="rotate" />Rotate</span></a>
+  <button mat-stroked-button type="button" class="delete-button" [disabled]="pending()" [attr.aria-label]="'Delete item ' + details.label" (click)="remove.emit()"><span class="action-label"><kn-icon name="delete" />Delete</span></button>
 </div>

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, DestroyRef, effect, inject, OnDestroy, signal } from '@angular/core';
+import { Component, DestroyRef, effect, ElementRef, inject, OnDestroy, signal, viewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -12,15 +12,17 @@ import { AuthService } from '../../auth/auth.service';
 import { InlineErrorComponent } from '../inline-error.component';
 import { httpErrorMessage } from '../http-error-message';
 import { confirmVaultChange } from '../confirm-vault-change';
+import { IconComponent } from '../../ui/icon.component';
+import { PaginationComponent } from '../../ui/pagination.component';
 import { VaultItem } from './vault-item';
 import { VaultItemDetailsComponent } from './vault-item-details.component';
 import { ExpiryCounts, ExpiryFilter, expiryFilters, expiryStatus, SearchField, VaultOrder, VaultPage } from './vault-metadata';
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [InlineErrorComponent, DatePipe, RouterLink, FormsModule, MatButtonModule, MatExpansionModule, VaultItemDetailsComponent],
+  imports: [InlineErrorComponent, DatePipe, RouterLink, FormsModule, MatButtonModule, MatExpansionModule, VaultItemDetailsComponent, IconComponent, PaginationComponent],
   templateUrl: './vault.component.html',
-  styleUrls: ['../page-shared.css', './vault.component.css'],
+  styleUrls: ['../page-shared.css', './vault.component.css', './expiry-status.css'],
 })
 export class VaultPageComponent implements OnDestroy {
   private readonly api = inject(API_BASE_URL);
@@ -32,6 +34,8 @@ export class VaultPageComponent implements OnDestroy {
   private pageRequest?: Subscription;
   private deleteRequest?: Subscription;
   private pageVersion = 0;
+  private focusResults = false;
+  private readonly resultsHeading = viewChild<ElementRef<HTMLElement>>('resultsHeading');
   private debounce?: ReturnType<typeof setTimeout>;
   private openRequestedItem = false;
   private readonly revealRequests = new Map<string, symbol>();
@@ -112,7 +116,12 @@ export class VaultPageComponent implements OnDestroy {
 
   setOrder(value: string): void { this.order.set(value === 'expiry' ? 'expiry' : 'label');this.page.set(0);this.refreshVault(); }
   setSize(value: number): void { this.size.set([10, 25, 30, 50].includes(value) ? value : 10);this.page.set(0);this.refreshVault(); }
-  goToPage(value: number): void { this.page.set(Math.min(Math.max(0, value), Math.max(0, this.totalPages() - 1)));this.refreshVault(); }
+  goToPage(value: number): void {
+    if (this.loading() || this.pending() || !Number.isInteger(value) || this.totalPages() < 1) return;
+    const target = Math.min(Math.max(0, value), Math.min(100_000, this.totalPages() - 1));
+    if (target === this.page()) return;
+    this.focusResults = true;this.page.set(target);this.refreshVault();
+  }
 
   setExpiry(value: ExpiryFilter): void {
     this.expiry.set(value);this.page.set(0);this.clearSelectedItem();this.syncRoute();this.refreshVault();
@@ -139,10 +148,12 @@ export class VaultPageComponent implements OnDestroy {
         if (version !== this.pageVersion || this.auth.token() !== token) return;
         this.items.set(body.items);this.counts.set(body.counts);this.asOf.set(body.asOf);this.totalMatches.set(body.totalMatches);
         this.page.set(body.page);this.totalPages.set(body.totalPages);this.vaultLoaded.set(true);this.error.set('');
+        if (this.focusResults) { this.focusResults = false;this.resultsHeading()?.nativeElement.focus(); }
         if (expand && body.items.some(item => item.id === this.selectedItem())) this.expandedId.set(this.selectedItem());
       },
       error: ({ status }) => {
         if (version !== this.pageVersion || this.auth.token() !== token) return;
+        this.focusResults = false;
         this.loadFailure.set(httpErrorMessage(status, 'load Vault'));this.error.set(this.loadFailure());
       },
     });

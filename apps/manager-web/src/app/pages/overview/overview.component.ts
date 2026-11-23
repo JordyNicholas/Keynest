@@ -16,7 +16,7 @@ import { ExpiryDistributionComponent } from './expiry-distribution.component';
   selector: 'kn-overview-page',
   imports: [DatePipe, MatButtonModule, RouterLink, OverviewMetricsComponent, ExpiryDistributionComponent],
   templateUrl: './overview.component.html',
-  styleUrl: './overview.component.css',
+  styleUrls: ['./overview.component.css', '../vault/expiry-status.css'],
 })
 export class OverviewPageComponent implements OnDestroy {
   private readonly http = inject(HttpClient);

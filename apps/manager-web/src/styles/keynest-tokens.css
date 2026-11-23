@@ -28,7 +28,9 @@
   --kn-color-accent-ink: #0c1410;
   --kn-color-accent-hover: #d7eedc;
 
-  /* Status */
+  /* Status and non-destructive information actions */
+  --kn-color-success: #a6dfb5;
+  --kn-color-info: #b7d5f5;
   --kn-color-warning: #f0d18a;
   --kn-color-danger: #f0b7a8;
   --kn-color-danger-surface: rgba(80, 24, 16, 0.35);
@@ -72,6 +74,8 @@
   --kn-color-accent-ink: #f2f7f3;
   --kn-color-accent-hover: #278555;
 
+  --kn-color-success: #21673e;
+  --kn-color-info: #285b8e;
   --kn-color-warning: #745312;
   --kn-color-danger: #9b3a2e;
   --kn-color-danger-surface: rgba(155, 58, 46, 0.12);
