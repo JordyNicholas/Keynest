@@ -35,6 +35,15 @@ public class PasswordHashingService {
     return withSlot(() -> hasher.verifyPassword(password.toCharArray(), hash));
   }
 
+  /** Consumes caller-owned credentials, including when the shared work budget is full. */
+  public boolean verifyAndClear(char[] password, String hash) {
+    try {
+      return withSlot(() -> hasher.verifyPassword(password, hash));
+    } finally {
+      if (password != null) java.util.Arrays.fill(password, '\0');
+    }
+  }
+
   private <T> T withSlot(Supplier<T> operation) {
     if (!slots.tryAcquire()) {
       throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "password operations are busy");

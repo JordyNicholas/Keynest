@@ -189,7 +189,8 @@ public class VaultService {
         return seal.seal(password.getBytes(StandardCharsets.UTF_8), vaultKey, vaultKeyId, aad).toBytes();
     }
 
-    private String openPassword(VaultItem item) {
+    // Package-local bulk export also calls this only after authorizing the complete selection.
+    String openPassword(VaultItem item) {
         SealEnvelope envelope = SealEnvelope.fromBytes(item.getEnvelopeBytes());
         byte[] aad = switch (item.getAadVersion() == null ? 0 : item.getAadVersion()) {
             case 0 -> item.getPolicyId().getBytes(StandardCharsets.UTF_8);
