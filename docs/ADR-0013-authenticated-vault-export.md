@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed for #226 under the portable-export feature #154. Native payload v1 (#217) and its encrypted container (approved #219 / ADR-0012) are existing contracts. This application layer is a separate security-sensitive change, subject to maintainer review before merge.
+Accepted following explicit maintainer approval and merge of PR #227. Native payload v1 (#217) and its encrypted container (#219 / ADR-0012) remain unchanged. The approved export UI is merged through #231. Parent #154 remains open for restoration, interoperability and the human walkthrough.
 
 ## Decision
 

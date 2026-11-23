@@ -107,6 +107,14 @@ class VaultRestoreIntegrationTest {
     assertThat(phrase).containsOnly('\0');
   }
 
+  @Test void oversizedReceivingEnvelopeRejectsTheEntireRestore() {
+    ObjectNode document = payload();((ObjectNode) document.path("items").get(0)).put("password", "x".repeat(8192));
+    byte[] large = backups.encrypt(document, PHRASE.toCharArray());
+    var preview = restore.preview(receiver.getId(), large, PHRASE.toCharArray());
+    assertCode(() -> restore.restore(receiver.getId(), large, PHRASE.toCharArray(), preview.snapshot()), VaultRestoreFailure.Code.RESTORE_LIMIT_EXCEEDED);
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver.getId())).isEmpty();
+  }
+
   @Test void missingOwnerAndEmptyFileCannotWriteAndAlwaysConsumeCredentials() {
     char[] phrase = PHRASE.toCharArray();
     assertCode(() -> restore.preview(UUID.randomUUID(), file, phrase), VaultRestoreFailure.Code.RESTORE_OWNER_UNAVAILABLE);assertThat(phrase).containsOnly('\0');

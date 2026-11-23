@@ -60,6 +60,7 @@ public class VaultRestoreService {
             UUID id = UUID.randomUUID();String policyId = row.path("policyId").textValue();
             // Preserve historical passwords rather than applying today's receiving policy.
             byte[] envelope = vault.sealPassword(row.path("password").textValue(), receiver, id, policyId);
+            if (envelope.length > 8192) throw new VaultRestoreFailure(RESTORE_LIMIT_EXCEEDED);
             em.persist(new VaultItem(id, receiver, text(row, "label"), text(row, "url"), text(row, "username"),
               envelope, policyId, VaultItemAad.VERSION_ITEM_V1, instant(row, "expiresAt"), instant(row, "lastRotatedAt"),
               row.path("notifyBeforeDays").isNull() ? null : row.path("notifyBeforeDays").intValue(),
