@@ -1,0 +1,74 @@
+name: Dependency inventories and vulnerability check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-security:
+    name: Source dependency inventory and OSV
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Verify inventory rejection cases
+        run: python3 -m unittest discover -s scripts/tests -p 'test_dependency_inventory.py'
+
+      - name: Resolve reactor and generate Java inventory including tests
+        run: >-
+          mvn -B -DskipTests install
+          org.cyclonedx:cyclonedx-maven-plugin:2.9.3:makeAggregateBom
+          -DincludeTestScope=true -DoutputReactorProjects=false
+          -DoutputFormat=json -DschemaVersion=1.6
+          -Dcyclonedx.skipAttach=true -Dcyclonedx.skipNotDeployed=false
+
+      - name: Generate Web inventory from the committed lockfile
+        run: |
+          mkdir -p target/dependency-security
+          cp target/bom.json target/dependency-security/java.cdx.json
+          npm --prefix apps/manager-web sbom --package-lock-only --sbom-format=cyclonedx --include=dev --include=optional --include=peer --ignore-scripts > target/dependency-security/web.cdx.json
+          python3 scripts/dependency_inventory.py
+
+      - name: Download and verify the pinned official scanner
+        run: |
+          curl --fail --location --proto '=https' --tlsv1.2 --retry 3 --max-time 180 --output target/dependency-security/osv-scanner https://github.com/google/osv-scanner/releases/download/v2.7.1/osv-scanner_linux_amd64
+          printf '%s  %s\n' fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8 target/dependency-security/osv-scanner | sha256sum --check
+          chmod 700 target/dependency-security/osv-scanner
+
+      - name: Check both inventories for known vulnerabilities
+        run: >-
+          target/dependency-security/osv-scanner scan source
+          --sbom=target/dependency-security/java.cdx.json
+          --sbom=target/dependency-security/web.cdx.json
+          --all-packages --no-resolve --format=json
+          --output-file=target/dependency-security/osv.json
+
+      - name: Retain only generated dependency metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dependency-security-${{ github.sha }}
+          path: |
+            target/dependency-security/java.cdx.json
+            target/dependency-security/web.cdx.json
+            target/dependency-security/manifest.json
+            target/dependency-security/osv.json
+          if-no-files-found: error
+          retention-days: 7
