@@ -195,11 +195,17 @@ public class VaultService {
         }
     }
 
-    private byte[] sealPassword(
+    // Package-local restore reuses the existing instance key and receiver/item AAD.
+    byte[] sealPassword(
             String password, UUID userId, UUID itemId, String policyId
     ) {
         byte[] aad = VaultItemAad.itemV1(userId, itemId, policyId);
-        return seal.seal(password.getBytes(StandardCharsets.UTF_8), vaultKey, vaultKeyId, aad).toBytes();
+        byte[] plaintext = password.getBytes(StandardCharsets.UTF_8);
+        try {
+            return seal.seal(plaintext, vaultKey, vaultKeyId, aad).toBytes();
+        } finally {
+            Arrays.fill(plaintext, (byte) 0);
+        }
     }
 
     // Package-local bulk export also calls this only after authorizing the complete selection.
