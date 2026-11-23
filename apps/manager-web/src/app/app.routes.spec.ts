@@ -166,7 +166,7 @@ describe('Manager entry routes', () => {
     input.form!.dispatchEvent(new Event('submit', { cancelable: true }));
     expect(input.value).toBe('');
     http.expectOne('/api/v1/ai/policy/explain').flush({ explanation: '<strong>Policy example</strong>' });
-    await harness.fixture.whenStable();
+    await harness.fixture.whenStable();harness.detectChanges();
     expect(router.url).toBe('/tools?tool=check#why-these-rules');
     http.expectOne('/api/v1/tools/policy').flush(policy);
     harness.detectChanges();
