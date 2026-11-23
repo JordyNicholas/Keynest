@@ -116,36 +116,26 @@ input, select {
 }
 
 .saved-items .vault-card {
-  margin-block: 0.75rem;
-  border: 1px solid var(--kn-color-outline);
-  background: var(--kn-color-canvas-mid);
+  margin: 0;
+  border: 0;
+  background: transparent;
   border-radius: 1rem;
   box-shadow: none;
 }
 
 mat-expansion-panel-header {
   padding: 1rem;
+  padding-inline-start: 4.75rem;
   min-block-size: 5rem;
 }
 
 mat-panel-title.vault-header {
   display: grid;
-  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   min-inline-size: 0;
   gap: 0.75rem;
   margin-inline-end: 1rem;
-}
-
-.item-avatar {
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  inline-size: 2.25rem;
-  block-size: 2.25rem;
-  border-radius: 0.75rem;
-  background: var(--kn-color-surface-raised);
-  color: var(--kn-color-accent);
 }
 
 .item-info {
@@ -197,18 +187,14 @@ mat-panel-title.vault-header {
     grid-template-columns: 1fr 1fr;
   }
   mat-panel-title.vault-header {
-    grid-template-columns: 2.25rem minmax(0, 1fr);
-  }
-  .item-avatar {
-    grid-column: 1;
-    grid-row: 1 / 3;
+    grid-template-columns: minmax(0, 1fr);
   }
   .item-info {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
   }
   .vault-header .expiry-status {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 2;
     justify-self: start;
   }
@@ -231,8 +217,3 @@ mat-panel-title.vault-header {
     padding: 1.25rem;
   }
 }
-
-.export-selection { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-block-end: 1rem; color: var(--kn-color-muted); }
-.export-item { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); align-items: start; }
-.export-checkbox { display: grid; place-items: center; min-block-size: 3.5rem; margin: 0; cursor: pointer; }
-.export-checkbox input { inline-size: 1.25rem; min-block-size: 1.25rem; accent-color: var(--kn-color-accent); }

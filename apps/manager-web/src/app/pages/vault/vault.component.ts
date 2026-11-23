@@ -24,7 +24,7 @@ import { ExpiryCounts, ExpiryFilter, expiryFilters, expiryStatus, SearchField, V
   selector: 'kn-vault-page',
   imports: [InlineErrorComponent, DatePipe, RouterLink, FormsModule, MatButtonModule, MatExpansionModule, VaultItemDetailsComponent, IconComponent, PaginationComponent],
   templateUrl: './vault.component.html',
-  styleUrls: ['../page-shared.css', './vault.component.css', './expiry-status.css'],
+  styleUrls: ['../page-shared.css', './vault.component.css', './expiry-status.css', './vault-selection.css'],
 })
 export class VaultPageComponent implements OnDestroy {
   private readonly dialogs = inject(MatDialog);
