@@ -59,8 +59,7 @@ class VaultExportIntegrationTest {
     UUID foreign = vault.create(auth.requireUser(other), new VaultService.CreateVaultItemRequest("Other owner", null, null, SECRET, false, null, null, null)).id();
     var result = snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.ALL, java.util.List.of()));
     assertThat(result).hasSize(1);
-    assertThat(result.getFirst()[0]).isEqualTo(first);
-    assertThat(((Number) result.getFirst()[1]).intValue()).isEqualTo(items.findById(first).orElseThrow().getEnvelopeBytes().length);
+    assertThat(result.getFirst().intValue()).isEqualTo(items.findById(first).orElseThrow().getEnvelopeBytes().length);
     assertThat(snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.SELECTED, java.util.List.of(foreign)))).isEmpty();
     assertThat(snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.SELECTED, java.util.List.of(first)))).hasSize(1);
     assertThat(JSON.valueToTree(policies.inspect(owner)).path("rules").isObject()).isTrue();

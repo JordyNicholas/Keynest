@@ -71,14 +71,14 @@ public class VaultExportSnapshots {
 
   private State state(UserAccount owner, VaultExportSelection selection) throws Exception {
     var cb = em.getCriteriaBuilder();
-    List<Object[]> headers = ciphertextLengths(owner, selection);
+    List<Number> headers = ciphertextLengths(owner, selection);
     if (headers.size() > PortableVaultFormat.MAX_ITEMS) throw new VaultExportFailure(EXPORT_LIMIT_EXCEEDED);
     if (selection.scope() == VaultExportSelection.Scope.SELECTED && headers.size() != selection.ids().size()) {
       throw new VaultExportFailure(EXPORT_SELECTION_UNAVAILABLE);
     }
     if (headers.isEmpty()) throw new VaultExportFailure(EXPORT_EMPTY);
-    for (Object[] header : headers) {
-      if (!(header[1] instanceof Number size) || size.longValue() < 32 || size.longValue() > 8192) {
+    for (Number size : headers) {
+      if (size == null || size.longValue() < 32 || size.longValue() > 8192) {
         throw new VaultExportFailure(EXPORT_DATA_UNAVAILABLE);
       }
     }
@@ -108,8 +108,8 @@ public class VaultExportSnapshots {
    * Both PostgreSQL bytea and H2 varbinary support this database-side projection.
    */
   @SuppressWarnings("unchecked")
-  List<Object[]> ciphertextLengths(UserAccount owner, VaultExportSelection selection) {
-    String sql = "select id, octet_length(envelope_bytes) from vault_items where user_id = :owner";
+  List<Number> ciphertextLengths(UserAccount owner, VaultExportSelection selection) {
+    String sql = "select octet_length(envelope_bytes) from vault_items where user_id = :owner";
     if (selection.scope() == VaultExportSelection.Scope.SELECTED) sql += " and id in (:ids)";
     var query = em.createNativeQuery(sql).setParameter("owner", owner.getId());
     if (selection.scope() == VaultExportSelection.Scope.SELECTED) query.setParameter("ids", selection.ids());
