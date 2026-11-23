@@ -40,7 +40,7 @@ class VaultExportIntegrationTest {
   @Autowired VaultItemRepository items;
   @Autowired VaultService vault;
   @Autowired VaultExportAdmission admission;
-  @Autowired jakarta.persistence.EntityManager entityManager;
+  @Autowired VaultExportSnapshots snapshots;
   @MockitoSpyBean KeynestSeal seal;
   @MockitoSpyBean EncryptedVaultBackup backups;
   @MockitoSpyBean PasswordHashingService passwords;
@@ -55,14 +55,14 @@ class VaultExportIntegrationTest {
   }
 
   @Test void databaseProjectionMeasuresOnlyOwnedCiphertextLengths() {
-    var cb = entityManager.getCriteriaBuilder();
-    var query = cb.createTupleQuery();var row = query.from(VaultItem.class);
-    query.multiselect(row.get("id"), cb.function("octet_length", Integer.class, row.get("envelopeBytes")));
-    query.where(cb.equal(row.get("userId"), owner.getId()));
-    var result = entityManager.createQuery(query).setMaxResults(501).getResultList();
+    String other = "Bearer " + auth.register("projection-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
+    UUID foreign = vault.create(auth.requireUser(other), new VaultService.CreateVaultItemRequest("Other owner", null, null, SECRET, false, null, null, null)).id();
+    var result = snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.ALL, java.util.List.of()));
     assertThat(result).hasSize(1);
-    assertThat(result.getFirst().get(0)).isEqualTo(first);
-    assertThat(((Number) result.getFirst().get(1)).intValue()).isEqualTo(items.findById(first).orElseThrow().getEnvelopeBytes().length);
+    assertThat(result.getFirst()[0]).isEqualTo(first);
+    assertThat(((Number) result.getFirst()[1]).intValue()).isEqualTo(items.findById(first).orElseThrow().getEnvelopeBytes().length);
+    assertThat(snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.SELECTED, java.util.List.of(foreign)))).isEmpty();
+    assertThat(snapshots.ciphertextLengths(owner, new VaultExportSelection(VaultExportSelection.Scope.SELECTED, java.util.List.of(first)))).hasSize(1);
     assertThat(JSON.valueToTree(policies.inspect(owner)).path("rules").isObject()).isTrue();
     verify(seal, never()).open(any(), any(byte[].class), any(byte[].class));
   }

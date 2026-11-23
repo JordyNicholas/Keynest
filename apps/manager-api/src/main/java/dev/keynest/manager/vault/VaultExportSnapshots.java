@@ -6,7 +6,6 @@ import dev.keynest.manager.auth.UserAccount;
 import dev.keynest.manager.policy.AccountPasswordPolicyService;
 import dev.keynest.manager.vault.export.PortableVaultFormat;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.nio.ByteBuffer;
@@ -72,17 +71,14 @@ public class VaultExportSnapshots {
 
   private State state(UserAccount owner, VaultExportSelection selection) throws Exception {
     var cb = em.getCriteriaBuilder();
-    var lengths = cb.createTupleQuery();var root = lengths.from(VaultItem.class);
-    lengths.multiselect(root.get("id"), cb.function("octet_length", Integer.class, root.get("envelopeBytes")));
-    lengths.where(owned(root, owner, selection));
-    List<Tuple> headers = em.createQuery(lengths).setMaxResults(PortableVaultFormat.MAX_ITEMS + 1).getResultList();
+    List<Object[]> headers = ciphertextLengths(owner, selection);
     if (headers.size() > PortableVaultFormat.MAX_ITEMS) throw new VaultExportFailure(EXPORT_LIMIT_EXCEEDED);
     if (selection.scope() == VaultExportSelection.Scope.SELECTED && headers.size() != selection.ids().size()) {
       throw new VaultExportFailure(EXPORT_SELECTION_UNAVAILABLE);
     }
     if (headers.isEmpty()) throw new VaultExportFailure(EXPORT_EMPTY);
-    for (Tuple header : headers) {
-      if (!(header.get(1) instanceof Number size) || size.longValue() < 32 || size.longValue() > 8192) {
+    for (Object[] header : headers) {
+      if (!(header[1] instanceof Number size) || size.longValue() < 32 || size.longValue() > 8192) {
         throw new VaultExportFailure(EXPORT_DATA_UNAVAILABLE);
       }
     }
@@ -106,6 +102,18 @@ public class VaultExportSnapshots {
       bytes(digest, row.getEnvelopeBytes());
     }
     return new State(rows, policy, HexFormat.of().formatHex(digest.digest()));
+  }
+
+  /** Native binary length avoids Hibernate's string-only octet_length descriptor.
+   * Both PostgreSQL bytea and H2 varbinary support this database-side projection.
+   */
+  @SuppressWarnings("unchecked")
+  List<Object[]> ciphertextLengths(UserAccount owner, VaultExportSelection selection) {
+    String sql = "select id, octet_length(envelope_bytes) from vault_items where user_id = :owner";
+    if (selection.scope() == VaultExportSelection.Scope.SELECTED) sql += " and id in (:ids)";
+    var query = em.createNativeQuery(sql).setParameter("owner", owner.getId());
+    if (selection.scope() == VaultExportSelection.Scope.SELECTED) query.setParameter("ids", selection.ids());
+    return query.setMaxResults(PortableVaultFormat.MAX_ITEMS + 1).getResultList();
   }
 
   private Predicate owned(Root<VaultItem> item, UserAccount owner, VaultExportSelection selection) {
