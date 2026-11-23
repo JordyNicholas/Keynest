@@ -51,6 +51,7 @@ export class VaultRestoreDialogComponent {
   }
 
   choose(event: Event): void {
+    if (this.applying()) { this.uncertain();return; }
     const input = event.target as HTMLInputElement, file = input.files?.[0];
     this.reset();this.error.set('');this.status.set('');
     if (this.blocked() || !file) return;
@@ -59,6 +60,7 @@ export class VaultRestoreDialogComponent {
   }
 
   invalidateReview(): void {
+    if (this.applying()) { this.uncertain();return; }
     this.stop();this.preview.set(null);this.clearAccount();this.error.set('');this.status.set('');
   }
 

@@ -139,6 +139,11 @@ describe('Vault encrypted restore dialog', () => {
     expect(request.cancelled).toBeTrue();expect(component.blocked()).toBeTrue();expect(component.filename()).toBe('');expect(field('passphrase').value).toBe('');
   });
 
+  it('treats a late input event that interrupts a sent apply as uncertain', () => {
+    review();const request = apply();field('passphrase').dispatchEvent(new Event('input'));
+    expect(request.cancelled).toBeTrue();expect(component.blocked()).toBeTrue();expect(component.preview()).toBeNull();expect(component.filename()).toBe('');
+  });
+
   it('discards late responses after a session change and clears expired authentication', () => {
     review();const request = apply();TestBed.inject(AuthService).setSession('other-session', 'other@example.test');
     request.flush({ restoredCount: 2, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).not.toHaveBeenCalled();
