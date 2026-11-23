@@ -41,7 +41,7 @@ export class PublicToolsComponent {
   readonly active = signal<Tool | null>(null);
   private readonly generator = viewChild(PublicGeneratorComponent);
   private readonly checker = viewChild(PublicCheckerComponent);
-  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly host: ElementRef<HTMLElement> = inject(ElementRef);
   private readonly destroy = inject(DestroyRef);
   private frame?: number;
 
