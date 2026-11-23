@@ -53,6 +53,9 @@ jobs:
           printf '%s  %s\n' fb7dab19a8bd9bbe5c3189f09d4b7ee1820c9553a23bac202648a56efd2f6ee8 target/dependency-security/osv-scanner | sha256sum --check
           chmod 700 target/dependency-security/osv-scanner
 
+      - name: Verify an unavailable matching service is a scanner error
+        run: python3 scripts/check_osv_failure.py
+
       - name: Check both inventories for known vulnerabilities
         run: >-
           target/dependency-security/osv-scanner scan source
