@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnDestroy, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -15,7 +15,7 @@ import { PasswordGeneratorOptionsComponent } from './password-generator-options.
   templateUrl: './generate-password.component.html',
   styleUrl: '../page-shared.css',
 })
-export class GeneratePasswordPageComponent {
+export class GeneratePasswordPageComponent implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly destroyRef = inject(DestroyRef);
@@ -67,6 +67,8 @@ export class GeneratePasswordPageComponent {
       if (this.generated() === password) this.copyStatus.set('Copy unavailable. Select and copy the password manually.');
     }
   }
+
+  ngOnDestroy(): void { this.clearGenerated(); }
 
   clearGenerated(): void {
     this.generated.set('');

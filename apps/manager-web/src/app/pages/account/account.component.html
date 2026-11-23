@@ -39,9 +39,12 @@
   <kn-auth-form [mode]="authMode()" (modeChange)="changeAuthMode($event)" (authenticated)="onAuth()" />
 }
 
-<section class="panel" aria-labelledby="diagnostics-heading">
-  <h2 id="diagnostics-heading">Troubleshooting</h2>
-  <a mat-stroked-button routerLink="/status">API health</a>
+<section id="diagnostics-heading" class="panel" aria-labelledby="diagnostics-title">
+  <h2 id="diagnostics-title">Troubleshooting</h2>
+  <details #healthSetup [open]="healthOpen()" (toggle)="healthOpen.set(healthSetup.open)">
+    <summary>Check API connection</summary>
+    @if (healthOpen()) { <kn-api-health /> }
+  </details>
 </section>
 
 <section class="panel" aria-labelledby="help-heading">
