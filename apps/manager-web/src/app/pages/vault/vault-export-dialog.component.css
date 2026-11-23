@@ -1,0 +1,8 @@
+:host { display: block; }
+h2 { font: 500 2rem/1.2 var(--kn-font-display); }
+p { color: var(--kn-color-muted); line-height: 1.6; }
+mat-dialog-content { max-block-size: 65dvh; }
+select { inline-size: 100%; min-block-size: 2.75rem; margin-block-end: 1rem; font: inherit; background: var(--kn-color-surface); color: var(--kn-color-ink); border: 1px solid var(--kn-color-outline); border-radius: 0.5rem; }
+input { inline-size: 100%; box-sizing: border-box; margin-block-end: 1rem; }
+.review { padding: 1rem; border: 1px solid var(--kn-color-outline); border-radius: 0.5rem; }
+mat-dialog-actions { padding: 1rem 1.5rem; }

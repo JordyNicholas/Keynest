@@ -2,8 +2,6 @@ import { inject } from '@angular/core';
 import { AuthService } from './auth/auth.service';
 import { Router, Routes } from '@angular/router';
 import { ShellComponent } from './layout/shell/shell.component';
-import { VaultCreatePageComponent } from './pages/vault/vault-create.component';
-import { VaultUpdatePageComponent } from './pages/vault/vault-update.component';
 import { authGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
@@ -21,9 +19,9 @@ export const routes: Routes = [
     children: [
       { path: 'overview', loadComponent: () => import('./pages/overview/overview.component').then(page => page.OverviewPageComponent), data: { wide: true } },
       { path: 'tools', loadComponent: () => import('./pages/tools/tools.component').then(page => page.ToolsPageComponent) },
-      { path: 'vault/new', component: VaultCreatePageComponent },
-      { path: 'vault/edit/:itemId', component: VaultUpdatePageComponent },
-      { path: 'vault/rotate/:itemId', component: VaultUpdatePageComponent, data: { rotate: true } },
+      { path: 'vault/new', loadComponent: () => import('./pages/vault/vault-create.component').then(page => page.VaultCreatePageComponent) },
+      { path: 'vault/edit/:itemId', loadComponent: () => import('./pages/vault/vault-update.component').then(page => page.VaultUpdatePageComponent) },
+      { path: 'vault/rotate/:itemId', loadComponent: () => import('./pages/vault/vault-update.component').then(page => page.VaultUpdatePageComponent), data: { rotate: true } },
       {
         path: 'vault',
         data: { wide: true },

@@ -10,6 +10,8 @@ The serializer can encode/decode a native JSON payload and translate it into ind
 
 The encrypted-container slice is tracked in [#218](https://github.com/JordyNicholas/Keynest/issues/218), approved PR [#219](https://github.com/JordyNicholas/Keynest/pull/219), and [accepted ADR-0012](ADR-0012-portable-backup-container.md). It adds a passphrase-protected file codec using Argon2id and the existing Seal implementation. It is not an HTTP export, database restore, or UI; the maintainer has approved its concrete container/custody contract. The full portability feature and actual separate-instance database restoration remain open under #154.
 
+The next application slice is [#226](https://github.com/JordyNicholas/Keynest/issues/226): [authenticated encrypted export API](VAULT_EXPORT_API.md), governed by [proposed ADR-0013](ADR-0013-authenticated-vault-export.md). It adds owner-scoped preview/download for Keynest files only. It does not implement a Vault export UI, receiving-database restoration or verified third-party profiles. Until that slice is reviewed and merged, it remains a proposal rather than an available Manager API.
+
 ## Product decision
 
 The user selects a purpose and destination. Keynest selects the format and explains compatibility. No single file format is promised to work everywhere.

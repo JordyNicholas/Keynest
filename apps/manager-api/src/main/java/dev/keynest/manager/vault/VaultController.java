@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +87,8 @@ public class VaultController {
                 body.generate(),
                 body.policyId(),
                 body.expiresInDays(),
-                body.notifyBeforeDays()
+                body.notifyBeforeDays(),
+                body.expiresAt()
         ));
     }
 
@@ -104,7 +106,8 @@ public class VaultController {
                 body.password(),
                 body.policyId(),
                 body.expiresInDays(),
-                body.notifyBeforeDays()
+                body.notifyBeforeDays(),
+                body.expiresAt()
         ));
     }
 
@@ -126,7 +129,8 @@ public class VaultController {
             Boolean generate,
             String policyId,
             Integer expiresInDays,
-            Integer notifyBeforeDays
+            Integer notifyBeforeDays,
+            Instant expiresAt
     ) {
     }
 
@@ -137,7 +141,8 @@ public class VaultController {
             String password,
             String policyId,
             Integer expiresInDays,
-            Integer notifyBeforeDays
+            Integer notifyBeforeDays,
+            Instant expiresAt
     ) {
     }
 }

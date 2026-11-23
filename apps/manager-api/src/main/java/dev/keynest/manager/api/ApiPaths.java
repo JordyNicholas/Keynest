@@ -30,6 +30,9 @@ public final class ApiPaths {
   public static final String VAULT_ITEMS = API_V1 + "/vault/items";
   public static final String VAULT_SEARCH = VAULT_ITEMS + "/search";
   public static final String VAULT_OVERVIEW = API_V1 + "/vault/overview";
+  public static final String VAULT_EXPORTS = API_V1 + "/vault/exports";
+  public static final String VAULT_EXPORT_PREVIEW = VAULT_EXPORTS + "/preview";
+  public static final String VAULT_EXPORT_DOWNLOAD = VAULT_EXPORTS + "/download";
   public static final String AI_EXPLAIN = API_V1 + "/ai/policy/explain";
 
   /**
@@ -41,7 +44,9 @@ public final class ApiPaths {
     TOOLS_HASH_PASSWORD,
     TOOLS_VERIFY_PASSWORD,
     AUTH_REGISTER,
-    AUTH_LOGIN
+    AUTH_LOGIN,
+    VAULT_EXPORT_PREVIEW,
+    VAULT_EXPORT_DOWNLOAD
   );
 
   private ApiPaths() {

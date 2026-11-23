@@ -4,6 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { VaultExportDialogComponent } from './vault-export-dialog.component';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize, Subscription } from 'rxjs';
@@ -25,6 +27,10 @@ import { ExpiryCounts, ExpiryFilter, expiryFilters, expiryStatus, SearchField, V
   styleUrls: ['../page-shared.css', './vault.component.css', './expiry-status.css'],
 })
 export class VaultPageComponent implements OnDestroy {
+  private readonly dialogs = inject(MatDialog);
+  private exportDialog?: MatDialogRef<VaultExportDialogComponent>;
+  readonly exportIds = signal<ReadonlySet<string>>(new Set());
+  readonly selectionError = signal('');
   private readonly api = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
@@ -72,7 +78,7 @@ export class VaultPageComponent implements OnDestroy {
     effect(() => {
       const token = this.auth.token();
       if (session !== token) {
-        session = token;this.cancelPage();this.deleteRequest?.unsubscribe();this.clearPage();this.query.set('');this.selectedItem.set(null);
+        session = token;this.exportIds.set(new Set());this.selectionError.set('');this.exportDialog?.close();this.cancelPage();this.deleteRequest?.unsubscribe();this.clearPage();this.query.set('');this.selectedItem.set(null);
         this.expiry.set('all');this.page.set(0);this.loading.set(false);
         this.loadFailure.set(token ? 'Your session changed. Refresh to load this account’s Vault.' : 'Your session ended. Sign in to load your Vault.');
       }
@@ -89,6 +95,29 @@ export class VaultPageComponent implements OnDestroy {
       }
       this.openRequestedItem = !!item;this.refreshVault();
     });
+  }
+
+  selectForExport(id: string, checked: boolean): void {
+    if (!this.auth.signedIn() || !this.items().some(item => item.id === id)) return;
+    const ids = new Set(this.exportIds());this.selectionError.set('');
+    if (checked && ids.size >= 500 && !ids.has(id)) { this.selectionError.set('Select at most 500 items per export.');return; }
+    if (checked) ids.add(id);else ids.delete(id);
+    this.exportIds.set(ids);
+  }
+
+  clearExportSelection(): void { this.exportIds.set(new Set());this.selectionError.set(''); }
+
+  openExport(): void {
+    if (!this.auth.signedIn() || this.exportDialog) return;
+    this.concealAll();
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dialog = this.dialogs.open(VaultExportDialogComponent, {
+      data: { ids: [...this.exportIds()] }, width: '40rem', maxWidth: 'calc(100vw - 2rem)', maxHeight: 'calc(100dvh - 2rem)',
+      ariaLabelledBy: 'export-title', autoFocus: 'first-header', restoreFocus: true,
+      enterAnimationDuration: reduced ? 0 : 180, exitAnimationDuration: reduced ? 0 : 160,
+    });
+    this.exportDialog = dialog;
+    dialog.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => { if (this.exportDialog === dialog) this.exportDialog = undefined; });
   }
 
   expiryStatus(expiresAt: VaultItem['expiresAt']) {
@@ -212,7 +241,7 @@ export class VaultPageComponent implements OnDestroy {
       });
   }
 
-  ngOnDestroy(): void { this.cancelPage();this.deleteRequest?.unsubscribe();this.concealAll(); }
+  ngOnDestroy(): void { this.exportDialog?.close();this.exportIds.set(new Set());this.cancelPage();this.deleteRequest?.unsubscribe();this.concealAll(); }
 
   private syncRoute(): void {
     void this.router.navigate([], { relativeTo: this.route, queryParams: { expiry: this.expiry() === 'all' ? null : this.expiry(), item: this.selectedItem() }, queryParamsHandling: 'merge', replaceUrl: true });
