@@ -1,0 +1,46 @@
+{
+  "notice": "Synthetic test data only. Fixed entropy must never be used for a real backup.",
+  "writer": "Python cryptography 50.0.0; OpenSSL 4.0.1 9 Jun 2026",
+  "passphrase": "synthetic-backup-passphrase-雪🔑",
+  "saltHex": "000102030405060708090a0b0c0d0e0f",
+  "nonceHex": "101112131415161718191a1b",
+  "payload": {
+    "format": "keynest.vault",
+    "version": 1,
+    "exportedAt": "2026-11-22T12:00:00Z",
+    "accountPolicy": {
+      "id": "keynest.default.v1",
+      "rules": {
+        "minLength": 16,
+        "maxLength": 128,
+        "requireUpper": true,
+        "requireLower": true,
+        "requireDigit": true,
+        "requireSymbol": true,
+        "minCategories": 3,
+        "excludeAmbiguous": true,
+        "forbidWhitespace": true,
+        "forbidUsernameSubstring": true,
+        "maxAgeDays": null,
+        "bannedSubstrings": [],
+        "bannedRegexes": []
+      }
+    },
+    "items": [
+      {
+        "id": "00000000-0000-0000-0000-000000000001",
+        "label": "Synthetic item",
+        "url": "https://example.invalid/login",
+        "username": "sample",
+        "password": "not-a-real-password,\n\"雪\"",
+        "policyId": "keynest.historical.v1",
+        "expiresAt": null,
+        "lastRotatedAt": "2026-11-20T00:00:00Z",
+        "notifyBeforeDays": 14,
+        "createdAt": "2026-11-20T00:00:00Z",
+        "updatedAt": "2026-11-21T00:00:00Z"
+      }
+    ]
+  },
+  "containerBase64": "S0VZTkVTVEIBAQABAgMEBQYHCAkKCwwNDg8AAAMqAQEAEWtleW5lc3QuYmFja3VwLnYxEBESExQVFhcYGRobiYeklzdhWUyf6FkUZfxcAwbkFzK9WNlb/3A0sSZ2f58K/Fh/6fjPeK4EvhHuDaLQmaxU1HUugf8D87Kz+5srtkmr0NUaJO6WKY7+v8P/jlStEbGtPU+uXTsfy5CDDhJiOo93qA3MQ9oC2sOH+jdV23nRfFkieyJO9kuEK9QbHMy5P50Oyy0suWkvpXm3UMpfL8msecWPAuVo5IJ27vrSfixq2rxMn6RSXobpRB7U3WlJQNKRPFA+X+g1SJpyQkaplhepBwaAd+0xNT2zfpORB9rAb6fxG555Lll+2a1bJYsVxLELQ9NWggXFFcfPLfoNIVEkycYQ+HrcV/RYfAZnoSpQeVbZzdFGw8fuIGkVgQxei91Sj74+LA8Q5j2EkCokcTu6R5MpvIqpXSKVScMqTFu6o3Fadi8cz0U07i/M1Ee17Pw22wGq3/VBGn7NQBwvEr4Qse9WP/THY6UJe4L9/mQ4umZnDPXsoQQXeKiMgdM86AE4SlHy3RMHqzxePdyOUo2EP8QnyJsk50jY2Z5LOGImHu8NhJU/+oJJwfQnbP+XCyMs1Oj2JhJ0FOHLD4VWjsdRli0kustOhMk8Fna2e+vzzd/MjWHrct+toyadyQFV8HZCMCPcsO9NDjXpw8yGK/DtyamLlGMqb0s67uQjIwG0MzuBxYyVJ9BX4A+HkFvW73FWbQFQcvi93pvQX+hGGmXLZd6osJ2CaDjOYlD+AWZgfmkpYAmwdB42sjtL+tBfh1Kmx1imONAFMQAny0nyG/PqSX35LD4vafCC/lvct0Yj1N5NxfXjfaAg/6176LIriO0Cwo4w7E2LVQS7covs9cZc4jgB+pIv0UoPZZDm+6LE86TDOAO/UipVswiMUox4CLFPXwfhlMPrXaKYPg79Mhkq3VLCotwMMdv4XE1UKY7bm2o+qot1RhOLJFEhw8MdqlQkU01uvqIoQSg1YMwFd9g29DTdO6SMOejqzgSxAWBopX4TtQOvd+9OwLdmMukmqvqdglpx/uqE8TGQRz7jlQubFA6sk1Am"
+}

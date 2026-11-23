@@ -4,9 +4,11 @@ Status: **[proposed]** implementation contract for [#154](https://github.com/Jor
 
 ## Current implementation boundary
 
-The first slice adds a pure, bounded serializer in `manager-api` and a published [v1 payload schema](schemas/vault-export-v1.schema.json). It has no Spring registration, HTTP endpoint, database access, filesystem output, secret retrieval, cryptography, import mutation or UI. There is no new way to obtain a Vault password. The schema and serializer remain reviewable together before a download surface is introduced.
+The first slice, merged through maintainer-approved [#217](https://github.com/JordyNicholas/Keynest/pull/217), adds a pure, bounded serializer in `manager-api` and a published [v1 payload schema](schemas/vault-export-v1.schema.json). It has no Spring registration, HTTP endpoint, database access, filesystem output, secret retrieval, cryptography, import mutation or UI. There is no new way to obtain a Vault password. The schema and serializer remain reviewable together before a download surface is introduced.
 
 The serializer can encode/decode a native JSON payload and translate it into individual-vault Bitwarden JSON or a browser-login CSV candidate. Unit tests establish data fidelity and rejection behavior; they do **not** establish acceptance by a third-party importer. Destination profiles must remain unavailable in production until their import walkthroughs pass with synthetic data and recorded application versions.
+
+The next encrypted-container slice is tracked in [#218](https://github.com/JordyNicholas/Keynest/issues/218) and [proposed ADR-0012](ADR-0012-portable-backup-container.md). It adds a passphrase-protected file codec using Argon2id and the existing Seal implementation. It is not an HTTP export, database restore, or UI; the concrete container/custody contract remains subject to review before merge. The full portability feature and actual separate-instance database restoration remain open under #154.
 
 ## Product decision
 
@@ -71,7 +73,7 @@ Reuse the approved Material visual language, keyboard focus, responsive layouts,
 
 ## Security and restoration gates before a download endpoint
 
-The encrypted container, password-based key derivation, parameters, AAD/header authentication, unlock UX and offline restore contract require a dedicated reviewed design and negative tests. Reuse approved cryptographic primitives and the existing Seal contract where applicable; do not alter stored envelopes, keys, golden vectors or session transport. No export-password custody decision is implemented by this serializer PR.
+The encrypted container, password-based key derivation, parameters, AAD/header authentication, unlock UX and offline restore contract require a dedicated reviewed design and negative tests. Reuse approved cryptographic primitives and the existing Seal contract where applicable; do not alter stored envelopes, keys, golden vectors or session transport. The first serializer PR did not implement export-password custody. The concrete next-layer proposal and its wire/KDF/cleanup tests live in ADR-0012; do not treat that proposal as an accepted or user-reachable export journey before review and application integration.
 
 Fresh password verification must be bound to the actual authenticated user and export request; failure paths need rate limiting, no-store and sanitized fixed-action HTTP events. ADR-0009 events are best-effort and unattributed, not a durable audit trail. Any stronger audit/retention requirement needs its own decision. No bulk export capability belongs in AI/MCP tools.
 
