@@ -31,7 +31,7 @@ public class VaultRestoreController {
   public VaultRestorePlans.Ticket preview(HttpServletRequest request) {
     String authorization = authorization(request);UserAccount initial = auth.requireUser(authorization);
     try (var body = VaultRestoreRequest.read(request, false)) {
-      var preview = restore.preview(initial.getId(), body.file, body.passphrase);
+      var preview = restore.preview(initial.getId(), body.file, body.passphrase, body.decisions);
       return plans.issue(VaultRestorePlans.binding(authorization, requireCurrent(authorization, initial)), preview);
     }
   }
@@ -42,7 +42,8 @@ public class VaultRestoreController {
       if (!passwords.verifyAndClear(body.accountPassword, initial.getPasswordHash())) throw new VaultRestoreFailure(RESTORE_REAUTH_FAILED);
       UserAccount current = requireCurrent(authorization, initial);
       var plan = plans.consume(body.planId, VaultRestorePlans.binding(authorization, current));
-      return restore.restore(current.getId(), body.file, body.passphrase, plan.snapshot(), () -> requireCurrent(authorization, initial));
+      if (!body.confirmUpdates && plan.decisions().stream().anyMatch(decision -> decision.action() == dev.keynest.manager.vault.VaultRestoreDecision.Action.UPDATE)) throw new VaultRestoreFailure(RESTORE_SELECTION_INVALID);
+      return restore.restore(current.getId(), body.file, body.passphrase, plan.snapshot(), plan.decisions(), () -> requireCurrent(authorization, initial));
     }
   }
   private UserAccount requireCurrent(String authorization, UserAccount initial) {
@@ -68,7 +69,7 @@ public class VaultRestoreController {
       case RESTORE_REAUTH_FAILED -> 403;
       case RESTORE_OWNER_UNAVAILABLE -> 404;
       case RESTORE_CHANGED, RESTORE_PLAN_INVALID -> 409;
-      case RESTORE_LIMIT_EXCEEDED, RESTORE_REQUEST_TOO_LARGE -> 413;
+      case RESTORE_LIMIT_EXCEEDED, RESTORE_REQUEST_TOO_LARGE, RESTORE_COMPARISON_LIMIT -> 413;
       case RESTORE_EMPTY -> 422;
       case RESTORE_BUSY, RESTORE_FAILED -> 503;
       default -> 400;

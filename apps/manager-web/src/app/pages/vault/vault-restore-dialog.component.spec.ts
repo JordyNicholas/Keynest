@@ -12,7 +12,9 @@ const phrase = 'Synthetic separate backup passphrase', account = 'Synthetic curr
 function frame(length = 128): Uint8Array {
   const bytes = new Uint8Array(length);bytes.set([75, 69, 89, 78, 69, 83, 84, 66, 1, 1]);new DataView(bytes.buffer).setUint32(26, length - 30);return bytes;
 }
-function ticket() { return { planId: 'a'.repeat(43), expiresAt: new Date(Date.now() + 300_000).toISOString(), itemCount: 2, receivingPolicyUnchanged: true }; }
+function entry(index: number) { return { sourceIndex: index, label: 'Synthetic entry ' + index, url: 'https://example.invalid', username: 'synthetic', matchKind: 'new', repeatedOf: null, matches: [] as ReturnType<typeof match>[] }; }
+function match(index: number, fields: string[] = []) { return { targetId: '00000000-0000-0000-0000-' + String(index + 1).padStart(12, '0'), label: 'Synthetic entry ' + index, createdAt: '2026-11-20T00:00:00Z', updatedAt: '2026-11-20T00:00:00Z', changedFields: fields }; }
+function ticket() { return { planId: 'a'.repeat(43), expiresAt: new Date(Date.now() + 300_000).toISOString(), itemCount: 2, newItemCount: 2, updatedItemCount: 0, skippedCount: 0, entries: [entry(0), entry(1)], receivingPolicyUnchanged: true }; }
 
 describe('Vault encrypted restore dialog', () => {
   let fixture: ComponentFixture<VaultRestoreDialogComponent>, component: VaultRestoreDialogComponent, http: HttpTestingController;
@@ -55,7 +57,7 @@ describe('Vault encrypted restore dialog', () => {
     finishRead(bytes);expect(bytes.every(byte => byte === 0)).toBeTrue();
     const request = http.expectOne(previewUrl);expect(request.request.headers.get('Authorization')).toBe('Bearer synthetic-session');
     expect(request.request.body).toEqual({ file: encoded, backupPassphrase: phrase });request.flush(ticket());fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Ready to add 2 item(s)');expect(fixture.nativeElement.textContent).toContain('No items have been written');
+    expect(fixture.nativeElement.textContent).toContain('2 to add; 0 to update; 0 to ignore');expect(fixture.nativeElement.textContent).toContain('No items have been written');
     expect(field('passphrase').value).toBe(phrase);http.expectNone(applyUrl);
   });
 
@@ -78,8 +80,8 @@ describe('Vault encrypted restore dialog', () => {
     const request = http.expectOne(applyUrl);
     expect(request.request.headers.get('Authorization')).toBe('Bearer synthetic-session');
     expect(request.request.body).toEqual({ file: btoa(String.fromCharCode(...frame())), backupPassphrase: phrase, accountPassword: account, planId: 'a'.repeat(43) });
-    request.flush({ restoredCount: 2, receivingPolicyUnchanged: true });
-    expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalledWith({ restoredCount: 2, receivingPolicyUnchanged: true });
+    request.flush({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });
+    expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalledWith({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });
     expect(component.preview()).toBeNull();expect(component.filename()).toBe('');expect(field('file').value).toBe('');
     component.apply(new Event('submit'));http.expectNone(applyUrl);storage.forEach(spy => expect(spy).not.toHaveBeenCalled());
   });
@@ -114,7 +116,7 @@ describe('Vault encrypted restore dialog', () => {
 
   it('does not interrupt an already-sent apply when the idle review deadline passes', fakeAsync(() => {
     review();const request = apply();tick(300_001);expect(request.cancelled).toBeFalse();expect(component.applying()).toBeTrue();
-    request.flush({ restoredCount: 2, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalled();
+    request.flush({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalled();
   }));
 
   it('treats a generic transaction failure as uncertain rather than assuming the commit was rolled back', () => {
@@ -123,7 +125,7 @@ describe('Vault encrypted restore dialog', () => {
   });
 
   it('does not report success for an unrecognized successful apply response', () => {
-    review();apply().flush({ restoredCount: 1, receivingPolicyUnchanged: true });
+    review();apply().flush({ restoredCount: 1, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });
     expect(component.blocked()).toBeTrue();expect(TestBed.inject(MatDialogRef).close).not.toHaveBeenCalled();
   });
 
@@ -146,7 +148,7 @@ describe('Vault encrypted restore dialog', () => {
 
   it('discards late responses after a session change and clears expired authentication', () => {
     review();const request = apply();TestBed.inject(AuthService).setSession('other-session', 'other@example.test');
-    request.flush({ restoredCount: 2, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).not.toHaveBeenCalled();
+    request.flush({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });expect(TestBed.inject(MatDialogRef).close).not.toHaveBeenCalled();
     fixture.detectChanges();expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalledWith();expect(component.filename()).toBe('');
   });
 
@@ -158,5 +160,68 @@ describe('Vault encrypted restore dialog', () => {
   it('refuses malformed or expired preview responses without enabling apply', () => {
     choose();component.review(new Event('submit'));finishRead();http.expectOne(previewUrl).flush({ ...ticket(), expiresAt: new Date(Date.now() - 1).toISOString() });
     expect(component.preview()).toBeNull();expect(component.filename()).toBe('');component.apply(new Event('submit'));http.expectNone(applyUrl);
+  });
+
+  it('reviews partial duplicate counts and accepts only the matching committed add/skip result', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    http.expectOne(previewUrl).flush({ ...ticket(), newItemCount: 1, skippedCount: 1, entries: [entry(0), { ...entry(1), matchKind: 'identical', matches: [match(1)] }] });fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('1 to add; 0 to update; 1 to ignore');
+    apply().flush({ restoredCount: 1, updatedCount: 0, skippedCount: 1, receivingPolicyUnchanged: true });
+    expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalledWith({ restoredCount: 1, updatedCount: 0, skippedCount: 1, receivingPolicyUnchanged: true });
+  });
+
+  it('shows an all-duplicate no-op without asking for an account password or sending apply', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    http.expectOne(previewUrl).flush({ ...ticket(), newItemCount: 0, skippedCount: 2, entries: [0, 1].map(index => ({ ...entry(index), matchKind: 'identical', matches: [match(index)] })) });fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('All items already exist');expect(fixture.nativeElement.querySelector('#restore-account-password')).toBeNull();
+    component.apply(new Event('submit'));http.expectNone(applyUrl);
+  });
+
+  it('rejects inconsistent count summaries and mismatched skip results', () => {
+    choose();component.review(new Event('submit'));finishRead();http.expectOne(previewUrl).flush({ ...ticket(), newItemCount: 2, skippedCount: 1 });
+    expect(component.preview()).toBeNull();component.apply(new Event('submit'));http.expectNone(applyUrl);
+    review();apply().flush({ restoredCount: 2, updatedCount: 0, skippedCount: 1, receivingPolicyUnchanged: true });expect(component.blocked()).toBeTrue();
+  });
+
+  it('binds explicit update/keep-both choices to a new review and requires replacement confirmation', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    const entries = [{ ...entry(0), matchKind: 'conflict', matches: [match(0, ['password', 'expiresAt'])] }, { ...entry(1), matchKind: 'identical', matches: [match(1)] }];
+    http.expectOne(previewUrl).flush({ ...ticket(), newItemCount: 0, skippedCount: 2, entries });fixture.detectChanges();
+    expect(component.decisions().every(choice => choice.action === 'ignore')).toBeTrue();
+    component.chooseAction(0, 'update');component.chooseAction(1, 'add');fixture.detectChanges();
+    expect(component.selectionDirty()).toBeTrue();expect(component.preview()?.planId).toBe('');expect(component.selectedMatch(0)?.changedFields).toContain('password');
+    component.apply(new Event('submit'));http.expectNone(applyUrl);
+    component.review(new Event('submit'));finishRead();const review = http.expectOne(previewUrl);
+    expect(review.request.body.decisions).toEqual([{ sourceIndex: 0, action: 'update', targetId: match(0).targetId }, { sourceIndex: 1, action: 'add', targetId: null }]);
+    review.flush({ ...ticket(), planId: 'b'.repeat(43), newItemCount: 1, updatedItemCount: 1, skippedCount: 0, entries });fixture.detectChanges();
+    expect(component.selectionDirty()).toBeFalse();field('account-password').value = account;field('update-confirmation').checked = true;
+    component.apply(new Event('submit'));expect(field('update-confirmation').checked).toBeFalse();finishRead();
+    const request = http.expectOne(applyUrl);expect(request.request.body.confirmUpdates).toBeTrue();expect(request.request.body.planId).toBe('b'.repeat(43));expect(request.request.body.decisions).toBeUndefined();
+    request.flush({ restoredCount: 1, updatedCount: 1, skippedCount: 0, receivingPolicyUnchanged: true });
+    expect(TestBed.inject(MatDialogRef).close).toHaveBeenCalledWith({ restoredCount: 1, updatedCount: 1, skippedCount: 0, receivingPolicyUnchanged: true });
+  });
+
+  it('requires choosing an ambiguous target and rejects using one target for two updates', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    const matches = [match(0, ['password']), match(1, ['label'])];
+    http.expectOne(previewUrl).flush({ ...ticket(), newItemCount: 0, skippedCount: 2, entries: [0, 1].map(index => ({ ...entry(index), matchKind: 'conflict', matches })) });fixture.detectChanges();
+    component.chooseAction(0, 'update');expect(component.selectionValid()).toBeFalse();component.chooseTarget(0, matches[0].targetId);expect(component.selectionValid()).toBeTrue();
+    component.chooseAction(1, 'update');component.chooseTarget(1, matches[0].targetId);expect(component.selectionValid()).toBeFalse();
+    component.review(new Event('submit'));http.expectNone(previewUrl);expect(component.error()).toContain('using each target only once');
+    component.chooseTarget(1, matches[1].targetId);expect(component.selectionValid()).toBeTrue();
+  });
+
+  it('immediately clears an entered account password when a reviewed choice changes', () => {
+    review();const accountInput = field('account-password');accountInput.value = account;
+    component.chooseAction(0, 'ignore');expect(accountInput.value).toBe('');expect(component.preview()?.planId).toBe('');
+    component.apply(new Event('submit'));http.expectNone(applyUrl);fixture.detectChanges();expect(fixture.nativeElement.querySelector('#restore-account-password')).toBeNull();
+  });
+
+  it('keeps native code-point limits for Unicode review labels rather than rejecting valid surrogate pairs', () => {
+    choose();component.review(new Event('submit'));finishRead();
+    http.expectOne(previewUrl).flush({ ...ticket(), entries: [{ ...entry(0), label: '🔑'.repeat(200) }, entry(1)] });
+    expect(component.preview()?.entries[0].label).toBe('🔑'.repeat(200));
+    choose();component.review(new Event('submit'));finishRead();http.expectOne(previewUrl).flush({ ...ticket(), entries: [{ ...entry(0), label: '🔑'.repeat(201) }, entry(1)] });
+    expect(component.preview()).toBeNull();
   });
 });

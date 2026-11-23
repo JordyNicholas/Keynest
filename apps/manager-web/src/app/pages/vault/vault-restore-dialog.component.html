@@ -1,22 +1,61 @@
 <h2 mat-dialog-title id="restore-title">Restore a Keynest file</h2>
 <mat-dialog-content>
-  <p>Add items from an encrypted <strong>.keynest</strong> backup to this account. Existing items stay as they are. Restoring the same backup again creates duplicates.</p>
+  <p>Review an encrypted <strong>.keynest</strong> backup for this account. Matches default to Ignore. Choose Update existing or Keep both when appropriate.</p>
   <p>Your current account policy stays in place. Original passwords and supported dates are preserved, including expired dates. Third-party files are not supported.</p>
   <kn-inline-error [(message)]="error" />
   @if (blocked()) {
     <p class="review" role="status">The restore may have finished. Close this dialog and refresh your Vault before starting another restore. This request will not be retried automatically.</p>
   } @else {
-    <form ngNativeValidate (submit)="preview() ? apply($event) : review($event)">
+    <form ngNativeValidate (submit)="preview() && !selectionDirty() ? apply($event) : review($event)">
       <label for="restore-file">Keynest encrypted file (up to 500 items)</label>
       <input #picker id="restore-file" type="file" accept=".keynest,application/octet-stream" (change)="choose($event)" [disabled]="busy()" />
       @if (filename()) { <p class="filename">Selected: {{ filename() }}</p> }
       <label for="restore-passphrase">Backup passphrase</label>
       <input #phrase id="restore-passphrase" type="password" autocomplete="off" required maxlength="1024" (input)="invalidateReview()" [disabled]="busy()" />
       @if (preview(); as preview) {
-        <p class="review" role="status">Ready to add {{ preview.itemCount }} item(s). This review expires at {{ preview.expiresAt | date:'shortTime' }}. No items have been written.</p>
+        @if (selectionDirty()) {
+          <p class="review" role="status">Choices changed. Review your selections before confirming. No items have been written.</p>
+        } @else {
+          <p class="review" role="status">{{ preview.itemCount }} item(s): {{ preview.newItemCount }} to add; {{ preview.updatedItemCount }} to update; {{ preview.skippedCount }} to ignore. Review expires at {{ preview.expiresAt | date:'shortTime' }}. No items have been written.</p>
+        }
+        <p>Passwords remain hidden. Updates preserve the existing item ID and creation date, replace its saved login values and supported settings from this file, and mark it updated now. Keep both adds a separate item.</p>
+        <mat-accordion class="review-entries" [multi]="true">
+          @for (entry of preview.entries; track entry.sourceIndex) {
+            <mat-expansion-panel>
+              <mat-expansion-panel-header><mat-panel-title>{{ entry.label }}</mat-panel-title><mat-panel-description>{{ kind(entry) }}</mat-panel-description></mat-expansion-panel-header>
+              <p>{{ entry.url || 'No website' }} · {{ entry.username || 'No username' }}</p>
+              <label [for]="'restore-action-' + entry.sourceIndex">Action for {{ entry.label }}</label>
+              <select [id]="'restore-action-' + entry.sourceIndex" [value]="decisions()[entry.sourceIndex]?.action" [disabled]="busy()" (change)="chooseAction(entry.sourceIndex, $any($event.target).value)">
+                <option value="ignore">Ignore</option>
+                <option value="add">{{ entry.matchKind === 'new' ? 'Add new entry' : 'Keep both' }}</option>
+                @if (canUpdate(entry)) { <option value="update">Update existing</option> }
+              </select>
+              @if (decisions()[entry.sourceIndex]?.action === 'update') {
+                <label [for]="'restore-target-' + entry.sourceIndex">Existing entry to update</label>
+                <select [id]="'restore-target-' + entry.sourceIndex" [value]="decisions()[entry.sourceIndex]?.targetId || ''" [disabled]="busy()" (change)="chooseTarget(entry.sourceIndex, $any($event.target).value)">
+                  <option value="" disabled>Choose an existing entry</option>
+                  @for (match of entry.matches; track match.targetId) {
+                    <option [value]="match.targetId" [disabled]="!match.changedFields.length">{{ match.label }} · {{ match.createdAt | date:'short' }} · {{ match.targetId.slice(0, 8) }}{{ match.changedFields.length ? '' : ' · Already up to date' }}</option>
+                  }
+                </select>
+                @if (selectedMatch(entry.sourceIndex); as match) { <p class="changes">Fields to replace: {{ fields(match) }}.</p> }
+              }
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+        @if (selectionDirty()) {
+          @if (!selectionValid()) { <p role="status">Choose a changed existing entry for each update. Each target can be updated only once per restore.</p> }
+          <button mat-flat-button type="submit" [disabled]="busy() || !selectionValid()">{{ busy() ? 'Reviewing choices…' : 'Review selected actions' }}</button>
+        } @else if (preview.newItemCount + preview.updatedItemCount > 0) {
+        @if (preview.updatedItemCount > 0) {
+          <label class="checkbox"><input #confirmation id="restore-update-confirmation" type="checkbox" required [disabled]="busy()" />I confirm replacing the selected existing entries with values from this file.</label>
+        }
         <label for="restore-account-password">Current Keynest account password</label>
         <input #account id="restore-account-password" type="password" autocomplete="off" required maxlength="32768" [disabled]="busy()" />
-        <button mat-flat-button type="submit" [disabled]="busy()">{{ busy() ? 'Restoring…' : 'Verify and restore items' }}</button>
+        <button mat-flat-button type="submit" [disabled]="busy()">{{ busy() ? 'Restoring…' : 'Verify and apply selected actions' }}</button>
+        } @else {
+          <p role="status">{{ allUpToDate() ? 'All items already exist. Nothing needs to be restored.' : 'No changes selected. Existing entries will be preserved.' }}</p>
+        }
       } @else {
         <button mat-flat-button type="submit" [disabled]="busy() || !filename()">{{ busy() ? 'Reviewing file…' : 'Review encrypted file' }}</button>
       }

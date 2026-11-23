@@ -63,7 +63,7 @@ describe('Bounded Vault browsing', () => {
     component.openRestore();expect(component.revealed()).toEqual({});expect(launch).toHaveBeenCalledTimes(1);
     component.openRestore();component.openExport();expect(launch).toHaveBeenCalledTimes(1);http.expectNone(endpoint);
     closed.next(undefined);closed.complete();http.expectNone(endpoint);closed = new Subject<RestoreResult | undefined>();
-    component.openRestore();closed.next({ restoredCount: 2, receivingPolicyUnchanged: true });http.expectOne(endpoint).flush(page([sample]));
+    component.openRestore();closed.next({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });http.expectOne(endpoint).flush(page([sample]));
     closed.complete();
   });
 
@@ -71,7 +71,7 @@ describe('Bounded Vault browsing', () => {
     const closed = new Subject<RestoreResult>();const dialog = { afterClosed: () => closed, close: jasmine.createSpy('close') };
     spyOn(TestBed.inject(MatDialog), 'open').and.returnValue(dialog as never);component.openRestore();
     TestBed.inject(AuthService).setSession('different-session', 'other@example.test');fixture.detectChanges();expect(dialog.close).toHaveBeenCalled();
-    closed.next({ restoredCount: 2, receivingPolicyUnchanged: true });http.expectNone(endpoint);closed.complete();
+    closed.next({ restoredCount: 2, updatedCount: 0, skippedCount: 0, receivingPolicyUnchanged: true });http.expectNone(endpoint);closed.complete();
   });
 
   it('selects through the badge inside the card without expanding it, with an independent keyboard focus target', () => {

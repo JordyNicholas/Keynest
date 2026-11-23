@@ -136,8 +136,9 @@ export class VaultPageComponent implements OnDestroy {
     dialog.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
       if (this.restoreDialog === dialog) this.restoreDialog = undefined;
       if (!this.destroyRef.destroyed && this.auth.token() === token && result?.receivingPolicyUnchanged === true
-        && Number.isInteger(result.restoredCount) && result.restoredCount > 0 && result.restoredCount <= 500) {
-        this.restoreStatus.set(`Restored ${result.restoredCount} item(s). Your current filters still apply.`);this.refreshVault();
+        && Number.isInteger(result.restoredCount) && result.restoredCount >= 0 && result.restoredCount <= 500 && Number.isInteger(result.skippedCount) && result.skippedCount >= 0
+        && Number.isInteger(result.updatedCount) && result.updatedCount >= 0 && result.restoredCount + result.updatedCount + result.skippedCount > 0 && result.restoredCount + result.updatedCount + result.skippedCount <= 500) {
+        this.restoreStatus.set(`Added ${result.restoredCount} item(s); updated ${result.updatedCount}; ignored ${result.skippedCount}. Your current filters still apply.`);this.refreshVault();
       }
     });
   }

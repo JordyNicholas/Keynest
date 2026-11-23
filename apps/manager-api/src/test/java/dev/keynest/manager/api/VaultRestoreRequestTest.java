@@ -7,6 +7,16 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import static org.assertj.core.api.Assertions.*;
 
 class VaultRestoreRequestTest {
+  @Test void boundsStreamingDecisionsAndRejectsUnknownNestedFieldsBeforeBuildingUntrustedTrees() {
+    String base = "{\"file\":\"AA==\",\"backupPassphrase\":\"Synthetic file passphrase\",\"decisions\":";
+    for (String decisions : new String[]{"[" + java.util.stream.IntStream.range(0, 500).mapToObj(index -> "{\"sourceIndex\":" + index + ",\"action\":\"ignore\"}").collect(java.util.stream.Collectors.joining(",")) + ",{\"sourceIndex\":0,\"action\":\"ignore\"}]",
+      "[{\"sourceIndex\":0,\"action\":\"ignore\",\"unknown\":[[]]}]", "[{\"sourceIndex\":0,\"action\":\"ignore\",\"action\":\"add\"}]"}) {
+      assertThatThrownBy(() -> VaultRestoreRequest.read(request(base + decisions + "}"), false)).isInstanceOf(VaultRestoreFailure.class);
+    }
+    try (var body = VaultRestoreRequest.read(request(base + "[{\"sourceIndex\":0,\"action\":\"ignore\",\"targetId\":null}]}"), false)) {
+      assertThat(body.decisions).hasSize(1);
+    }
+  }
   @Test void ownsAndClearsFileAndCredentialsAndReleasesTheSingleAdmissionExactlyOnce() {
     var request = request("{\"file\":\"AA==\",\"backupPassphrase\":\"Synthetic file passphrase\",\"accountPassword\":\"Synthetic account password\",\"planId\":\"" + "a".repeat(43) + "\"}");
     var body = VaultRestoreRequest.read(request, true);

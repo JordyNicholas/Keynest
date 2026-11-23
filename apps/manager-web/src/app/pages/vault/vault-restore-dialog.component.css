@@ -6,3 +6,8 @@ input { inline-size: 100%; box-sizing: border-box; margin-block-end: 1rem; }
 .filename { overflow-wrap: anywhere; }
 .review { padding: 1rem; border: 1px solid var(--kn-color-outline); border-radius: 0.5rem; }
 mat-dialog-actions { padding: 1rem 1.5rem; }
+.review-entries { display: block; margin-block-end: 1rem; }
+.review-entries mat-expansion-panel { box-shadow: none; border: 1px solid var(--kn-color-outline); margin-block: 0.5rem; }
+mat-panel-title, mat-panel-description { overflow-wrap: anywhere; }
+.checkbox input { inline-size: auto; margin: 0; }
+.changes { border-inline-start: 2px solid var(--kn-color-accent); padding-inline-start: 0.75rem; }

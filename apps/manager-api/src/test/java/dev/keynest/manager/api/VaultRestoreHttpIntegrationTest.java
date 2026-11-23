@@ -68,6 +68,46 @@ class VaultRestoreHttpIntegrationTest {
       .content(apply(plan).toString())).andExpect(status().isConflict());
     assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).isEmpty();
   }
+
+  @Test void repeatedFileReviewReportsAllDuplicatesAndApplyIsAnAuthenticatedNoOp() throws Exception {
+    String first = preview(bearer);
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(first).toString()))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.restoredCount").value(1)).andExpect(jsonPath("$.skippedCount").value(0));
+    byte[] response = mvc.perform(post(ApiPaths.VAULT_RESTORE_PREVIEW).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(body().toString()))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.itemCount").value(1)).andExpect(jsonPath("$.newItemCount").value(0)).andExpect(jsonPath("$.skippedCount").value(1))
+      .andReturn().getResponse().getContentAsByteArray();
+    String plan = JSON.readTree(response).path("planId").textValue();
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(plan).toString()))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.restoredCount").value(0)).andExpect(jsonPath("$.skippedCount").value(1)).andExpect(header().string("Cache-Control", "no-store"));
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).hasSize(1);
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(plan).toString())).andExpect(status().isConflict());
+  }
+
+  @Test void selectedUpdateIsBoundToReviewRequiresConfirmationAndPreservesTheExistingIdentity() throws Exception {
+    String first = preview(bearer);
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(first).toString())).andExpect(status().isOk());
+    var user = auth.requireUser(bearer);UUID id = items.findByUserIdOrderByUpdatedAtDesc(receiver).getFirst().getId();String originalSecret = vault.reveal(user, id).password();
+    vault.update(user, id, new VaultService.UpdateVaultItemRequest(null, null, null, "aB2#mangoC3$deF4%", null, null, null));
+    var reviewBody = body();reviewBody.putArray("decisions").addObject().put("sourceIndex", 0).put("action", "update").put("targetId", id.toString());
+    String plan = selectedReview(reviewBody);
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(plan).toString()))
+      .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("RESTORE_SELECTION_INVALID"));
+    assertThat("aB2#mangoC3$deF4%".equals(vault.reveal(user, id).password())).isTrue();
+    plan = selectedReview(reviewBody);
+    var tampered = apply(plan).put("confirmUpdates", true);tampered.putArray("decisions").addObject().put("sourceIndex", 0).put("action", "add");
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(tampered.toString())).andExpect(status().isBadRequest());
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(apply(plan).put("confirmUpdates", true).toString()))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.restoredCount").value(0)).andExpect(jsonPath("$.updatedCount").value(1));
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).hasSize(1);assertThat(originalSecret.equals(vault.reveal(user, id).password())).isTrue();
+  }
+
+  private String selectedReview(ObjectNode body) throws Exception {
+    byte[] response = mvc.perform(post(ApiPaths.VAULT_RESTORE_PREVIEW).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(body.toString()))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.newItemCount").value(0)).andExpect(jsonPath("$.updatedItemCount").value(1))
+      .andExpect(jsonPath("$.entries[0].password").doesNotExist()).andExpect(jsonPath("$.entries[0].matches[0].password").doesNotExist())
+      .andReturn().getResponse().getContentAsByteArray();
+    return JSON.readTree(response).path("planId").textValue();
+  }
   @Test void anotherOwnerCannotUseThePlan() throws Exception {
     String plan = preview(bearer);
     String other = "Bearer " + auth.register("restore-other-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();

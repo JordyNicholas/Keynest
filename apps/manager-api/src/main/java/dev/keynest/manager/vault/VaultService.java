@@ -2,6 +2,7 @@ package dev.keynest.manager.vault;
 
 import dev.keynest.generate.PasswordGenerator;
 import dev.keynest.manager.auth.UserAccount;
+import dev.keynest.manager.auth.UserAccountRepository;
 import dev.keynest.manager.config.VaultKeyProperties;
 import dev.keynest.manager.policy.AccountPasswordPolicyService;
 import dev.keynest.policy.PasswordValidator;
@@ -32,15 +33,18 @@ public class VaultService {
     private final KeynestSeal seal;
     private final byte[] vaultKey;
     private final String vaultKeyId;
+    private final UserAccountRepository users;
 
     public VaultService(
             VaultItemRepository items,
             PasswordGenerator passwordGenerator,
             KeynestSeal seal,
             VaultKeyProperties vaultKeyProperties,
-            AccountPasswordPolicyService accountPolicies
+            AccountPasswordPolicyService accountPolicies,
+            UserAccountRepository users
     ) {
         this.items = items;
+        this.users = users;
         this.accountPolicies = accountPolicies;
         this.passwordGenerator = passwordGenerator;
         this.seal = seal;
@@ -69,6 +73,7 @@ public class VaultService {
 
     @Transactional
     public VaultItemView create(UserAccount user, CreateVaultItemRequest request) {
+        lockOwner(user);
         if (request.label() == null || request.label().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "label required");
         }
@@ -101,6 +106,7 @@ public class VaultService {
 
     @Transactional
     public VaultItemView update(UserAccount user, UUID id, UpdateVaultItemRequest request) {
+        lockOwner(user);
         VaultItem item = requireOwned(user, id);
         Instant expiresAt = resolveExpiry(request.expiresInDays(), request.expiresAt(), Instant.now());
         if (request.label() != null && !request.label().isBlank()) {
@@ -136,7 +142,12 @@ public class VaultService {
 
     @Transactional
     public void delete(UserAccount user, UUID id) {
+        lockOwner(user);
         items.delete(requireOwned(user, id));
+    }
+
+    private void lockOwner(UserAccount user) {
+        users.findForPolicyUpdate(user.getId()).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "account unavailable"));
     }
 
     private static Instant resolveExpiry(Integer days, Instant absolute, Instant now) {
