@@ -30,16 +30,33 @@
     <java.version>21</java.version>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring-boot.version>4.0.8</spring-boot.version>
+    <spring-boot.version>4.0.10</spring-boot.version>
     <junit.version>5.11.4</junit.version>
     <argon2.version>2.11</argon2.version>
-    <jackson.version>2.18.2</jackson.version>
+    <jackson.version>2.21.8</jackson.version>
+    <tomcat.version>11.0.29</tomcat.version>
     <json-schema-validator.version>1.5.4</json-schema-validator.version>
     <testcontainers.version>2.0.5</testcontainers.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
+      <!-- Keep the embedded family on Apache's released security patch above Boot 4.0.10. -->
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
