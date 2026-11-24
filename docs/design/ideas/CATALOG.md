@@ -1,6 +1,6 @@
 # Keynest idea catalog
 
-**Status:** proposed. Brainstorming is open. Interest is unrated on purpose.
+**Status:** proposed. Idea intake closed November 24, 2026 (America/Sao_Paulo). Interest and the map below are a review of that set. They are not approval to build.
 **Captured:** November 24, 2026 (America/Sao_Paulo). Later the same day: credential kinds, companion and component meeting locally, violation fixtures, grant receipts, and the research notes below.
 **Format:** [FORMAT.md](FORMAT.md)
 
@@ -44,30 +44,30 @@ Notes from public guidance and industry practice on November 24, 2026. They expl
 
 | Id | Title | Status | Sequence | Interest |
 | --- | --- | --- | --- | --- |
-| IDEA-001 | Rules check | captured | support for 1 | unrated |
-| IDEA-002 | Policy impact preview | captured | support for 1 | unrated |
-| IDEA-003 | Queue narrator | captured | support for 1 | unrated |
-| IDEA-004 | Text-to-policy interpreter | captured | support for 1 | unrated |
-| IDEA-005 | Browser companion | captured | 1 | unrated |
-| IDEA-006 | Per-site policy | captured | support for 1 | unrated |
-| IDEA-007 | Policy drift report | captured | | unrated |
-| IDEA-008 | Distributed policy tool and themeable UI | captured | 2 | unrated |
-| IDEA-009 | Single-use access workflows | captured | 3 | unrated |
-| IDEA-010 | Grant-policy draft | captured | support for 3 | unrated |
-| IDEA-011 | Password-store retirement checklist | captured | support for 3 | unrated |
-| IDEA-012 | Refusal shown on the service's screen | captured | support for 3 | unrated |
-| IDEA-013 | Policy packs | captured | | unrated |
-| IDEA-014 | CI policy check | captured | | unrated |
-| IDEA-015 | Staged rotation | captured | | unrated |
-| IDEA-016 | Read-only agent status | captured | | unrated |
-| IDEA-017 | Companion and embedded policy meet locally | captured | support for 1 and 2 | unrated |
-| IDEA-018 | Violation fixtures | captured | support for 2 | unrated |
-| IDEA-019 | Grant receipt and revoke | captured | support for 3 | unrated |
-| IDEA-020 | Policy per credential kind | captured | | unrated |
-| IDEA-021 | Factor separation | captured | support for 20 | unrated |
-| IDEA-022 | Length-and-blocklist policy, calendar rotation off | captured | | unrated |
-| IDEA-023 | Local paste guard | captured | | unrated |
-| IDEA-024 | Service asks for a phishing-resistant authenticator | captured | support for 3 | unrated |
+| IDEA-001 | Rules check | captured | support for 1 | high |
+| IDEA-002 | Policy impact preview | captured | support for 1 | high |
+| IDEA-003 | Queue narrator | captured | support for 1 | medium |
+| IDEA-004 | Text-to-policy interpreter | captured | support for 1 | high |
+| IDEA-005 | Browser companion | selected | 1 | high |
+| IDEA-006 | Per-site policy | captured | support for 1 | high |
+| IDEA-007 | Policy drift report | captured | | medium |
+| IDEA-008 | Distributed policy tool and themeable UI | selected | 2 | high |
+| IDEA-009 | Single-use access workflows | selected | 3 | high |
+| IDEA-010 | Grant-policy draft | captured | support for 3 | medium |
+| IDEA-011 | Password-store retirement checklist | captured | support for 3 | medium |
+| IDEA-012 | Refusal shown on the service's screen | captured | support for 3 | medium |
+| IDEA-013 | Policy packs | captured | | medium |
+| IDEA-014 | CI policy check | captured | | medium |
+| IDEA-015 | Staged rotation | captured | | medium |
+| IDEA-016 | Read-only agent status | captured | | low |
+| IDEA-017 | Companion and embedded policy meet locally | captured | support for 1 and 2 | high |
+| IDEA-018 | Violation fixtures | captured | support for 2 | high |
+| IDEA-019 | Grant receipt and revoke | captured | support for 3 | high |
+| IDEA-020 | Policy per credential kind | captured | | high |
+| IDEA-021 | Factor separation | captured | support for 20 | high |
+| IDEA-022 | Length-and-blocklist policy, calendar rotation off | captured | | high |
+| IDEA-023 | Local paste guard | captured | | medium |
+| IDEA-024 | Service asks for a phishing-resistant authenticator | captured | support for 3 | medium |
 | IDEA-R01 | Session password delivered to the user | rejected | | |
 | IDEA-R02 | Model approves or relaxes a rule | rejected | | |
 | IDEA-R03 | Model reads or fills the password field | rejected | | |
@@ -78,21 +78,23 @@ Notes from public guidance and industry practice on November 24, 2026. They expl
 
 ## Evaluation
 
-Brainstorming is **open**. Do not fill Interest yet.
+Intake is **closed**. Scores use the test below. High means the idea should be designed. Medium means it helps a chosen design or can wait. Low means the vault already answers the question.
 
-When it is closed, score every open idea and place it in one column:
-
-| Design now | Keep as support | Hold | Reject |
-| --- | --- | --- | --- |
-| Reserved for the highest-interest ideas that fit the standing constraints. | Ideas a chosen design needs, without being the thing a person installs. | Sound ideas that wait for evidence or an ADR. | Break a standing constraint, or duplicate a rejected record. |
-
-Suggested test, applied in this order:
+The test, in order:
 
 1. The end user has a concrete stuck moment, and they remain the one who decides.
 2. The deterministic core still helps them with AI disabled.
 3. Comparable password managers or identity products do not already do this.
 4. The integration is a vault screen, a browser companion, a library, a themeable component, or an opted-in app.
 5. No new cipher, and no secret in the model.
+
+| Design now | Keep as support | Hold | Reject |
+| --- | --- | --- | --- |
+| [IDEA-005](#idea-005--browser-companion) is the first design document. [IDEA-001](#idea-001--rules-check), [IDEA-002](#idea-002--policy-impact-preview), and [IDEA-004](#idea-004--text-to-policy-interpreter) are part of that pass. | [IDEA-007](#idea-007--policy-drift-report) and [IDEA-017](#idea-017--companion-and-embedded-policy-meet-locally) sit on the companion. [IDEA-003](#idea-003--queue-narrator) is optional wording. | [IDEA-006](#idea-006--per-site-policy) waits until the companion shows a real conflict, and it needs an ADR. | [IDEA-R01](#idea-r01--session-password-delivered-to-the-user) through [IDEA-R07](#idea-r07--keynest-logs-into-sites-that-have-not-opted-in) |
+| [IDEA-020](#idea-020--policy-per-credential-kind) is the schema slice. It needs no model. [IDEA-021](#idea-021--factor-separation) and [IDEA-022](#idea-022--length-and-blocklist-policy-calendar-rotation-off) belong to that slice. | [IDEA-018](#idea-018--violation-fixtures) proves a policy. It can ship with the library before the themeable component. | [IDEA-013](#idea-013--policy-packs), [IDEA-014](#idea-014--ci-policy-check), [IDEA-015](#idea-015--staged-rotation), [IDEA-023](#idea-023--local-paste-guard) | |
+| [IDEA-008](#idea-008--distributed-policy-tool-and-themeable-ui) is the second design, then [IDEA-009](#idea-009--single-use-access-workflows). | [IDEA-010](#idea-010--grant-policy-draft), [IDEA-012](#idea-012--refusal-shown-on-the-services-screen), [IDEA-019](#idea-019--grant-receipt-and-revoke), [IDEA-024](#idea-024--service-asks-for-a-phishing-resistant-authenticator) | [IDEA-011](#idea-011--password-store-retirement-checklist) until a fixed checklist is not enough. [IDEA-016](#idea-016--read-only-agent-status) until the agent ADR. | |
+
+The first written design, when one is requested, is the browser companion. Credential kinds can be specified as a library change beside it because validation does not wait on a model or on the browser.
 
 ## How to add an idea
 
@@ -103,7 +105,7 @@ Copy the field list from [FORMAT.md](FORMAT.md). Use the next free `IDEA-NNN`. L
 ## IDEA-001 — Rules check
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. The vault cannot say which saved passwords fail the rules now in force.
 - **Sequence:** support for 1
 - **Parents:** none
 - **Origin:** Product review, November 24, 2026
@@ -155,7 +157,7 @@ none
 ## IDEA-002 — Policy impact preview
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. Saving a stricter policy without a count is a blind decision.
 - **Sequence:** support for 1
 - **Parents:** IDEA-001
 - **Origin:** Product review, November 24, 2026
@@ -207,7 +209,7 @@ none
 ## IDEA-003 — Queue narrator
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. The sort already ranks the queue. The paragraph is optional.
 - **Sequence:** support for 1
 - **Parents:** IDEA-001
 - **Origin:** Product review, November 24, 2026
@@ -259,7 +261,7 @@ Whether host names are worth including at all. The default in this record is to 
 ## IDEA-004 — Text-to-policy interpreter
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. Prose has to become schema-valid JSON before the engine can enforce it.
 - **Sequence:** support for 1
 - **Parents:** none
 - **Origin:** AI brainstorm, November 24, 2026
@@ -310,8 +312,8 @@ none
 
 ## IDEA-005 — Browser companion
 
-- **Status:** captured
-- **Interest:** unrated
+- **Status:** selected
+- **Interest:** high. This is the first design. A site's written rules and the account policy clash on the page.
 - **Sequence:** 1
 - **Parents:** IDEA-004
 - **Origin:** AI brainstorm, November 24, 2026. Chosen as the first design target.
@@ -363,7 +365,7 @@ The smallest companion that can ship before a full extension: a page-local actio
 ## IDEA-006 — Per-site policy
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. One account policy cannot satisfy every site. It waits on an ADR and on a conflict the companion has shown.
 - **Sequence:** support for 1
 - **Parents:** IDEA-005
 - **Origin:** Product review, November 24, 2026
@@ -415,7 +417,7 @@ How a site is identified: registrable domain, full origin, or the user-supplied 
 ## IDEA-007 — Policy drift report
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. Provenance beside the verdict. Small once the rules check exists.
 - **Sequence:**
 - **Parents:** IDEA-001
 - **Origin:** Product review, November 24, 2026
@@ -466,8 +468,8 @@ none
 
 ## IDEA-008 — Distributed policy tool and themeable UI
 
-- **Status:** captured
-- **Interest:** unrated
+- **Status:** selected
+- **Interest:** high. Second design. A service should enforce its own standard without a Keynest-hosted assistant.
 - **Sequence:** 2
 - **Parents:** IDEA-004
 - **Origin:** Maintainer, November 24, 2026. Second design target.
@@ -518,8 +520,8 @@ Whose policy a single screen is editing when both the marketplace standard and t
 
 ## IDEA-009 — Single-use access workflows
 
-- **Status:** captured
-- **Interest:** unrated
+- **Status:** selected
+- **Interest:** high. Third design. A service that opts in should receive a single-use grant, not a password the person carries.
 - **Sequence:** 3
 - **Parents:** none
 - **Origin:** Maintainer, November 24, 2026, refined in the same conversation. Third design target.
@@ -571,7 +573,7 @@ The first slice is one demo service, approval on the Keynest screen, and tests f
 ## IDEA-010 — Grant-policy draft
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. The interpreter already does the translation. This is that call aimed at grant rules.
 - **Sequence:** support for 3
 - **Parents:** IDEA-009, IDEA-004
 - **Origin:** AI brainstorm, November 24, 2026
@@ -623,7 +625,7 @@ none
 ## IDEA-011 — Password-store retirement checklist
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. A fixed checklist may be enough. Hold the model until it is not.
 - **Sequence:** support for 3
 - **Parents:** IDEA-009
 - **Origin:** AI brainstorm, November 24, 2026
@@ -675,7 +677,7 @@ Whether this stays a model feature. A fixed checklist of known patterns may be e
 ## IDEA-012 — Refusal shown on the service's screen
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. Known refusal codes are a template. The model is only for extra prose.
 - **Sequence:** support for 3
 - **Parents:** IDEA-009
 - **Origin:** AI brainstorm, November 24, 2026
@@ -727,7 +729,7 @@ none
 ## IDEA-013 — Policy packs
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. Sharing a policy file is real. It is not the daily stuck moment. Hold.
 - **Sequence:**
 - **Parents:** IDEA-008
 - **Origin:** Product review, November 24, 2026
@@ -779,7 +781,7 @@ Who is allowed to publish a pack to someone else's account. Default in this reco
 ## IDEA-014 — CI policy check
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. The same document can fail a build. Hold until someone asks to run it in CI.
 - **Sequence:**
 - **Parents:** none
 - **Origin:** Product review, November 24, 2026
@@ -831,7 +833,7 @@ How the candidate is supplied so the log and the model context cannot see it. Th
 ## IDEA-015 — Staged rotation
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. The lockout fear is real. Hold for evidence and an ADR before a second secret is stored.
 - **Sequence:**
 - **Parents:** IDEA-001
 - **Origin:** Product review, November 24, 2026
@@ -883,7 +885,7 @@ Whether the pending secret is a second envelope on the item or a short-lived row
 ## IDEA-016 — Read-only agent status
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** low. The overview already shows the histogram. An agent view waits on its ADR.
 - **Sequence:**
 - **Parents:** IDEA-001
 - **Origin:** Charter hypothesis and the product review, November 24, 2026
@@ -935,7 +937,7 @@ none beyond the ADR the roadmap already requires.
 ## IDEA-017 — Companion and embedded policy meet locally
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. The two products meet on the page without either side seeing the other's secrets.
 - **Sequence:** support for 1 and 2
 - **Parents:** IDEA-005, IDEA-008
 - **Origin:** Follow-up brainstorm, November 24, 2026
@@ -987,7 +989,7 @@ How the component discovers the companion without a network call to a Keynest se
 ## IDEA-018 — Violation fixtures
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. The library can prove a policy with one pass and one fail per code. No model.
 - **Sequence:** support for 2
 - **Parents:** IDEA-008
 - **Origin:** Follow-up brainstorm, November 24, 2026
@@ -1039,7 +1041,7 @@ How a CI log is kept from printing the fixture values when a test fails.
 ## IDEA-019 — Grant receipt and revoke
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. An approval the person cannot reread or revoke is an incomplete grant.
 - **Sequence:** support for 3
 - **Parents:** IDEA-009
 - **Origin:** Follow-up brainstorm, November 24, 2026
@@ -1091,7 +1093,7 @@ How long receipts are kept, and whether a denied attempt is recorded. Default in
 ## IDEA-020 — Policy per credential kind
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. Favorite of the set. Kinds are enforced with no model. Design this schema beside the companion, not after the browser exists.
 - **Sequence:**
 - **Parents:** none
 - **Origin:** Follow-up brainstorm, November 24, 2026. The maintainer called this out as a favorite.
@@ -1143,7 +1145,7 @@ Which kinds ship in the first schema. This record's starting set is the four nam
 ## IDEA-021 — Factor separation
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. The default keeps the second factor in its own item. The person opts out per item.
 - **Sequence:** support for 20
 - **Parents:** IDEA-020
 - **Origin:** Research note, November 24, 2026
@@ -1195,7 +1197,7 @@ Whether Keynest should generate TOTP codes at all. This record stops at storage 
 ## IDEA-022 — Length-and-blocklist policy, calendar rotation off
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** high. The engine should be able to say length and a local blocklist, with calendar rotation off.
 - **Sequence:**
 - **Parents:** IDEA-020
 - **Origin:** Research note, November 24, 2026. [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html).
@@ -1247,7 +1249,7 @@ How large a local blocklist is honest to ship. This record does not include a ph
 ## IDEA-023 — Local paste guard
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. The paste path is real. Hold until the false positives of a short prefix list are understood.
 - **Sequence:**
 - **Parents:** none
 - **Origin:** Research note, November 24, 2026. Clipboard paste into chats, and the August 2025 AgentFlayer demonstration of API keys leaving a connected drive through a chat tool.
@@ -1299,7 +1301,7 @@ Which prefixes are worth flagging without a flood of false matches. The first se
 ## IDEA-024 — Service asks for a phishing-resistant authenticator
 
 - **Status:** captured
-- **Interest:** unrated
+- **Interest:** medium. A flag that refuses a password grant. Not a passkey wallet.
 - **Sequence:** support for 3
 - **Parents:** IDEA-009
 - **Origin:** Research note, November 24, 2026. [OWASP passkey cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Passkey_Security_Cheat_Sheet.html).
