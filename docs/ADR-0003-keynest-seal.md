@@ -57,6 +57,12 @@ Define **Keynest Seal** as a versioned envelope + API:
 
 `policyId` (and any other binding context) lives in **AAD**, not in the envelope header. Rewrap uses the **same** AAD for open and seal; it does not migrate or clear AAD. Callers that sealed with `policy:<id>` must rewrap with that same AAD.
 
+## Clarification — Seal v1 header key ID (November 24, 2026)
+
+In the existing v1 implementation, AES-GCM authenticates the ciphertext and caller-supplied AAD. The serialized `keyId` is not included automatically in AAD, and `open(envelope, key, aad)` neither resolves a key from that ID nor compares it with an expected ID. Treat the ID as untrusted routing metadata. Changing only the ID can leave opening successful with the same externally supplied key and AAD; a successful open is not proof of that header value.
+
+Key selection and authorization remain caller responsibilities. Manager uses its configured vault key and owner/item/policy AAD rather than granting authority from the envelope ID. `fingerprint` hashes the whole serialized envelope, including this mutable header; it is an identifier, not an independent authentication proof. Authenticating header fields in a future format requires a separately approved version/migration and compatibility tests. This clarification changes no v1 bytes, API, key selection or golden vectors.
+
 ## Appendix — Sensitive buffer hygiene
 
 `keynest-seal` clears intermediate `byte[]` / `char[]` where practical:
