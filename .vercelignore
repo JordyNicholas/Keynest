@@ -4,7 +4,16 @@
 archive
 deploy
 docs
-libs
 apps/manager-api
 **/target
 **/.angular
+
+# Exclude Java library sources except the default policy JSON that the
+# public homepage generator/checker import at Angular build time.
+libs/**
+!libs/keynest-policy/
+!libs/keynest-policy/src/
+!libs/keynest-policy/src/main/
+!libs/keynest-policy/src/main/resources/
+!libs/keynest-policy/src/main/resources/policies/
+!libs/keynest-policy/src/main/resources/policies/keynest.default.v1.json

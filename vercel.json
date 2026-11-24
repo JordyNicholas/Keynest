@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "angular",
   "installCommand": "npm ci --prefix apps/manager-web",
-  "buildCommand": "npm run build --prefix apps/manager-web",
+  "buildCommand": "node apps/manager-web/scripts/ensure-default-policy.mjs && npm run build --prefix apps/manager-web",
   "outputDirectory": "apps/manager-web/dist/manager-web/browser",
   "rewrites": [
     {

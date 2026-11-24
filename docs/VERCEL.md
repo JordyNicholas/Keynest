@@ -26,6 +26,14 @@ Then **Redeploy** the latest commit.
 
 `vercel.json` in the repo already matches these values when Root Directory is `apps/manager-web`.
 
+### Default policy dependency
+
+The public homepage generator and checker import the canonical packaged policy at
+`libs/keynest-policy/src/main/resources/policies/keynest.default.v1.json`. That file is source
+data (not a Maven build product). The repo-root `.vercelignore` must keep that path available to
+the Vercel upload; the web build runs `scripts/ensure-default-policy.mjs` first so a missing file
+fails with an explicit message instead of an opaque Angular resolve error.
+
 ## Manager API base URL (`API_BASE_URL`)
 
 The Angular app reads `environment.apiBaseUrl`, provided as the `API_BASE_URL` injection token (`apps/manager-web/src/app/injectionTokens`). `npm run build` validates `KEYNEST_API_BASE_URL` and substitutes a string constant through Angular's build-time `define` option. The production environment falls back to `/api/v1` when built directly without a definition.
