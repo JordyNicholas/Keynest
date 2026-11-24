@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Prepare a bounded source-release bundle from successful same-SHA main CI."""
 import argparse
+import ast
 import hashlib
 import io
 import json
@@ -168,9 +169,20 @@ def validate_inventories(root, version, sha, files):
   for name, expected in manifest['inputs'].items():
     require(digest(read(root / name)) == expected, 'inventory input digest disagrees')
   tools = manifest['tools']
-  require(tools['mavenPlugin'] == inventory.MAVEN_PLUGIN and tools['npm'] == inventory.NPM_VERSION
-          and tools['osvScannerVersion'] == inventory.OSV_VERSION
-          and tools['osvScannerLinuxAmd64Sha256'] == inventory.OSV_SHA256, 'inventory tools disagree')
+  # PR rehearsal uses an older verified source. Read its literal tool identities
+  # without executing that source, so a reviewed scanner upgrade can rehearse it.
+  expected = {}
+  fields = {'MAVEN_PLUGIN': 'mavenPlugin', 'NPM_VERSION': 'npm',
+            'OSV_VERSION': 'osvScannerVersion', 'OSV_SHA256': 'osvScannerLinuxAmd64Sha256'}
+  for statement in ast.parse(read(root / 'scripts/dependency_inventory.py')).body:
+    if isinstance(statement, ast.Assign) and len(statement.targets) == 1:
+      target = statement.targets[0]
+      if isinstance(target, ast.Name) and target.id in fields:
+        require(target.id not in expected and isinstance(statement.value, ast.Constant)
+                and isinstance(statement.value.value, str), 'source tool identity must be one literal string')
+        expected[target.id] = statement.value.value
+  require(set(expected) == set(fields) and all(tools[field] == expected[name] for name, field in fields.items()),
+          'inventory tools disagree with their source revision')
   require(set(manifest['inventories']) == {'java.cdx.json', 'web.cdx.json'}, 'inventory output coverage disagrees')
   lock = json.loads(read(root / 'apps/manager-web/package-lock.json'))
   required = {'java.cdx.json': {'pkg:maven/dev.keynest/' + name + '@' + version for name in

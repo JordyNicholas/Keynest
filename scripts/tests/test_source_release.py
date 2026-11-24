@@ -89,7 +89,9 @@ class SourceReleaseTest(unittest.TestCase):
       'apps/manager-web/package-lock.json': json.dumps({'version': '0.1.1', 'packages': {
         '': {'version': '0.1.1'}, 'node_modules/example': {'version': '1.0.0', 'dev': True}}}),
       'deploy/Dockerfile.api': 'COPY --from=build /src/apps/manager-api/target/manager-api-0.1.1.jar app.jar',
-      'CHANGELOG.md': '## 0.1.1 — 2026-11-24\n', 'docs/releases/0.1.1.md': '# Keynest 0.1.1\n'}
+      'CHANGELOG.md': '## 0.1.1 — 2026-11-24\n', 'docs/releases/0.1.1.md': '# Keynest 0.1.1\n',
+      'scripts/dependency_inventory.py': '\n'.join(name + ' = ' + repr(getattr(inventory, name))
+        for name in ('MAVEN_PLUGIN', 'NPM_VERSION', 'OSV_VERSION', 'OSV_SHA256'))}
     for path in inventory.INPUTS[1:5]:
       files[path] = f'<project xmlns="{ns}"><parent><version>0.1.1</version></parent></project>'
     for name, text in files.items():
@@ -196,6 +198,22 @@ class SourceReleaseTest(unittest.TestCase):
     self.api.request = branch_response
     with self.assertRaises(ValueError):
       self.prepare()
+
+  def test_rehearsal_uses_source_tool_versions_without_executing_source(self):
+    path = self.root / 'scripts/dependency_inventory.py'
+    original = path.read_text()
+    path.write_text(original.replace(repr(inventory.OSV_VERSION), repr('synthetic-older-version'))
+                    + '\nraise AssertionError("source code must not execute")\n')
+    manifest = json.loads(self.files['manifest.json'])
+    manifest['tools']['osvScannerVersion'] = 'synthetic-older-version'
+    self.files['manifest.json'] = json.dumps(manifest).encode()
+    # This directly tests source-bound inventory validation; checkout cleanliness
+    # is tested separately and rejects tracked changes in prepare/publish.
+    release.validate_inventories(self.root, self.version, self.sha, self.files)
+    manifest['tools']['osvScannerVersion'] = inventory.OSV_VERSION
+    self.files['manifest.json'] = json.dumps(manifest).encode()
+    with self.assertRaises(ValueError):
+      release.validate_inventories(self.root, self.version, self.sha, self.files)
 
   def test_incomplete_or_vulnerable_scans_and_wrong_manifest_are_rejected(self):
     good = self.files.copy()
