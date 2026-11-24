@@ -53,7 +53,7 @@ export class PublicCheckerComponent implements OnDestroy {
     if (!sample) { this.checks.set(null);this.status.set('');return; }
     const checks = previewBuiltInPolicy(sample.slice(0, 128), defaultPolicy.rules).map(check => ({ ...check,
       met: check.id === 'password.banned_regex'
-        ? defaultPolicy.rules.bannedRegexes.every(pattern => pattern === '(.)\\1{3,}') ? !/(.)\1{3,}/.test(sample) : null
+        ? defaultPolicy.rules.bannedRegexes.every((pattern: string) => pattern === '(.)\\1{3,}') ? !/(.)\1{3,}/.test(sample) : null
         : check.met,
     }));
     this.checks.set(checks);
