@@ -1,0 +1,119 @@
+name: Source release preparation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/source-release.yml'
+      - 'scripts/source_release.py'
+      - 'scripts/publish_source_release.py'
+      - 'scripts/dependency_inventory.py'
+      - 'scripts/tests/test_source_release.py'
+      - 'docs/SOURCE_RELEASE.md'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Stable numeric version already prepared in source (for example 0.1.2)
+        required: true
+        type: string
+      expected_sha:
+        description: Full expected main commit SHA with passing push CI and dependency scan
+        required: true
+        type: string
+      publish:
+        description: Publish a new immutable tag/source release after all checks (owner only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: source-release-${{ github.event_name }}-${{ github.event.pull_request.number || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    name: Release rejection and publication-boundary tests
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: python3 -m unittest discover -s scripts/tests -p 'test_source_release.py'
+
+  prepare:
+    name: Read-only source-release bundle
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      # PR rehearsal exercises current scripts against the already verified base,
+      # not against a synthetic PR SHA that never had a main-push verification run.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: verification-source
+          persist-credentials: false
+      - name: Prepare only from same-source successful main CI and inventories
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          EXPECTED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || inputs.expected_sha }}
+          SOURCE_DIRECTORY: ${{ github.event_name == 'pull_request' && 'verification-source' || '.' }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            RELEASE_VERSION="$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("verification-source/pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}version").text)')"
+          fi
+          python3 scripts/source_release.py --source "$SOURCE_DIRECTORY" --version "$RELEASE_VERSION" \
+            --expected-sha "$EXPECTED_SHA" --output "$RUNNER_TEMP/source-release-bundle"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: source-release-bundle
+          path: |
+            ${{ runner.temp }}/source-release-bundle/java.cdx.json
+            ${{ runner.temp }}/source-release-bundle/web.cdx.json
+            ${{ runner.temp }}/source-release-bundle/manifest.json
+            ${{ runner.temp }}/source-release-bundle/osv.json
+            ${{ runner.temp }}/source-release-bundle/SHA256SUMS.txt
+            ${{ runner.temp }}/source-release-bundle/release-notes.md
+            ${{ runner.temp }}/source-release-bundle/release.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Explicit owner source-release publication
+    needs: [tests, prepare]
+    if: >-
+      success() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' &&
+      inputs.publish && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: source-release-bundle
+          path: ${{ runner.temp }}/source-release-bundle
+      - name: Revalidate evidence, create a new tag and publish verified metadata assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH_REQUESTED: ${{ inputs.publish }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          EXPECTED_SHA: ${{ inputs.expected_sha }}
+        run: >-
+          python3 scripts/publish_source_release.py --version "$RELEASE_VERSION"
+          --expected-sha "$EXPECTED_SHA" --bundle "$RUNNER_TEMP/source-release-bundle"
