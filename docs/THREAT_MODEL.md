@@ -10,6 +10,8 @@
 
 This is a source-informed threat model for the implemented Keynest libraries and Manager. It is not a penetration-test report, independent audit, compliance attestation, or proof that a deployment is secure.
 
+The [November 24 maintenance review](security/maintenance-review-2026-11-24.md) records subsequent dependency evidence, follow-up to earlier source-review leads and remaining release/deployment gates. It preserves the historical snapshots below.
+
 ## Scope and evidence
 
 In scope:
@@ -82,7 +84,7 @@ The API and libraries are one trust zone. Compromise of the API process exposes 
 
 1. Plaintext vault passwords, master passwords, raw session bearers, vault keys, and future provider credentials never appear in durable storage, logs, telemetry, prompts, or model output.
 2. An authenticated user can access only their own vault rows; existence of another user's row is not disclosed.
-3. Seal v1 integrity, algorithm, key ID, and canonical AAD bindings fail closed when modified.
+3. Seal v1 rejects unsupported version/algorithm values and fails authentication for ciphertext, tag, nonce or caller-AAD mismatch. The header key ID is an unauthenticated routing hint, not an authorization or integrity claim; see ADR-0003.
 4. Authentication and reveal endpoints minimize brute-force, caching, browser-persistence, and proxy-spoofing exposure.
 5. Schema changes and key-dependent data are recoverable through reviewed, tested migrations and operator backups.
 6. Deterministic server code—not a model, client, or proxy header—decides authorization and policy enforcement.
