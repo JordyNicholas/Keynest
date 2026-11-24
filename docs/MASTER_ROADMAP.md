@@ -146,6 +146,8 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 
 ### Phase 7 — Adoption and reliability after first release
 
+**Current first slice — November 23 (#256):** after publishing 0.1.0 and the maintainer's direction to continue the plan, prepare source-SHA-bound Java/Web dependency inventories and known-vulnerability checks. Keep this follow-up separate from the immutable release, report findings/failures honestly and retain reviewed-change approval for the security automation. Registry publication, public hosting and third-party migration remain deferred. See [dependency security](DEPENDENCY_SECURITY.md).
+
 **Goal:** turn a successful demonstration into a dependable open-source project.
 - Collect user/integrator feedback; prioritize UX, accessibility, API consistency, import/export only with explicit security design, and documentation.
 - Publish/version libraries and language-neutral specs, compatibility policy, release automation, SBOM/dependency/security scanning and examples as justified.

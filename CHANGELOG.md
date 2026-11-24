@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-No changes recorded.
+- Add a separate read-only dependency inventory/vulnerability-check workflow with source-linked CycloneDX Java/Web inventories, validated graph coverage and a pinned OSV scanner. See [scope, artifacts and triage](docs/DEPENDENCY_SECURITY.md).
 
 ## 0.1.0 — 2026-11-23
 
