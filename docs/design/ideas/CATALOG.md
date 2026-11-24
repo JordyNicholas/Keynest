@@ -1,7 +1,7 @@
 # Keynest idea catalog
 
 **Status:** proposed. Brainstorming is open. Interest is unrated on purpose.
-**Captured:** November 24, 2026 (America/Sao_Paulo)
+**Captured:** November 24, 2026 (America/Sao_Paulo). Later the same day: credential kinds, companion and component meeting locally, violation fixtures, grant receipts, and the research notes below.
 **Format:** [FORMAT.md](FORMAT.md)
 
 This catalog collects the ideas from the November 24 product conversation. It is not a release commitment. The [canonical roadmap](../../MASTER_ROADMAP.md) and accepted ADRs still govern what is in scope. Nothing here is shipped.
@@ -31,6 +31,15 @@ Design passes, after this catalog is evaluated, run in this order:
 
 Order is a sequencing decision. It is not the interest map. The map waits until brainstorming is closed.
 
+## Observed gaps
+
+Notes from public guidance and industry practice on November 24, 2026. They explain later ideas. They are not a claim that Keynest implements any of them.
+
+- NIST SP 800-63B-4 tells verifiers not to impose composition rules, not to require periodic password changes, to accept long passwords, and to reject a candidate that appears on a blocklist of common, expected, or compromised values. Keynest's current policies are composition rules plus optional expiry, because that is what many websites still publish. The companion exists to handle that clash. A length-and-blocklist preset is the other side of it. Source: [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html).
+- Storing a TOTP seed in the same vault item as the password means one unlocked vault yields both factors. Privacy Guides and several operator write-ups treat that as a real loss of factor independence. Recovery codes have the same concentration problem, and people often keep them in screenshots. Sources: [Privacy Guides](https://www.privacyguides.org/en/basics/passwords-overview/), [ISE](https://blog.securityevaluators.com/psa-dont-store-2fa-codes-in-password-managers-77d92608b062).
+- Passkeys remove the shared password on sites that offer them. The remaining hard parts are sharing, revocation, and recovery. A 2025 systematization of E2EE recovery found recovery codes are the common backup and that people lose them. Keynest does not need to become a passkey provider to be useful there. Sources: [OWASP passkey cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Passkey_Security_Cheat_Sheet.html), [PoPETs 2025 SoK](https://petsymposium.org/popets/2025/popets-2025-0113.pdf).
+- Credentials leave through the clipboard into a chat box. In August 2025, researchers showed a poisoned document could make a ChatGPT connector search a connected drive for API keys and embed them in an image URL. OpenAI shipped a mitigation. The everyday path is still paste. Sources: [WIRED, August 6, 2025](https://www.wired.com/story/poisoned-document-could-leak-secret-data-chatgpt/), [Zenity AgentFlayer](https://zenitylabs.beehiiv.com/p/agentflayer-chatgpt-connectors-0click-attack-5b41).
+
 ## Index
 
 | Id | Title | Status | Sequence | Interest |
@@ -51,6 +60,14 @@ Order is a sequencing decision. It is not the interest map. The map waits until 
 | IDEA-014 | CI policy check | captured | | unrated |
 | IDEA-015 | Staged rotation | captured | | unrated |
 | IDEA-016 | Read-only agent status | captured | | unrated |
+| IDEA-017 | Companion and embedded policy meet locally | captured | support for 1 and 2 | unrated |
+| IDEA-018 | Violation fixtures | captured | support for 2 | unrated |
+| IDEA-019 | Grant receipt and revoke | captured | support for 3 | unrated |
+| IDEA-020 | Policy per credential kind | captured | | unrated |
+| IDEA-021 | Factor separation | captured | support for 20 | unrated |
+| IDEA-022 | Length-and-blocklist policy, calendar rotation off | captured | | unrated |
+| IDEA-023 | Local paste guard | captured | | unrated |
+| IDEA-024 | Service asks for a phishing-resistant authenticator | captured | support for 3 | unrated |
 | IDEA-R01 | Session password delivered to the user | rejected | | |
 | IDEA-R02 | Model approves or relaxes a rule | rejected | | |
 | IDEA-R03 | Model reads or fills the password field | rejected | | |
@@ -914,6 +931,422 @@ IDEA-001. The agent-gateway ADR in the roadmap. Out of sequence until the three 
 ### Open questions
 
 none beyond the ADR the roadmap already requires.
+
+## IDEA-017 — Companion and embedded policy meet locally
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:** support for 1 and 2
+- **Parents:** IDEA-005, IDEA-008
+- **Origin:** Follow-up brainstorm, November 24, 2026
+
+### Problem
+
+A person can face two standards at once: the marketplace's password rule on the page, and their own Keynest policy. Sending either side's draft to the other side leaks a policy the person did not agree to share.
+
+### Proposal
+
+When the companion and the embedded component are both on the page, they compare rules in the browser. The person sees the clash. The marketplace receives only pass or fail against the standard it defined. The person's vault, agent completion, and personal draft stay in the browser.
+
+### End-user decision
+
+The person chooses whether to connect the companion on that page. They choose whether to save a site exception. The marketplace does not get a control that edits the person's policy.
+
+### Visibility
+
+The person sees both policies. The site sees its own pass or fail result. Keynest as an operator sees neither comparison.
+
+### Model may see
+
+none for the comparison. A draft still follows IDEA-004 and only if the person asks.
+
+### Model must not see
+
+The marketplace user database, the candidate password, the person's other vault items.
+
+### Deterministic core
+
+Policy intersection in the browser, using the same schema as `keynest-policy`. No model is required.
+
+### Integration
+
+Browser companion beside the themeable component.
+
+### Distinctiveness
+
+The site learns the result of its own rule. It does not learn the person's stricter standard or their agent output.
+
+### Dependencies
+
+IDEA-005 and IDEA-008. The design of either one should leave a local comparison hook.
+
+### Open questions
+
+How the component discovers the companion without a network call to a Keynest service.
+
+## IDEA-018 — Violation fixtures
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:** support for 2
+- **Parents:** IDEA-008
+- **Origin:** Follow-up brainstorm, November 24, 2026
+
+### Problem
+
+A team that embeds Keynest Policy still has to hand-write passwords that fail specific rules if they want to test the signup form.
+
+### Proposal
+
+For a saved policy, generate one synthetic password that passes and one that fails each violation code. The team uses the set in tests. The values are not stored in a vault.
+
+### End-user decision
+
+The developer chooses when to generate the set and where to put it. Generation does not create vault items.
+
+### Visibility
+
+Whoever runs the command sees the synthetic values. They are test material. Logs of a normal validation must still print codes, not the values.
+
+### Model may see
+
+none
+
+### Model must not see
+
+The fixtures, production passwords, or customer rows.
+
+### Deterministic core
+
+`keynest-generate` and `PasswordValidator`. No model.
+
+### Integration
+
+Library command or a button on the embedded component's developer view.
+
+### Distinctiveness
+
+The policy engine is also the test fixture. A password manager's generator does not emit one failure per rule code.
+
+### Dependencies
+
+IDEA-008 for the component button. The library can do this before the component exists.
+
+### Open questions
+
+How a CI log is kept from printing the fixture values when a test fails.
+
+## IDEA-019 — Grant receipt and revoke
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:** support for 3
+- **Parents:** IDEA-009
+- **Origin:** Follow-up brainstorm, November 24, 2026
+
+### Problem
+
+After approving a session, the person cannot see what they approved, and they cannot take it back if the service keeps its own session.
+
+### Proposal
+
+Keynest stores a sanitized receipt: app, origin, time, expiry, and whether the grant was used, denied, or expired. The grant secret is not stored in the receipt. If the service registered a revoke endpoint, the person can send a revoke from that receipt. The service is responsible for ending its session.
+
+### End-user decision
+
+The person approves, and the person revokes. Neither action is taken by a model.
+
+### Visibility
+
+The signed-in user sees their receipts. The service sees the revoke request for grants it issued. A messenger is not used.
+
+### Model may see
+
+none
+
+### Model must not see
+
+The grant secret, the master password, vault passwords.
+
+### Deterministic core
+
+The receipt is filled from the bound grant fields. Revoke is an authenticated call the user starts. Copy stays on the template from standing constraint 6.
+
+### Integration
+
+Keynest session history, and the service library's revoke handler.
+
+### Distinctiveness
+
+The receipt is proof of a single-use, origin-bound approval. It is not an OAuth token list and it does not contain a reusable password.
+
+### Dependencies
+
+IDEA-009. Revoke needs the service to register an endpoint. The receipt is useful even when revoke is absent.
+
+### Open questions
+
+How long receipts are kept, and whether a denied attempt is recorded. Default in this record: the user can clear receipts, and denied attempts are recorded without the attempted secret.
+
+## IDEA-020 — Policy per credential kind
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:**
+- **Parents:** none
+- **Origin:** Follow-up brainstorm, November 24, 2026. The maintainer called this out as a favorite.
+
+### Problem
+
+A login password, a backup passphrase, an API token, and a recovery code are different secrets. One composition form describes all of them badly. An API token has a vendor's format. A recovery code is shown once. A backup passphrase must not be the account password.
+
+### Proposal
+
+Each credential kind has its own policy document and the same generate-and-validate contract. Kinds start with login password, backup passphrase, API token, and recovery-code set. The engine enforces the document for that kind. A vendor's public format note can be turned into a draft through IDEA-004. That draft is optional. The kinds, the validation, and generation work with no model at all.
+
+### End-user decision
+
+The person chooses the kind when they save. They confirm any draft before it becomes the policy for that kind. They choose the backup passphrase. A local compare rejects a backup passphrase that matches the account password, without either value leaving the device.
+
+### Visibility
+
+The person sees the policy for each kind. A marketplace embedding IDEA-008 sees only the kind it asked to enforce, usually login passwords.
+
+### Model may see
+
+Public format text the person submits for an optional draft.
+
+### Model must not see
+
+Any secret of any kind, including the account password and the backup passphrase.
+
+### Deterministic core
+
+Schema and `PasswordValidator` per kind, plus `keynest-generate` when the kind is generated rather than chosen. No inference is on the path.
+
+### Integration
+
+Vault save and rotate, the library, and the themeable component for the login-password kind.
+
+### Distinctiveness
+
+Item types in other managers are labels and fields. Here the type is the enforcement document shared by generate and validate.
+
+### Dependencies
+
+A schema ADR when a kind needs fields the current password schema does not have. Recovery-code display follows IDEA-021.
+
+### Open questions
+
+Which kinds ship in the first schema. This record's starting set is the four named above.
+
+## IDEA-021 — Factor separation
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:** support for 20
+- **Parents:** IDEA-020
+- **Origin:** Research note, November 24, 2026
+
+### Problem
+
+Password managers offer to store the TOTP seed, and often the recovery codes, inside the same item as the password. One unlocked vault then satisfies both factors. Recovery codes also end up in screenshots.
+
+### Proposal
+
+A TOTP seed and a recovery-code set are their own credential kinds. The default save refuses to put them inside the login item. The vault says what that choice means. Recovery codes are shown once, then sealed, and the item shows how many remain. The person can override the default for a named item.
+
+### End-user decision
+
+The person overrides the default per item. The default itself is separation. The product does not silently combine the factors.
+
+### Visibility
+
+The person sees the warning and the remaining-code count. The seed and the codes are sealed. They are not a field on the login item unless the person overrides that.
+
+### Model may see
+
+none
+
+### Model must not see
+
+The seed, the codes, or the login password.
+
+### Deterministic core
+
+Item kind and the default colocation rule. No model.
+
+### Integration
+
+Vault save, as a rule of IDEA-020.
+
+### Distinctiveness
+
+Other managers treat a built-in authenticator as a convenience feature. The default here is that the second factor is a different item, and the person has to choose otherwise.
+
+### Dependencies
+
+IDEA-020. This does not add a TOTP generator. Storage and the colocation rule come first.
+
+### Open questions
+
+Whether Keynest should generate TOTP codes at all. This record stops at storage and separation.
+
+## IDEA-022 — Length-and-blocklist policy, calendar rotation off
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:**
+- **Parents:** IDEA-020
+- **Origin:** Research note, November 24, 2026. [NIST SP 800-63B-4](https://pages.nist.gov/800-63-4/sp800-63b.html).
+
+### Problem
+
+Composition rules and a 90-day change calendar are what many sites still demand, and they are what current NIST guidance tells a verifier not to do. People get both messages and cannot tell which policy they are satisfying.
+
+### Proposal
+
+Ship a policy preset that requires length, accepts a long maximum, imposes no character-class mix, and checks a blocklist the operator or the person supplies locally. Periodic rotation is off unless that person sets an expiry. The rules check and a real compromise signal are the reasons to rotate. Websites that still publish composition rules stay on the companion path in IDEA-005. The blocklist is a file or a policy field the person loaded. Keynest does not send the candidate to a breach-search service.
+
+### End-user decision
+
+The person selects this preset or a composition policy. They choose whether a given kind has an expiry date. They choose the blocklist file.
+
+### Visibility
+
+The person sees which preset is active. The blocklist file stays where they put it.
+
+### Model may see
+
+none
+
+### Model must not see
+
+The candidate password or the blocklist entries.
+
+### Deterministic core
+
+`keynest-policy` with composition flags off, a minimum length, and the existing denylist check against a local list.
+
+### Integration
+
+Account policy, and the library for a service that wants this preset instead of composition rules.
+
+### Distinctiveness
+
+The same engine can express the site's composition rule and the length-and-blocklist preset. The calendar is not the product.
+
+### Dependencies
+
+IDEA-020 if expiry belongs to the kind. The preset can exist for login passwords before other kinds do.
+
+### Open questions
+
+How large a local blocklist is honest to ship. This record does not include a phone-home breach API.
+
+## IDEA-023 — Local paste guard
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:**
+- **Parents:** none
+- **Origin:** Research note, November 24, 2026. Clipboard paste into chats, and the August 2025 AgentFlayer demonstration of API keys leaving a connected drive through a chat tool.
+
+### Problem
+
+A person copies a token or a password and pastes it into a chat box. The secret is then in the provider's request. File-scanning tools do not see that paste.
+
+### Proposal
+
+On the person's machine, before they send text to a model, a local check flags credential-shaped strings: known token prefixes and high-entropy tokens. The person sees the flag and chooses to redact, send, or cancel. The check does not upload the text to Keynest. It does not open the vault to compare values.
+
+### End-user decision
+
+The person decides whether the flagged text is sent. The guard does not delete the clipboard on its own.
+
+### Visibility
+
+The person sees the flag on their machine. The model sees the text only if they still choose to send it.
+
+### Model may see
+
+none during the check.
+
+### Model must not see
+
+The pasted secret, unless the person overrides the flag and sends it anyway. The guard's job is to make that override explicit.
+
+### Deterministic core
+
+Local pattern checks. No model and no vault decrypt.
+
+### Integration
+
+Browser companion, or a small local tool beside the BYOK client. It is not a Keynest server endpoint.
+
+### Distinctiveness
+
+The check runs before the prompt is sent, on the client, and it does not need the vault's secrets to notice a token shape.
+
+### Dependencies
+
+none. It is more useful once API tokens exist as a kind in IDEA-020, because the warning can name the kind.
+
+### Open questions
+
+Which prefixes are worth flagging without a flood of false matches. The first set should be short and documented.
+
+## IDEA-024 — Service asks for a phishing-resistant authenticator
+
+- **Status:** captured
+- **Interest:** unrated
+- **Sequence:** support for 3
+- **Parents:** IDEA-009
+- **Origin:** Research note, November 24, 2026. [OWASP passkey cheat sheet](https://cheatsheetseries.owasp.org/cheatsheets/Passkey_Security_Cheat_Sheet.html).
+
+### Problem
+
+A reusable password is phishable. Passkeys fix that for sites that implement them. Building another passkey wallet would copy Apple, Google, and the existing password managers, and it would not fix sharing, revocation, or recovery by itself.
+
+### Proposal
+
+An opted-in service can set a policy flag: reusable password forbidden, phishing-resistant authenticator required. Keynest records that as the service's rule and will not issue a password-shaped grant for it. Keynest does not store or sync passkeys in this idea. Recovery for that service uses a recovery-code kind from IDEA-020, shown once and kept separate from the login. Revocation uses IDEA-019.
+
+### End-user decision
+
+The service operator sets the flag. The person decides whether to register that service and whether to store the recovery codes in Keynest.
+
+### Visibility
+
+The person sees the flag on the service's registration screen. No passkey private key is collected.
+
+### Model may see
+
+none
+
+### Model must not see
+
+Passwords, recovery codes, or authenticator secrets.
+
+### Deterministic core
+
+The grant policy refuses a reusable-password grant when the flag is set. No model.
+
+### Integration
+
+Service registration in IDEA-009.
+
+### Distinctiveness
+
+The policy document can say "this service has left passwords." The vault does not pretend to be the passkey provider.
+
+### Dependencies
+
+IDEA-009. IDEA-019 and IDEA-020 cover the recovery and revoke gaps that remain after passkeys.
+
+### Open questions
+
+none for this limited flag. A passkey provider is a different product and is not proposed here.
 
 ---
 
