@@ -2,7 +2,19 @@
 
 ## Unreleased
 
+No changes yet.
+
+## 0.1.1 — 2026-11-24
+
+Security dependency maintenance release; source distribution. See [setup, upgrade, verification and limitations](docs/releases/0.1.1.md). The maintainer approved publication after final-source checks.
+
+- Update Spring Boot 4.0.10, Jackson 2/3 managed versions and embedded Tomcat 11.0.29.
+- Update Angular 21 framework/compiler to 21.2.26 and refresh compatible build dependencies.
+- Patch the remaining glob/minimatch/uuid development dependencies through scoped overrides, with five actual-consumer compatibility checks.
+- Record the maintenance risk review and clarify that Seal v1 header key IDs are unauthenticated metadata; no encryption format or custody change.
 - Add a separate read-only dependency inventory/vulnerability-check workflow with source-linked CycloneDX Java/Web inventories, validated graph coverage and a pinned OSV scanner. See [scope, artifacts and triage](docs/DEPENDENCY_SECURITY.md).
+
+No data/schema, session, key, API or native backup-format migration is introduced. Existing architectural and deployment limitations remain. Complete final-source CI and dependency matching are required; no independent audit or vulnerability-free claim.
 
 ## 0.1.0 — 2026-11-23
 

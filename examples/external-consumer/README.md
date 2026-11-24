@@ -13,7 +13,7 @@ mvn -B -f examples/external-consumer/pom.xml verify
 
 The first command selects only the libraries and their build parents, not Manager. The second is an independent Maven invocation; it compiles and executes the example during `verify`. Library tests run separately in the repository's Java CI jobs. To rerun the compiled example, use `mvn -f examples/external-consumer/pom.xml exec:java`.
 
-CI builds and runs the consumer on Java 21 and Java 25. The `keynest.version` property pins this example to `0.1.0` for source-based consumption. Registry instructions will follow verified publication.
+CI builds and runs the consumer on Java 21 and Java 25. The `keynest.version` property pins this example to `0.1.1` for source-based consumption. Registry instructions will follow verified publication.
 
 ## What the executable verifies
 

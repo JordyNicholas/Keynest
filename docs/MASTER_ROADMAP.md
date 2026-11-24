@@ -1,7 +1,7 @@
 # Keynest — Canonical Product & Engineering Roadmap
 
 **Status:** Active, maintainer-directed execution plan  
-**Updated:** November 23, 2026 (America/Sao_Paulo)  
+**Updated:** November 24, 2026 (America/Sao_Paulo)
 **Implementation-complete internal MVP checkpoint:** **Saturday, November 21, 2026**  
 **Portfolio-ready open-source release target:** **Saturday, November 28, 2026**  
 **After November 28:** staged follow-on releases; no invented delivery dates
@@ -196,6 +196,8 @@ Report status as **verified (SHA + link)**, **implemented/unverified**, **planne
 **Exit:** each feature has its own problem statement, approved ADR, migration/security tests, operations and support plan.
 
 ## 5. Immediate dedicated-agent queue (implementation first)
+
+**Approved maintenance release — November 24 (#266):** dependency patches #260/#261 and additional scoped development remediation #263 are merged with explicit maintainer approval; source inventory/OSV automation #257 is also approved and merged. The broader review and Seal v1 key-ID documentation clarification merged through #265. Prepare 0.1.1 version/source notes, rerun all seven application checks and source-bound dependency matching on the final merged revision, then publish a new immutable tag/release. Preserve v0.1.0 and historic manual evidence. No hosting, registry publication, AI enablement or third-party migration is included. See [maintenance release notes](releases/0.1.1.md) and [risk review](security/maintenance-review-2026-11-24.md).
 
 **Approved release packaging — November 23:** following release GO, the maintainer approved preparing version 0.1.0, verifying the source package, publishing the tagged GitHub source release and reconciling completed tracking (#254). Keep exact-SHA CI, historical rc.1 provenance and documented limitations. Third-party migration, public hosting, registry publication and AI expansion remain deferred; do not enable them as part of packaging. See [the release notes](releases/0.1.0.md).
 

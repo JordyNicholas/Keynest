@@ -1,6 +1,6 @@
 {
   "name": "keynest",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Keynest monorepo — Vercel should use Root Directory apps/manager-web (Angular)",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "npm ci --prefix apps/manager-web && npm run build --prefix apps/manager-web",
     "start-web": "npm --prefix apps/manager-web start",
-    "start-api": "mvn -pl apps/manager-api -am package -DskipTests && java -jar apps/manager-api/target/manager-api-0.1.0.jar",
+    "start-api": "mvn -pl apps/manager-api -am package -DskipTests && java -jar apps/manager-api/target/manager-api-0.1.1.jar",
     "start-container": "docker compose -f deploy/docker-compose.yml up --build"
   }
 }

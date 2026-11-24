@@ -6,7 +6,7 @@ Self-hostable **password tools** you can embed, plus a first-party **Manager** v
 
 **Tagline:** Password tools you can embed — and a vault manager that uses them.
 
-**Release package:** `0.1.0`, distributed from source. See the [release notes and setup](docs/releases/0.1.0.md) and [verification evidence](docs/MVP_RELEASE_EVIDENCE.md). Historical targets remain in the roadmap.
+**Release package:** `0.1.1`, distributed from source. See the [release notes and setup](docs/releases/0.1.1.md) and [verification evidence](docs/MVP_RELEASE_EVIDENCE.md). Historical targets remain in the roadmap.
 
 > Project charter: [docs/PROJECT_CHARTER.md](./docs/PROJECT_CHARTER.md) · Verified baseline: [docs/ENGINEERING_BASELINE.md](./docs/ENGINEERING_BASELINE.md) · Delivery plan: [docs/DELIVERY_PLAN.md](./docs/DELIVERY_PLAN.md) · AI boundaries: [docs/AI_ARCHITECTURE.md](./docs/AI_ARCHITECTURE.md) · Product: [docs/PRODUCT.md](./docs/PRODUCT.md) · Board: [docs/reference/board.md](./docs/reference/board.md) · ADRs in [`docs/`](./docs/)
 
@@ -31,7 +31,7 @@ Try the [standalone Java consumer](./examples/external-consumer/README.md): it g
 
 ### Library distribution
 
-Keynest `0.1.0` uses source distribution. From the `v0.1.0` checkout or its source archive, follow the standalone example to build and install the three libraries into your local Maven repository. A successful run verifies generation and validation, sealing and opening, rewrapping, and wrong-key and wrong-context rejection using only the library dependencies.
+Keynest `0.1.1` uses source distribution. From the `v0.1.1` checkout or its source archive, follow the standalone example to build and install the three libraries into your local Maven repository. A successful run verifies generation and validation, sealing and opening, rewrapping, and wrong-key and wrong-context rejection using only the library dependencies.
 
 GitHub Packages is planned as the first registry. Registry distribution requires publishing the Maven parent and the three libraries, then verifying the standalone consumer from a clean Maven cache. Maven Central publication remains future work. See [GitHub’s Maven registry guide](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry).
 
@@ -128,7 +128,7 @@ mvn test
 
 ```bash
 mvn -pl apps/manager-api -am package -DskipTests
-java -jar apps/manager-api/target/manager-api-0.1.0.jar
+java -jar apps/manager-api/target/manager-api-0.1.1.jar
 ```
 
 The standalone API listens on `127.0.0.1:8080` by default. Use the [hosted Compose guide](./docs/DEPLOYMENT.md) for a deployment that serves other machines.

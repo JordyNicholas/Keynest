@@ -6,11 +6,11 @@
   <!-- Standalone: no Keynest parent or root reactor membership. -->
   <groupId>dev.keynest.examples</groupId>
   <artifactId>external-consumer</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.1</version>
   <properties>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <keynest.version>0.1.0</keynest.version>
+    <keynest.version>0.1.1</keynest.version>
   </properties>
   <dependencies>
     <dependency>
