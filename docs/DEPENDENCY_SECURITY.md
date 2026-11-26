@@ -37,3 +37,9 @@ Rollback removes this workflow, validator/tests and guide. It changes no applica
 - [OSV 2.7.1 release](https://github.com/google/osv-scanner/releases/tag/v2.7.1)
 - [Pinned source-scan contract](https://github.com/google/osv-scanner/blob/v2.7.1/docs/scan-source.md)
 - [Pinned output/exit-code contract](https://github.com/google/osv-scanner/blob/v2.7.1/docs/output.md)
+
+## Ongoing checks
+
+In addition to PR, main-push and manual runs, the workflow checks the default branch every Monday at 12:17 UTC (09:17 America/Sao_Paulo). GitHub scheduled execution may be delayed; inspect the actual run date/source manifest rather than treating the schedule as a monitoring SLA. Findings or scanner/service errors fail the run and use ordinary repository Actions notifications; no external messaging, issue creation, advisory suppression, automatic dependency update or publication is configured. Workflow artifact retention remains seven days.
+
+Application and interoperability action references are pinned to verified official v4 commits, and checkouts do not persist repository credentials. Pinning limits mutable-ref exposure; it does not audit upstream action code, sign the release or scan OS/container images. Future action updates require reviewed SHA changes and the affected gates. Existing explicitly invoked GHCR publication permissions and behavior remain unchanged.

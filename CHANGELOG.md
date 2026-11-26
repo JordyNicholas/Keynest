@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-No changes yet.
+- Pin existing CI/interoperability actions to verified commits, disable persisted checkout credentials and add a weekly source dependency scan; existing runtime gates and explicit publication behavior remain.
 
 ## 0.1.1 — 2026-11-24
 
