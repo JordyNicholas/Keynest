@@ -68,6 +68,15 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Share the verified split-origin public Web build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-web-split-build
+          overwrite: true
+          path: apps/manager-web/dist/manager-web-split/browser
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Preserve public build output for CSP failure diagnosis
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -130,7 +139,13 @@ jobs:
           name: verified-web-build
           path: apps/manager-web/dist/manager-web/browser
 
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: verified-web-split-build
+          path: apps/manager-web/dist/manager-web-split/browser
+
       - name: Verify authenticated Web CSP against this disposable API
+        # Both artifacts come from the successful Angular job in this workflow run.
         run: |
           npm ci --ignore-scripts --no-audit --prefix apps/manager-web
           node apps/manager-web/scripts/verify-authenticated-csp.mjs --disposable

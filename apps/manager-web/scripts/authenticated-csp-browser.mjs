@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
 
 /** Real-time, isolated automation; never return DOM, response bodies or credentials. */
-export async function authenticatedBrowser(url, profile, reducedMotion) {
+export async function authenticatedBrowser(url, profile, reducedMotion, apiBase = '/api/v1') {
   let browser;
   let stage = 'LAUNCH';
   try {
@@ -20,14 +20,23 @@ export async function authenticatedBrowser(url, profile, reducedMotion) {
       window.__fixtureViolations = [];
       document.addEventListener('securitypolicyviolation', event => window.__fixtureViolations.push(event.effectiveDirective));
     });
+    stage = 'FRAME_CONTROL';
+    await page.goto(url + '_frame-positive', { waitUntil: 'networkidle0' });
+    await page.waitForFunction(() => document.querySelector('iframe')?.contentDocument?.body?.dataset.frameControl === 'allowed');
+    stage = 'FRAME_DENIAL';
+    await page.goto(url + '_frame-negative', { waitUntil: 'networkidle0' });
+    await page.waitForFunction(() => {
+      const frame = document.querySelector('iframe');
+      return frame && (!frame.contentDocument || frame.contentDocument.URL.startsWith('chrome-error:'));
+    });
     stage = 'BOOT';await page.goto(url, { waitUntil: 'networkidle0' });
     await page.waitForSelector('#home-heading', { visible: true });
     stage = 'SETUP_ACCOUNT';
     const email = `csp-${crypto.randomUUID()}@example.invalid`;
     const password = 'Synthetic account password!42';
-    assert.ok(await page.evaluate(async (email, password) => (await fetch('/api/v1/auth/register', {
+    assert.ok(await page.evaluate(async (email, password, apiBase) => (await fetch(apiBase + '/auth/register', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
-    })).ok, email, password));
+    })).ok, email, password, apiBase));
     stage = 'SIGN_IN';
     await page.locator('kn-public-header a[href*="auth=signin"]').click();
     await page.waitForSelector('#auth-email', { visible: true });

@@ -110,6 +110,8 @@ Use this PowerShell walkthrough when you need to test a Vercel Preview and have 
 
 ## API response headers and HTTPS ingress
 
+For the separately hosted Angular document, see [production Web CSP delivery and proxy configuration](design/security/WEB_CSP_ENFORCEMENT.md). API response headers alone do not enforce the Web document's policy.
+
 Manager API applies the following baseline before its request handlers and rejection filters, including preflight, health, missing-route and servlet error responses. Reset and async dispatches retain the baseline. This policy covers the API server; Manager Web is a separate document origin and requires its own Angular-compatible CSP.
 
 | Header | API value |
