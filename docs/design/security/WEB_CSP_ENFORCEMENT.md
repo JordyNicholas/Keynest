@@ -14,7 +14,7 @@ Production CSP requires a DNS API hostname (including localhost), a supported lo
 
 ## Portable proxy
 
-The sample below serves the generated Web bundle and preserves the API's independent headers/cache controls. Replace the hostname/root and review trusted-proxy configuration. This is an operator template; no real proxy or public TLS host has been certified by these source tests.
+The sample below serves the generated Web bundle and preserves the API's independent headers/cache controls. Replace the hostname/root, configure the exact Web origin in the existing API CORS allowlist, and review trusted-proxy configuration. A same-origin proxy does not waive backend origin checks. This is an operator template; no real proxy or public TLS host has been certified by these source tests.
 
 ```caddyfile
 keynest.example.invalid {

@@ -77,15 +77,15 @@ export async function verifyCspBuild(destination, { authenticated = false, reduc
       marker = await authenticatedBrowser(`http://${splitOrigin ? 'localhost' : '127.0.0.1'}:${port}/`, profile, reducedMotion,
         splitOrigin ? destination : '/api/v1');
     } else {
-    let stdout;
-    try { ({ stdout } = await promisify(execFile)(process.env.CHROME_BIN || 'google-chrome', [
-      '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking',
-      '--no-first-run', `--user-data-dir=${profile}`, `--virtual-time-budget=${authenticated ? 45000 : 15000}`, '--dump-dom',
-      `http://127.0.0.1:${port}/`,
-    ], { timeout: 45000, maxBuffer: 8 * 1024 * 1024 })); }
-    catch { throw new Error('CSP browser fixture failed to complete (payload omitted)'); }
-    // Never print DOM, generated passwords or browser diagnostics on failure.
-    marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
+      let stdout;
+      try { ({ stdout } = await promisify(execFile)(process.env.CHROME_BIN || 'google-chrome', [
+        '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking',
+        '--no-first-run', `--user-data-dir=${profile}`, `--virtual-time-budget=${authenticated ? 45000 : 15000}`, '--dump-dom',
+        `http://127.0.0.1:${port}/`,
+      ], { timeout: 45000, maxBuffer: 8 * 1024 * 1024 })); }
+      catch { throw new Error('CSP browser fixture failed to complete (payload omitted)'); }
+      // Never print DOM, generated passwords or browser diagnostics on failure.
+      marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
     }
     if (authenticated) console.log('Disposable fixture auth status codes:', JSON.stringify(authOutcomes));
     assert.equal(marker, 'KEYNEST_CSP_PASS', 'production browser CSP probe failed (payload omitted)');
