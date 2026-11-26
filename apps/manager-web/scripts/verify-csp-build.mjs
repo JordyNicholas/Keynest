@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { apiBaseUrl } from './api-base-url.mjs';
 
 // Candidate policy only: this fixture does not configure production hosting.
-export async function verifyCspBuild(destination, { authenticated = false } = {}) {
+export async function verifyCspBuild(destination, { authenticated = false, reducedMotion = false } = {}) {
   assert.ok(!authenticated || destination === undefined, 'disposable authenticated fixture requires same-origin output');
   const api = apiBaseUrl(destination);
   const origin = api.startsWith('/') ? '' : new URL(api).origin;
@@ -41,7 +41,7 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
       if (req.url.startsWith('/_forbidden')) { forbiddenRequests++;res.writeHead(500).end();return; }
       if (req.url === '/_probe.js') {
         res.setHeader('Content-Type', 'application/javascript');
-        res.end(await readFile(new URL(authenticated ? './csp-authenticated-probe.js' : './csp-browser-probe.js', import.meta.url)));return;
+        res.end(await readFile(new URL('./csp-browser-probe.js', import.meta.url)));return;
       }
       if (req.url === '/_allowed') { res.setHeader('Content-Type', 'application/json');res.end('{}');return; }
       const path = resolve(root, '.' + new URL(req.url, 'http://fixture.invalid').pathname);
@@ -49,7 +49,7 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
       let data;
       try { data = await readFile(path); } catch { data = await readFile(join(root, 'index.html')); }
       if (path === root || extname(path) === '.html' || !extname(path)) {
-        data = data.toString().replace('<head>', '<head><script src="/_probe.js"></script>');
+        if (!authenticated) data = data.toString().replace('<head>', '<head><script src="/_probe.js"></script>');
         res.setHeader('Content-Type', 'text/html');
         res.setHeader('Content-Security-Policy', policy);
       } else res.setHeader('Content-Type', ({ '.js': 'application/javascript', '.css': 'text/css', '.ico': 'image/x-icon', '.svg': 'image/svg+xml' })[extname(path)] ?? 'application/octet-stream');
@@ -59,16 +59,21 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
   try {
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     const port = server.address().port;
+    let marker;
+    if (authenticated) {
+      const { authenticatedBrowser } = await import('./authenticated-csp-browser.mjs');
+      marker = await authenticatedBrowser(`http://127.0.0.1:${port}/`, profile, reducedMotion);
+    } else {
     let stdout;
     try { ({ stdout } = await promisify(execFile)(process.env.CHROME_BIN || 'google-chrome', [
       '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking',
-      ...(authenticated ? ['--force-prefers-reduced-motion'] : []),
       '--no-first-run', `--user-data-dir=${profile}`, `--virtual-time-budget=${authenticated ? 45000 : 15000}`, '--dump-dom',
       `http://127.0.0.1:${port}/`,
     ], { timeout: 45000, maxBuffer: 8 * 1024 * 1024 })); }
     catch { throw new Error('CSP browser fixture failed to complete (payload omitted)'); }
     // Never print DOM, generated passwords or browser diagnostics on failure.
-    const marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
+    marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
+    }
     if (authenticated) console.log('Disposable fixture auth status codes:', JSON.stringify(authOutcomes));
     assert.equal(marker, 'KEYNEST_CSP_PASS', 'production browser CSP probe failed (payload omitted)');
     assert.equal(forbiddenRequests, 0, 'blocked requests must not reach the fixture');
