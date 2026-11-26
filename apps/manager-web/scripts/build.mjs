@@ -2,6 +2,15 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { apiBaseUrl } from './api-base-url.mjs';
 
+const scriptsDir = fileURLToPath(new URL('.', import.meta.url));
+const ensurePolicy = spawnSync(process.execPath, [fileURLToPath(new URL('./ensure-default-policy.mjs', import.meta.url))], {
+  stdio: 'inherit',
+  cwd: scriptsDir,
+});
+if (ensurePolicy.status) {
+  process.exit(ensurePolicy.status ?? 1);
+}
+
 let destination;
 try {
   destination = apiBaseUrl(process.env.KEYNEST_API_BASE_URL);

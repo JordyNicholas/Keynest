@@ -25,7 +25,7 @@ This document is the north star for product shape, stack, library boundaries, an
 
 **Keynest** = a nest for keys. Works for both the libraries (`keynest-*`) and the manager product.
 
-> GitHub rename is manual: Settings → General → Repository name. Package/docs already use Keynest.
+> Current repository: `JordyNicholas/Keynest`. The old rename checklist (#44) is closed as obsolete; no further or case-only rename is planned. Package/docs already use Keynest.
 
 ---
 
@@ -349,9 +349,9 @@ Ordered execution (foundation → Seal → Material shell → vault API → vaul
 
 ---
 
-## Rename checklist
+## Historical naming checkpoint
 
 - [x] Product/docs identity → Keynest  
 - [x] Introduce Maven artifact names under `dev.keynest`  
 - [x] Retire Next.js prototype into `archive/`  
-- [ ] GitHub repository rename → `keynest` (manual)
+The canonical GitHub repository is already `JordyNicholas/Keynest`, where 0.1.0 and 0.1.1 are published. The former manual rename item is obsolete (#44); closing it did not rename the repository or change any external deployment. Any future rename remains a separate operator decision.
