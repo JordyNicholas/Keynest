@@ -26,11 +26,17 @@
     stage = 'SIGN_IN';
     button(document, 'Sign in').click();
     await wait(() => document.querySelector('#auth-email'));
+    await wait(() => document.querySelector('[role="dialog"]').getAnimations({ subtree: true })
+      .every(animation => animation.playState !== 'running'));
+    await pause();
     stage = 'SIGN_IN_FIELDS';
     fill('#auth-email', email);fill('#auth-password', password);
     await pause();
+    require(document.querySelector('#auth-email').value === email && document.querySelector('#auth-password').value === password);
     stage = 'SIGN_IN_SUBMIT';
-    button(document.querySelector('[role="dialog"]'), 'Sign in').click();
+    const form = document.querySelector('[role="dialog"] form');
+    require(form.checkValidity());
+    form.requestSubmit(button(document.querySelector('[role="dialog"]'), 'Sign in'));
     stage = 'WAIT_SESSION';
     await wait(() => document.querySelector('.shell.authenticated') && !document.querySelector('[role="dialog"]'));
     stage = 'SESSION_STORAGE';
@@ -66,7 +72,14 @@
     require(!document.querySelector('.shell.authenticated'));
     stage = 'CSP';require(violations.length === 0);
     passed = true;
-  } catch { /* No response payload, session or synthetic password may leave the driver. */ }
+  } catch {
+    // Classify only known public UI messages/directives, never echo DOM or input values.
+    if (stage === 'WAIT_SESSION') {
+      if (document.body.textContent.includes('Enter your Keynest password.')) stage = 'PASSWORD_REQUIRED';
+      else if (document.body.textContent.includes('Enter a valid email address, such as name@example.com.')) stage = 'EMAIL_REQUIRED';
+      else if (violations.includes('connect-src')) stage = 'CSP_CONNECT';
+    }
+  }
   finally {
     sessionStorage.clear();localStorage.clear();
     document.body.replaceChildren(document.createTextNode(passed ? 'KEYNEST_CSP_PASS' : 'KEYNEST_CSP_FAIL_' + stage));
