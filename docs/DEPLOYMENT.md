@@ -108,6 +108,25 @@ Use this PowerShell walkthrough when you need to test a Vercel Preview and have 
 5. In Vercel, set `KEYNEST_API_BASE_URL` for **Preview** on the test branch to the value of `$api`, including `/api/v1`. Redeploy that branch and sign in on its stable Preview URL, then open `/account#diagnostics-heading`. In DevTools, verify that the health request goes to the tunnel URL and returns JSON. Then verify sign-in and a Vault operation with disposable data. A new Quick Tunnel gives you a new URL, which requires another Preview build.
 6. Stop the tunnel with **Ctrl+C**, then run `docker stop keynest-preview-proxy` and `Remove-Item -LiteralPath $caddyfile` in the first terminal. Remove the temporary Vercel branch override or restore its previous value. Redeploy the test branch if it should point to the restored API, and restore the local test stack’s previous CORS setting.
 
+## API response headers and HTTPS ingress
+
+Manager API applies the following baseline before its request handlers and rejection filters, including preflight, health, missing-route and servlet error responses. Reset and async dispatches retain the baseline. This policy covers the API server; Manager Web is a separate document origin and requires its own Angular-compatible CSP.
+
+| Header | API value |
+| --- | --- |
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `no-referrer` |
+| `X-Frame-Options` | `DENY` |
+| `Content-Security-Policy` | `default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'` |
+
+The API serves data, not an embeddable web UI. Its document CSP denies script, style, object, frame, form and base-URL capabilities; it does not block an authorized Angular client from fetching JSON or replace authentication/CORS. Any future API-hosted interactive documentation needs an explicit policy review. Existing content types, CORS, `Cache-Control: no-store`, download headers and rate-limit `Retry-After` remain authoritative. Preserve these response headers through every ingress response path; do not replace them with permissive values or append a conflicting second policy. The application cannot enforce what a downstream proxy sends to a browser. Compare direct loopback responses with actual ingress responses using disposable data.
+
+**HSTS belongs to the HTTPS ingress operator.** The API deliberately does not emit `Strict-Transport-Security` based on request scheme or forwarded headers. On a verified HTTPS hostname, configure exactly one ingress HSTS header, initially with a short test lifetime (for example `max-age=300`), and verify both normal and error responses before increasing retention. Confirm valid certificates and HTTP-to-HTTPS redirects on that hostname. Apply this separately to the Web and API hostnames. Do not enable `includeSubDomains` or `preload` without reviewing every affected subdomain and the long-lived rollback consequences. Local HTTP development must remain usable. Do not trust arbitrary `Forwarded` or `X-Forwarded-Proto` values as proof of TLS.
+
+The packaged/hosted Compose smoke checks the API baseline on its existing successful and rejected workflows and both allowed and denied CORS preflights. Integration tests additionally exercise servlet errors, reset/commit, async dispatch, bounds, throttling and AI-disabled responses. These checks do not certify a public ingress, Web CSP or HttpOnly-cookie migration. H1 remains open for Web CSP compatibility/enforcement and the ADR-0007 transport reassessment.
+
+Rollback of this slice removes the header filter/registration and its associated assertions, returning to the previous API-header coverage; document the reopened hardening gap. It changes no vault data, keys, schema, session transport or CORS allowlist. HSTS rollback is separate: browsers retain a received policy until its lifetime expires, so restoring old application code does not remove it.
+
 ## Promote to production
 
 1. Record the tested commit, image digest and browser results. After release approval, back up the existing production database and retain its vault key separately before applying a change. See the [restore rehearsal](DATABASE_MIGRATIONS.md#automated-backuprestore-rehearsal).

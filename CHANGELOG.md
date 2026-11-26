@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Apply a shared API response-header baseline across successful, rejected, preflight and servlet error responses; preserve cache/CORS behavior and document operator-managed HTTPS/HSTS. Web CSP and browser session transport remain separate hardening work.
 - Add dry-run-first source-release preparation with metadata/inventory/gate validation and explicit owner-dispatched publication of new tags and verified assets. See [operator sequence and recovery limits](docs/SOURCE_RELEASE.md).
 - Pin existing CI/interoperability actions to verified commits, disable persisted checkout credentials and add a weekly source dependency scan; existing runtime gates and explicit publication behavior remain.
 

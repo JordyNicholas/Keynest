@@ -32,6 +32,17 @@ def check(condition, step):
     raise SmokeFailure(step)
 
 
+def check_security_headers(headers):
+  expected = {
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy': 'no-referrer',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+  }
+  for name, value in expected.items():
+    check(headers.get_all(name) == [value], 'API response security header missing or changed: ' + name)
+
+
 def request(method, path, body=None, token=None, binary=False):
   headers = {'Content-Type': 'application/json'}
   if token:
@@ -40,12 +51,14 @@ def request(method, path, body=None, token=None, binary=False):
   req = Request(BASE + path, data=data, headers=headers, method=method)
   try:
     with opener.open(req, timeout=5) as response:
+      check_security_headers(response.headers)
       return response.status, response.headers, response.read() if binary else json.load(response)
   except HTTPError as error:
     # Error payloads can contain user data; callers need only the status.
     status = error.code
     response_headers = error.headers
     error.close()
+    check_security_headers(response_headers)
     return status, response_headers, None
 
 
@@ -78,6 +91,7 @@ def check_cors(allowed_origin):
     })
     try:
       with opener.open(preflight, timeout=5) as response:
+        check_security_headers(response.headers)
         check(origin == allowed_origin and 200 <= response.status < 300, 'unlisted CORS origin accepted')
         check(response.headers.get('Access-Control-Allow-Origin') == origin, 'CORS origin must match exactly')
         methods = response.headers.get('Access-Control-Allow-Methods', '').replace(' ', '').split(',')
@@ -86,6 +100,7 @@ def check_cors(allowed_origin):
         check({'authorization', 'content-type'} <= set(headers), 'CORS must allow bearer and JSON headers')
     except HTTPError as error:
       with error:
+        check_security_headers(error.headers)
         check(origin != allowed_origin and error.code == 403, 'unexpected CORS preflight rejection')
         check('Access-Control-Allow-Origin' not in error.headers, 'unlisted origin must receive no CORS grant')
 
