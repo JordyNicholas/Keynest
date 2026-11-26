@@ -61,16 +61,22 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   assert.equal(await itemId(), originalId);
   await metadata();
 
-  stage('ROTATION_GENERATE');
+  stage('ROTATION_OPTIONS');
   await page.locator(`${card} a.rotate-action`).click();
   await page.locator('details.rotation-generator summary').click();
+  stage('ROTATION_GENERATE');
   await page.locator(button('Generate replacement')).click();
   await page.waitForFunction(() => document.querySelector('#rotation-password')?.value.length === 20);
   const replacement = await page.$eval('#rotation-password', input => input.value);
+  stage('ROTATION_MASK');
   assert.equal(await page.$eval('#rotation-password', input => input.type), 'password');
+  stage('ROTATION_SHOW');
   await page.locator(button('Show password')).click();
-  assert.equal(await page.$eval('#rotation-password', input => input.type), 'text');
+  await page.waitForFunction(() => document.querySelector('#rotation-password')?.type === 'text');
+  assert.equal(await page.$eval('#rotation-password', input => input.value), replacement);
+  stage('ROTATION_HIDE');
   await page.locator(button('Hide password')).click();
+  await page.waitForFunction(() => document.querySelector('#rotation-password')?.type === 'password');
   stage('ROTATION_SAVE');
   const [rotated] = await Promise.all([
     response(`/api/v1/vault/items/${originalId}`, 'PUT'),
