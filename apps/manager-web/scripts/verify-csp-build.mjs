@@ -13,7 +13,7 @@ export async function verifyCspBuild(destination) {
   const api = apiBaseUrl(destination);
   const origin = api.startsWith('/') ? '' : new URL(api).origin;
   const policy = `default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ${origin}; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'`;
-  const root = fileURLToPath(new URL('../dist/manager-web/browser/', import.meta.url));
+  const root = resolve(fileURLToPath(new URL('../dist/manager-web/browser/', import.meta.url)));
   const profile = await mkdtemp(join(tmpdir(), 'keynest-csp-'));
   let forbiddenRequests = 0;
   const server = createServer(async (req, res) => {
