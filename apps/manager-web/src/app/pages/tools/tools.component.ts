@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ActivatedRoute, Router } from '@angular/router';
+import { PreserveDisclosureSizeDirective } from '../../ui/preserve-disclosure-size.directive';
 import { GeneratePasswordPageComponent } from './generate-password.component';
 import { CheckPasswordPageComponent } from './check-password.component';
 
@@ -9,7 +10,7 @@ type Tool = 'generate' | 'check';
 
 @Component({
   selector: 'kn-tools-page',
-  imports: [MatExpansionModule, GeneratePasswordPageComponent, CheckPasswordPageComponent],
+  imports: [MatExpansionModule, PreserveDisclosureSizeDirective, GeneratePasswordPageComponent, CheckPasswordPageComponent],
   templateUrl: './tools.component.html',
   styleUrls: ['../page-shared.css', './tools.component.css'],
 })

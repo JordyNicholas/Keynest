@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
+import { PreserveDisclosureSizeDirective } from '../../ui/preserve-disclosure-size.directive';
 import { PolicyExplanationComponent } from '../policy-explanation/policy-explanation.component';
 import { PasswordPolicySettingsComponent } from './password-policy-settings.component';
 
@@ -15,7 +16,7 @@ import { logoutSession } from '../../auth/logout-session';
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, MatButtonModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
+  imports: [InlineErrorComponent, MatButtonModule, PreserveDisclosureSizeDirective, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })

@@ -17,7 +17,9 @@
     <h2 id="password-policy-heading">Password policy</h2>
     <details #policySetup (toggle)="policyOpen.set(policySetup.open)">
       <summary>Default or custom account rules</summary>
-      @if (policyOpen()) { <kn-password-policy-settings /> }
+      <div [knPreserveDisclosureSize]="policyOpen()">
+        @if (policyOpen()) { <kn-password-policy-settings /> }
+      </div>
     </details>
   </section>
 
@@ -26,12 +28,14 @@
     <p>Use your own OpenAI key to explain the built-in password policy. A Keynest administrator must enable AI explanations for this instance.</p>
     <details #aiSetup [open]="aiSetupOpen()" (toggle)="aiSetupOpen.set(aiSetup.open)">
       <summary>OpenAI setup</summary>
-      @if (aiSetupOpen()) {
-        @if (aiSetupRequested) {
-          <p>Enter your key to continue to the policy explanation.</p>
+      <div [knPreserveDisclosureSize]="aiSetupOpen()">
+        @if (aiSetupOpen()) {
+          @if (aiSetupRequested) {
+            <p>Enter your key to continue to the policy explanation.</p>
+          }
+          <kn-policy-explanation />
         }
-        <kn-policy-explanation />
-      }
+      </div>
     </details>
   </section>
 }
@@ -40,7 +44,9 @@
   <h2 id="diagnostics-title">Troubleshooting</h2>
   <details #healthSetup [open]="healthOpen()" (toggle)="healthOpen.set(healthSetup.open)">
     <summary>Check API connection</summary>
-    @if (healthOpen()) { <kn-api-health /> }
+    <div [knPreserveDisclosureSize]="healthOpen()">
+      @if (healthOpen()) { <kn-api-health /> }
+    </div>
   </details>
 </section>
 

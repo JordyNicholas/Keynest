@@ -39,6 +39,26 @@ describe('Public homepage tools', () => {
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
+  it('keeps the closing panel size after its tool has been destroyed and releases it on reopen', () => {
+    const fixture = TestBed.createComponent(PublicToolsComponent);
+    fixture.detectChanges();
+    fixture.componentInstance.open('generate');
+    fixture.detectChanges();
+    const content = fixture.nativeElement.querySelector('kn-public-generator').parentElement as HTMLElement;
+    const expandedHeight = content.offsetHeight;
+    expect(expandedHeight).toBeGreaterThan(0);
+
+    fixture.componentInstance.close('generate');
+    fixture.detectChanges();
+    expect(content.querySelector('kn-public-generator')).toBeNull();
+    expect(content.style.minBlockSize).toBe(`${expandedHeight}px`);
+
+    fixture.componentInstance.open('generate');
+    fixture.detectChanges();
+    expect(content.querySelector('kn-public-generator')).not.toBeNull();
+    expect(content.style.minBlockSize).toBe('');
+  });
+
   it('supports keyboard expansion and clears samples on page hide', () => {
     const fixture = TestBed.createComponent(PublicToolsComponent);fixture.detectChanges();
     const header = fixture.nativeElement.querySelectorAll('mat-expansion-panel-header')[1] as HTMLElement;

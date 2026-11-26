@@ -1,4 +1,4 @@
-/* Keynest motion — used with animate.enter / animate.leave (not @angular/animations). */
+/* Shared motion for Angular entry/exit classes and disclosures. */
 
 @keyframes kn-fade-in {
   from {
@@ -28,9 +28,36 @@
   animation: kn-fade-out 0.3s ease-in;
 }
 
+.mat-expansion-panel-animations-enabled > .mat-expansion-panel-content-wrapper {
+  overflow: clip;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+    details::details-content {
+      block-size: 0;
+      overflow: clip;
+      interpolate-size: allow-keywords;
+      transition: block-size 225ms ease-in-out, content-visibility 225ms allow-discrete;
+    }
+
+    details[open]::details-content {
+      block-size: auto;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .kn-enter,
   .kn-leave {
     animation: none;
+  }
+
+  .mat-expansion-panel.mat-expansion-panel-animations-enabled,
+  .mat-expansion-panel.mat-expansion-panel-animations-enabled .mat-expansion-panel-content-wrapper,
+  .mat-expansion-panel.mat-expansion-panel-animations-enabled .mat-expansion-panel-content,
+  .mat-expansion-panel.mat-expansion-panel-animations-enabled .mat-expansion-panel-header,
+  .mat-expansion-panel.mat-expansion-panel-animations-enabled .mat-expansion-indicator {
+    transition: none;
   }
 }
