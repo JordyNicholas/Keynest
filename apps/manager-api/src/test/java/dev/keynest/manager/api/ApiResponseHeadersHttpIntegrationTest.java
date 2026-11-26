@@ -53,7 +53,10 @@ class ApiResponseHeadersHttpIntegrationTest {
   void realHttpSuccessAndRejectionsHaveTheSameBaseline() throws Exception {
     assertThat(request("GET", ApiPaths.TOOLS_HEALTH, null).statusCode()).isEqualTo(200);
     assertThat(request("POST", ApiPaths.AUTH_REGISTER, "{}").statusCode()).isEqualTo(400);
-    assertThat(request("GET", ApiPaths.VAULT_ITEMS, null).statusCode()).isEqualTo(401);
+    // Preserve MVC's existing missing-required-header rejection; H3 owns auth normalization.
+    assertThat(request("GET", ApiPaths.VAULT_ITEMS, null).statusCode()).isEqualTo(400);
+    assertThat(request("GET", ApiPaths.VAULT_ITEMS, null,
+      "Authorization", "Bearer invalid-synthetic-session").statusCode()).isEqualTo(401);
     assertThat(request("GET", "/api/v1/not-a-route", null).statusCode()).isEqualTo(404);
     assertThat(request("POST", ApiPaths.TOOLS_SEAL, "{}").statusCode()).isEqualTo(403);
     String token = auth.register("headers-" + UUID.randomUUID() + "@example.invalid",
