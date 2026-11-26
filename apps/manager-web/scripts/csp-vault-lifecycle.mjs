@@ -14,6 +14,8 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
     if (request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/vault/restores/apply') applyRequests++;
   });
   const itemId = async () => new URL(await page.$eval(`${card} a[aria-label^="Edit details"]`, link => link.href)).pathname.split('/').at(-1);
+  const metadata = async () => assert.ok(await page.$eval(card, node => node.textContent.includes('CSP edited item')
+    && node.textContent.includes('csp-user') && node.textContent.includes('https://example.invalid/login')));
   const expand = async () => {
     await page.waitForSelector(header, { visible: true });
     await page.locator(header).click();
@@ -57,8 +59,7 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   await clickResponse('form button[type="submit"]', `/api/v1/vault/items/${originalId}`, 'PUT');
   await expand();
   assert.equal(await itemId(), originalId);
-  assert.ok(await page.$eval(card, node => node.textContent.includes('CSP edited item')
-    && node.textContent.includes('csp-user') && node.textContent.includes('https://example.invalid/login')));
+  await metadata();
 
   stage('ROTATION_GENERATE');
   await page.locator(`${card} a.rotate-action`).click();
@@ -165,7 +166,7 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   await page.waitForSelector('kn-vault-restore-dialog', { hidden: true });
   await expand();
   const restoredId = await itemId();assert.notEqual(restoredId, originalId);
-  assert.ok(await page.$eval(card, node => node.textContent.includes('CSP edited item') && node.textContent.includes('csp-user')));
+  await metadata();
   assert.equal(await page.$$eval(card, nodes => nodes.length), 1);
   await reveal(replacement);
   stage('RESTORE_DUPLICATE');
@@ -179,6 +180,7 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   assert.ok(await page.evaluate(() => window.__fixtureViolations.length === 0));
   await page.reload({ waitUntil: 'networkidle0' });
   await expand();assert.equal(await itemId(), restoredId);
+  await metadata();
   assert.equal(await page.$$eval(card, nodes => nodes.length), 1);
   await reveal(replacement);
   assert.equal(applyRequests, 1);
