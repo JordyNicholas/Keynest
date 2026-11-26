@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer-core';
+import { vaultLifecycle } from './csp-vault-lifecycle.mjs';
 
 /** Real-time, isolated automation; never return DOM, response bodies or credentials. */
 export async function authenticatedBrowser(url, profile, reducedMotion, apiBase = '/api/v1') {
@@ -66,6 +67,7 @@ export async function authenticatedBrowser(url, profile, reducedMotion, apiBase 
     stage = 'REVEAL';await page.waitForSelector('.reveal-action', { visible: true });await page.locator('.reveal-action').click();
     await page.waitForFunction(secret => document.querySelector('output.secret')?.textContent === secret, {}, secret);
     stage = 'CONCEAL';await page.locator('.reveal-action').click();await page.waitForSelector('output.secret', { hidden: true });
+    await vaultLifecycle(page, browser, profile, password, value => { stage = value; });
     stage = 'LOGOUT';await page.locator('.session-controls button').click();
     await page.waitForSelector('#home-heading', { visible: true });
     assert.ok(await page.evaluate(() => !sessionStorage.getItem('keynest.token') && !document.querySelector('.shell.authenticated')));
