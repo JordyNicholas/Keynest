@@ -19,6 +19,7 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
   assert.doesNotMatch(index, /\son[a-z]+\s*=/i, 'production HTML must not need inline event handlers');
   const profile = await mkdtemp(join(tmpdir(), 'keynest-csp-'));
   let forbiddenRequests = 0;
+  const authOutcomes = {};
   const server = createServer(async (req, res) => {
     try {
       if (authenticated && req.url.startsWith('/api/v1/')) {
@@ -29,6 +30,8 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
         }
         const upstream = apiRequest({ hostname: '127.0.0.1', port: 8080, path: req.url,
           method: req.method, headers, timeout: 15000 }, reply => {
+          if (req.url === '/api/v1/auth/register') authOutcomes.register = reply.statusCode;
+          if (req.url === '/api/v1/auth/login') authOutcomes.login = reply.statusCode;
           res.writeHead(reply.statusCode, reply.headers);reply.pipe(res);
         });
         upstream.on('timeout', () => upstream.destroy());
@@ -65,6 +68,7 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
     catch { throw new Error('CSP browser fixture failed to complete (payload omitted)'); }
     // Never print DOM, generated passwords or browser diagnostics on failure.
     const marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
+    if (authenticated) console.log('Disposable fixture auth status codes:', JSON.stringify(authOutcomes));
     assert.equal(marker, 'KEYNEST_CSP_PASS', 'production browser CSP probe failed (payload omitted)');
     assert.equal(forbiddenRequests, 0, 'blocked requests must not reach the fixture');
     console.log(authenticated ? 'Production CSP fixture: real sign-in, Vault create/calendar/reveal/conceal and logout passed'

@@ -26,9 +26,14 @@
     stage = 'SIGN_IN';
     button(document, 'Sign in').click();
     await wait(() => document.querySelector('#auth-email'));
+    stage = 'SIGN_IN_FIELDS';
     fill('#auth-email', email);fill('#auth-password', password);
+    await pause();
+    stage = 'SIGN_IN_SUBMIT';
     button(document.querySelector('[role="dialog"]'), 'Sign in').click();
+    stage = 'WAIT_SESSION';
     await wait(() => document.querySelector('.shell.authenticated') && !document.querySelector('[role="dialog"]'));
+    stage = 'SESSION_STORAGE';
     require(sessionStorage.getItem('keynest.token'));
     stage = 'VAULT_CREATE';
     document.querySelector('nav a[href="/vault"]').click();
