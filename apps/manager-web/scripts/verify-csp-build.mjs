@@ -47,7 +47,8 @@ export async function verifyCspBuild(destination) {
     ], { timeout: 45000, maxBuffer: 8 * 1024 * 1024 })); }
     catch { throw new Error('CSP browser fixture failed to complete (payload omitted)'); }
     // Never print DOM, generated passwords or browser diagnostics on failure.
-    assert.ok(stdout.includes('KEYNEST_CSP_PASS'), 'production browser CSP probe failed (payload omitted)');
+    const marker = stdout.match(/KEYNEST_CSP_(PASS|FAIL_[A-Z_]+)/)?.[0];
+    assert.equal(marker, 'KEYNEST_CSP_PASS', 'production browser CSP probe failed (payload omitted)');
     assert.equal(forbiddenRequests, 0, 'blocked requests must not reach the fixture');
     console.log('Production CSP fixture: public tools/dialog and script/connection denials passed');
   } finally {
