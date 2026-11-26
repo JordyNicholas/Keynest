@@ -59,6 +59,15 @@ jobs:
           npm run test:ci
           npm run test:build-config
 
+      - name: Preserve public build output for CSP failure diagnosis
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: web-csp-build
+          path: apps/manager-web/dist/manager-web/browser
+          if-no-files-found: ignore
+          retention-days: 1
+
   consumer:
     name: External consumer (Java ${{ matrix.java }})
     needs: java
