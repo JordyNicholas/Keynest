@@ -10,6 +10,16 @@ Reproduce by parsing both Vercel JSON files' `headers`, inspecting Angular build
 
 ## Proposed implementation slices
 
+### November 26 continuation
+
+The API slice was subsequently approved and merged as #281, main `9aaa1aaa964c68287c77045c60fb7a735fc15c56`. Its candidate passed seven CI jobs and dependency matching, including eight new tests on Java 21/25 and both PostgreSQL/Compose paths. The source-gap paragraph above records the earlier inspection; it must not be read as claiming the shared API filter is still absent. Main-push verification is tracked separately from that candidate evidence. H1 remains open for Web CSP and the transport reassessment.
+
+Current Web compatibility findings: `src/styles.css` imports Google Fonts. A self-only style/font policy may change typography or block font loading depending on the production builder's inlining. Inventory actual emitted HTML/CSS and browser font requests before choosing exact existing font origins or a separately reviewed, license-compatible self-hosted font change. Do not silently add broad Google/HTTPS wildcards. Angular runtime style injection and build-time critical CSS must both be exercised.
+
+The build validates `KEYNEST_API_BASE_URL` through `scripts/api-base-url.mjs`. Generate the Web policy's allowed API origin from that same validated value; a relative path needs self, an absolute URL needs its exact origin. Static Vercel JSON cannot interpolate this setting. Before implementation, select and test a build-produced hosting configuration or another explicit deployment mechanism. Inventory root/app Vercel builds and `scripts/prepare-vercel-output.js`, including SPA fallbacks. A meta-only CSP cannot supply the complete framing policy; emitted response headers must be verified.
+
+No Web enforcing policy is enabled by this design. The next compatibility fixture must use an actual production Angular build, strict self-hosted scripts without inline/eval exceptions, explicit API connection destinations, and the reviewed style/font treatment. Capture CSP violations without payload samples or external report egress; prove both allowed workflows and rejected script/framing/unintended connections. See the [proposed ADR-0007 reassessment](ADR_0007_REASSESSMENT.md) for the transport decision matrix and migration gates.
+
 | Slice | Proposed control | Required evidence before enforcement |
 | --- | --- | --- |
 | API baseline | Shared filter supplies `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` and framing denial on API responses, including rejection/error/preflight paths | MockMvc/real HTTP success, 400/401/404/429/503 and CORS preflight; preserve content type, CORS and existing no-store responses |
