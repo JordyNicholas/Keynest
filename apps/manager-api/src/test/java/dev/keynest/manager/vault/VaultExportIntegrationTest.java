@@ -99,7 +99,7 @@ class VaultExportIntegrationTest {
   }
 
   @Test void selectedExportIsExactAndItsSnapshotIsIndependentOfIdOrder() throws Exception {
-    UUID second = add("Synthetic second", null, null);add("Not selected", null, null);
+    UUID second = add("Synthetic second", null, null);add("Not selected", "unselected", null);
     ObjectNode subset = selected(first, second);JsonNode reviewed = preview(subset);
     assertThat(preview(selected(second, first)).path("snapshot")).isEqualTo(reviewed.path("snapshot"));
     byte[] bytes = mvc.perform(post(ApiPaths.VAULT_EXPORT_DOWNLOAD).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)

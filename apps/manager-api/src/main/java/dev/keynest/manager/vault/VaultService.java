@@ -16,11 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -81,16 +83,19 @@ public class VaultService {
         Instant expiresAt = resolveExpiry(request.expiresInDays(), request.expiresAt(), now);
         PasswordPolicy policy = currentPolicy(user, request.policyId());
         String policyId = policy.id();
-        String password = resolvePassword(request, policy);
-        assertValid(policy, password, request.username());
+        String username = blankToNull(request.username());
+        String url = blankToNull(request.url());
+        String password = resolvePassword(request, policy, username);
+        assertValid(policy, password, username);
+        rejectDuplicate(user.getId(), username, url, password);
 
         UUID itemId = UUID.randomUUID();
         VaultItem item = new VaultItem(
                 itemId,
                 user.getId(),
                 request.label().trim(),
-                blankToNull(request.url()),
-                blankToNull(request.username()),
+                url,
+                username,
                 sealPassword(password, user.getId(), itemId, policyId),
                 policyId,
                 VaultItemAad.VERSION_ITEM_V1,
@@ -172,11 +177,11 @@ public class VaultService {
         return policy;
     }
 
-    private String resolvePassword(CreateVaultItemRequest request, PasswordPolicy policy) {
+    private String resolvePassword(CreateVaultItemRequest request, PasswordPolicy policy, String username) {
         if (Boolean.TRUE.equals(request.generate())) {
             for (int attempt = 0; attempt < 100; attempt++) {
                 String candidate = passwordGenerator.generate(policy);
-                if (PasswordValidator.validate(candidate, policy, request.username()).valid()) return candidate;
+                if (PasswordValidator.validate(candidate, policy, username).valid()) return candidate;
             }
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Choose a different username or policy");
         }
@@ -184,6 +189,26 @@ public class VaultService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "password required unless generate=true");
         }
         return request.password();
+    }
+
+    private void rejectDuplicate(UUID userId, String username, String url, String password) {
+        byte[] expected = password.getBytes(StandardCharsets.UTF_8);
+        try (var candidates = items.streamLoginCandidates(userId, Objects.toString(username, ""), Objects.toString(url, ""))) {
+            if (candidates.anyMatch(item -> matchesPassword(item, expected))) {
+                throw new DuplicateItem();
+            }
+        } finally {
+            Arrays.fill(expected, (byte) 0);
+        }
+    }
+
+    private boolean matchesPassword(VaultItem item, byte[] expected) {
+        byte[] existing = openPasswordBytes(item);
+        try {
+            return MessageDigest.isEqual(expected, existing);
+        } finally {
+            Arrays.fill(existing, (byte) 0);
+        }
     }
 
     private void assertValid(PasswordPolicy policy, String password, String username) {
@@ -206,6 +231,8 @@ public class VaultService {
         }
     }
 
+    static final class DuplicateItem extends RuntimeException {}
+
     // Package-local restore reuses the existing instance key and receiver/item AAD.
     byte[] sealPassword(
             String password, UUID userId, UUID itemId, String policyId
@@ -221,6 +248,15 @@ public class VaultService {
 
     // Package-local bulk export also calls this only after authorizing the complete selection.
     String openPassword(VaultItem item) {
+        byte[] plaintext = openPasswordBytes(item);
+        try {
+            return new String(plaintext, StandardCharsets.UTF_8);
+        } finally {
+            Arrays.fill(plaintext, (byte) 0);
+        }
+    }
+
+    private byte[] openPasswordBytes(VaultItem item) {
         SealEnvelope envelope = SealEnvelope.fromBytes(item.getEnvelopeBytes());
         byte[] aad = switch (item.getAadVersion() == null ? 0 : item.getAadVersion()) {
             case 0 -> item.getPolicyId().getBytes(StandardCharsets.UTF_8);
@@ -231,12 +267,7 @@ public class VaultService {
                     "unsupported vault item AAD version: " + item.getAadVersion()
             );
         };
-        byte[] plaintext = seal.open(envelope, vaultKey, aad);
-        try {
-            return new String(plaintext, StandardCharsets.UTF_8);
-        } finally {
-            Arrays.fill(plaintext, (byte) 0);
-        }
+        return seal.open(envelope, vaultKey, aad);
     }
 
     private VaultItem requireOwned(UserAccount user, UUID id) {

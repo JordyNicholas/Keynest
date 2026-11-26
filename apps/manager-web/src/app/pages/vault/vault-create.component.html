@@ -37,7 +37,7 @@
           [minLength]="rules.minLength" [maxLength]="rules.maxLength"
           [requiredGroups]="rules.requiredGroups" [minCategories]="rules.minCategories"
           [excludeAmbiguous]="rules.excludeAmbiguous"
-          [bannedSubstrings]="rules.bannedSubstrings" [bannedRegexes]="rules.bannedRegexes" [username]="username()" [forbidUsernameSubstring]="rules.forbidUsernameSubstring" />
+          [bannedSubstrings]="rules.bannedSubstrings" [bannedRegexes]="rules.bannedRegexes" [username]="username().trim()" [forbidUsernameSubstring]="rules.forbidUsernameSubstring" />
       } @else if (loadingPolicy()) {
         <p role="status">Loading Vault password rules…</p>
       } @else {

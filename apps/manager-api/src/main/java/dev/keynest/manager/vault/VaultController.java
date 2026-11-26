@@ -5,8 +5,10 @@ import dev.keynest.manager.auth.AuthService;
 import dev.keynest.manager.auth.UserAccount;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,6 +46,12 @@ public class VaultController {
     }
 
     record PolicyError(String code, List<String> violations) {}
+
+    @ExceptionHandler(VaultService.DuplicateItem.class)
+    ResponseEntity<Map<String, String>> duplicateItem() {
+        return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noStore())
+                .body(Map.of("code", "VAULT_ITEM_DUPLICATE"));
+    }
 
     @GetMapping
     public List<VaultService.VaultItemView> list(@RequestHeader("Authorization") String authorization) {
@@ -96,7 +104,7 @@ public class VaultController {
     public VaultService.VaultItemView update(
             @RequestHeader("Authorization") String authorization,
             @PathVariable UUID id,
-            @RequestBody UpdateBody body
+            @Valid @RequestBody UpdateBody body
     ) {
         UserAccount user = authService.requireUser(authorization);
         return vaultService.update(user, id, new VaultService.UpdateVaultItemRequest(
@@ -122,9 +130,9 @@ public class VaultController {
     }
 
     public record CreateBody(
-            @NotBlank String label,
-            String url,
-            String username,
+            @NotBlank @Size(max = 200) String label,
+            @Size(max = 2000) String url,
+            @Size(max = 320) String username,
             String password,
             Boolean generate,
             String policyId,
@@ -135,9 +143,9 @@ public class VaultController {
     }
 
     public record UpdateBody(
-            String label,
-            String url,
-            String username,
+            @Size(max = 200) String label,
+            @Size(max = 2000) String url,
+            @Size(max = 320) String username,
             String password,
             String policyId,
             Integer expiresInDays,

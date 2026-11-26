@@ -210,6 +210,8 @@ Use the API startup commands above.
 | `POST` | `/api/v1/vault/items/{id}/reveal` | Open sealed password; response is `no-store` |
 | `PUT/DELETE` | `/api/v1/vault/items/{id}` | Update / delete |
 
+Vault creation returns HTTP 409 with `code: VAULT_ITEM_DUPLICATE` when the same Vault already contains the username, password, and website URL. Blank and omitted URLs both count as missing.
+
 **Session security (#71):** Manager returns a 256-bit opaque bearer token, while the API stores only its SHA-256 digest. Flyway V2 names the physical column `auth_sessions.token_digest`; the pre-Flyway `token` column held the same digest values after #71. Manager Web keeps the bearer in `sessionStorage`, clears legacy `localStorage`, and required sign-in again when #71 invalidated older raw-token sessions. This reduces database and browser-persistence exposure; it does not make JavaScript-held bearers immune to XSS. See [ADR-0007](./docs/ADR-0007-session-token-storage-and-browser-transport.md).
 
 Postgres stack:

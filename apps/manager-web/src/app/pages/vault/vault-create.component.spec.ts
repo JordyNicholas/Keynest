@@ -118,4 +118,27 @@ describe('VaultCreatePageComponent', () => {
     request.flush({});
     expect(navigate).toHaveBeenCalledWith('/vault');
   });
+
+  it('keeps the form open and shows a dedicated error when the login is already saved', () => {
+    const fixture = TestBed.createComponent(VaultCreatePageComponent);
+    const component = fixture.componentInstance;
+    const navigate = spyOn(TestBed.inject(Router), 'navigateByUrl').and.resolveTo(true);
+    component.label.set('Another label');
+    component.username.set('saved-login');
+    component.url.set('https://example.test');
+    const input = document.createElement('input');
+    input.value = 'Synthetic password';
+
+    component.save(new Event('submit'), input);
+    TestBed.inject(HttpTestingController).expectOne(endpoint).flush({ code: 'VAULT_ITEM_DUPLICATE' },
+      { status: 409, statusText: 'Conflict' });
+
+    expect(component.error()).toBe('This login is already saved in your Vault.');
+    expect(component.label()).toBe('Another label');
+    expect(component.username()).toBe('saved-login');
+    expect(component.url()).toBe('https://example.test');
+    expect(component.saving()).toBeFalse();
+    expect(input.value).toBe('');
+    expect(navigate).not.toHaveBeenCalled();
+  });
 });
