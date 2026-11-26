@@ -16,6 +16,7 @@
     input.dispatchEvent(new Event('input', { bubbles: true }));
   };
   try {
+    require(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     await wait(() => document.querySelector('#home-heading'));
     stage = 'SETUP_ACCOUNT';
     const email = `csp-${crypto.randomUUID()}@example.invalid`;

@@ -62,6 +62,7 @@ export async function verifyCspBuild(destination, { authenticated = false } = {}
     let stdout;
     try { ({ stdout } = await promisify(execFile)(process.env.CHROME_BIN || 'google-chrome', [
       '--headless', '--no-sandbox', '--disable-dev-shm-usage', '--disable-background-networking',
+      ...(authenticated ? ['--force-prefers-reduced-motion'] : []),
       '--no-first-run', `--user-data-dir=${profile}`, `--virtual-time-budget=${authenticated ? 45000 : 15000}`, '--dump-dom',
       `http://127.0.0.1:${port}/`,
     ], { timeout: 45000, maxBuffer: 8 * 1024 * 1024 })); }
