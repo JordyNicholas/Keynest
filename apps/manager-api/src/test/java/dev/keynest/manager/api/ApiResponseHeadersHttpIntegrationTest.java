@@ -13,9 +13,9 @@ import java.time.Duration;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.web.server.test.LocalServerPort;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 })
 @Import(ApiResponseHeadersHttpIntegrationTest.Fixtures.class)
 class ApiResponseHeadersHttpIntegrationTest {
-  @LocalServerPort int port;
+  @Value("${local.server.port}") int port;
   @Autowired AuthService auth;
   private final HttpClient client = HttpClient.newBuilder()
     .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
