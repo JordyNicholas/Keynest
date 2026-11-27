@@ -7,7 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import dev.keynest.manager.auth.AuthService;
 import dev.keynest.manager.auth.AuthSession;
 import dev.keynest.manager.auth.AuthSessionRepository;
-import dev.keynest.manager.auth.SessionTokenDigest;
 import dev.keynest.manager.vault.VaultService;
 import java.time.Instant;
 import java.util.UUID;
@@ -75,8 +74,8 @@ class SessionRevocationHttpIntegrationTest {
     http.perform(post(ApiPaths.AUTH_LOGOUT_ALL).header("Authorization", "Bearer invalid").contentType(MediaType.APPLICATION_JSON).content("{}"))
       .andExpect(status().isUnauthorized());
     var first = register();
-    String digest = SessionTokenDigest.digest(first.token());
-    var current = sessions.findByTokenDigest(digest).orElseThrow();sessions.delete(current);
+    var current = sessions.findAll().stream().filter(row -> first.userId().equals(row.getUserId())).findFirst().orElseThrow();
+    String digest = current.getTokenDigest();sessions.delete(current);
     sessions.save(new AuthSession(UUID.randomUUID(), first.userId(), digest, Instant.now().minusSeconds(1), Instant.now().minusSeconds(60)));
     http.perform(post(ApiPaths.AUTH_LOGOUT_ALL).header("Authorization", bearer(first)).contentType(MediaType.APPLICATION_JSON).content("{}"))
       .andExpect(status().isUnauthorized());
