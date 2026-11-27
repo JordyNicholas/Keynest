@@ -71,11 +71,18 @@ public final class PasswordGenerator {
         if (policy.requireSymbol()) {
             chars[idx++ % chars.length] = pick(PasswordValidator.SYMBOLS);
         }
-        // Shuffle lightly with remaining charset draws for positions already set is enough for MVP
+        // Reconcile injected characters with the allowed charset before placement and validation.
         for (int i = 0; i < chars.length; i++) {
             if (charset.indexOf(chars[i]) < 0) {
                 chars[i] = charset.charAt(random.nextInt(charset.length()));
             }
+        }
+        // Fisher–Yates: bounded draws include the current index; no fixed leading categories.
+        for (int i = chars.length - 1; i > 0; i--) {
+            int swap = random.nextInt(i + 1);
+            char current = chars[i];
+            chars[i] = chars[swap];
+            chars[swap] = current;
         }
         return new String(chars);
     }

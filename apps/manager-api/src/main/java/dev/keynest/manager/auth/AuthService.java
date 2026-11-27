@@ -1,42 +1,49 @@
 package dev.keynest.manager.auth;
 
 import dev.keynest.manager.security.PasswordHashingService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Base64;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
 public class AuthService {
 
-    private static final int SESSION_DAYS = 7;
-    private static final int MIN_MASTER_PASSWORD_LENGTH = 15;
+    static final int MIN_MASTER_PASSWORD_LENGTH = 15;
 
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
+    private final EntityManager em;
     private final PasswordHashingService passwords;
-    private final SecureRandom random = new SecureRandom();
+    private final String missingAccountHash;
+    private final LoginAttemptLimiter loginAttempts;
 
     public AuthService(
             UserAccountRepository users,
             AuthSessionRepository sessions,
-            PasswordHashingService passwords
+            PasswordHashingService passwords,
+            LoginAttemptLimiter loginAttempts,
+            EntityManager em
     ) {
         this.users = users;
         this.sessions = sessions;
         this.passwords = passwords;
+        this.loginAttempts = loginAttempts;
+        this.em = em;
+        // Non-account work target, prepared once before serving requests. Its
+        // input is not a credential; a missing account can never issue a session.
+        this.missingAccountHash = passwords.hash("keynest missing-account verification");
     }
 
     @Transactional
     public AuthResponse register(String email, String password) {
-        String normalized = email == null ? "" : email.trim().toLowerCase();
+        String normalized = normalizeEmail(email);
         if (normalized.isEmpty() || password == null || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "email and password required");
         }
@@ -58,16 +65,34 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(String email, String password) {
-        String normalized = email == null ? "" : email.trim().toLowerCase();
-        if (normalized.isEmpty() || password == null || password.isBlank()) {
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty() || normalized.length() > UserAccount.EMAIL_MAX_LENGTH || password == null || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
-        UserAccount user = users.findByEmailIgnoreCase(normalized)
+        try (var attempt = loginAttempts.begin(normalized)) {
+            UserAccount user = users.findByEmailIgnoreCase(normalized).orElse(null);
+            // Admitted known/unknown attempts still share the same password-work budget.
+            String verifiedHash = user == null ? missingAccountHash : user.getPasswordHash();
+            boolean verified = passwords.verify(password, verifiedHash);
+            if (user == null || !verified) {
+                attempt.failed();
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            }
+            // Hashing finishes before acquiring the lock shared with owner-wide revocation.
+            UserAccount current = users.findForPolicyUpdate(user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
-        if (!passwords.verify(password, user.getPasswordHash())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            em.refresh(current, LockModeType.PESSIMISTIC_WRITE);
+            if (!verifiedHash.equals(current.getPasswordHash())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            }
+            AuthResponse response = issueSession(current);
+            attempt.succeeded();
+            return response;
         }
-        return issueSession(user);
+    }
+
+    private static String normalizeEmail(String email) {
+        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
     }
 
     @Transactional(readOnly = true)
@@ -91,24 +116,7 @@ public class AuthService {
     }
 
     private AuthResponse issueSession(UserAccount user) {
-        byte[] raw = new byte[32];
-        String token;
-        try {
-            random.nextBytes(raw);
-            token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
-        } finally {
-            Arrays.fill(raw, (byte) 0);
-        }
-        Instant now = Instant.now();
-        AuthSession session = new AuthSession(
-                UUID.randomUUID(),
-                user.getId(),
-                SessionTokenDigest.digest(token),
-                now.plus(SESSION_DAYS, ChronoUnit.DAYS),
-                now
-        );
-        sessions.save(session);
-        return new AuthResponse(user.getId(), user.getEmail(), token, session.getExpiresAt());
+        return AuthSessionIssuer.issue(user, sessions);
     }
 
     private static String extractToken(String authorizationHeader) {

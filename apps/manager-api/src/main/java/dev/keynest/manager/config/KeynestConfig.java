@@ -10,8 +10,8 @@ import dev.keynest.seal.PasswordHasher;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableConfigurationProperties({
@@ -19,6 +19,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   CorsProperties.class,
   ToolsDemoProperties.class,
   RateLimitProperties.class,
+  LoginThrottleProperties.class,
+  SessionCleanupProperties.class,
   AiProperties.class
 })
 public class KeynestConfig {
@@ -54,16 +56,13 @@ public class KeynestConfig {
     }
 
     @Bean
-    WebMvcConfigurer corsConfigurer(CorsProperties corsProperties) {
-        String[] origins = corsProperties.getAllowedOrigins().toArray(String[]::new);
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping(ApiPaths.API_PATTERN)
-                  .allowedOrigins(origins)
-                  .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                  .allowedHeaders("*");
-            }
-        };
+    UrlBasedCorsConfigurationSource apiCorsConfiguration(CorsProperties corsProperties) {
+        var configuration = new CorsConfiguration().applyPermitDefaultValues();
+        configuration.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        configuration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(java.util.List.of("*"));
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration(ApiPaths.API_PATTERN, configuration);
+        return source;
     }
 }

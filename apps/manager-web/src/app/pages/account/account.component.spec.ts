@@ -2,6 +2,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { ChangePasswordDialogComponent } from './change-password-dialog.component';
+import { SignOutDevicesDialogComponent } from './sign-out-devices-dialog.component';
 import { AuthService } from '../../auth/auth.service';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AccountPageComponent } from './account.component';
@@ -24,6 +27,27 @@ describe('AccountPageComponent', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
     TestBed.inject(AuthService).clearSession();
+  });
+
+
+  it('opens the shared confirmation dialog without sending revocation itself', () => {
+    TestBed.inject(AuthService).setSession('test-session', 'test@example.com');
+    const fixture = TestBed.createComponent(AccountPageComponent);const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/auth/me').flush({ email: 'test@example.com' });fixture.detectChanges();
+    const open = spyOn(fixture.debugElement.injector.get(MatDialog), 'open');fixture.componentInstance.signOutDevices();
+    expect(open).toHaveBeenCalledWith(SignOutDevicesDialogComponent, jasmine.objectContaining({
+      id: 'sign-out-devices', ariaLabelledBy: 'sign-out-devices-title', restoreFocus: true,
+    }));http.expectNone('/api/v1/auth/logout-all');
+  });
+
+  it('opens password change through the shared dialog without submitting proof', () => {
+    TestBed.inject(AuthService).setSession('test-session', 'test@example.com');
+    const fixture = TestBed.createComponent(AccountPageComponent);const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/v1/auth/me').flush({ email: 'test@example.com' });fixture.detectChanges();
+    const open = spyOn(fixture.debugElement.injector.get(MatDialog), 'open');fixture.componentInstance.changePassword();
+    expect(open).toHaveBeenCalledWith(ChangePasswordDialogComponent, jasmine.objectContaining({
+      id: 'change-password', ariaLabelledBy: 'change-password-title', restoreFocus: true,
+    }));http.expectNone('/api/v1/auth/password');
   });
 
   it('keeps AI setup behind sign-in', () => {

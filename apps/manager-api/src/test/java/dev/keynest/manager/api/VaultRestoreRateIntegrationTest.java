@@ -27,7 +27,8 @@ class VaultRestoreRateIntegrationTest {
           .with(request -> { request.setRemoteAddr(ip);return request; })).andExpect(header().string("Cache-Control", "no-store"));
         if (attempt < 2) result.andExpect(status().isBadRequest());else result.andExpect(status().isTooManyRequests()).andExpect(header().exists("Retry-After"));
       }
-      mvc.perform(get(path)).andExpect(status().isMethodNotAllowed()).andExpect(header().string("Cache-Control", "no-store"));
+      mvc.perform(get(path)).andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
+      mvc.perform(get(path).header("Authorization", bearer)).andExpect(status().isMethodNotAllowed()).andExpect(header().string("Cache-Control", "no-store"));
     }
   }
 }
