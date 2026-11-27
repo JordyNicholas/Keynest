@@ -1,0 +1,27 @@
+# ADR 0017 — Owner-wide session revocation
+
+## Status
+
+Accepted through maintainer-approved [PR #309](https://github.com/JordyNicholas/Keynest/pull/309) for roadmap H4 / #307 on November 27, 2026. Exact-source evidence is recorded on its pull request. This does not amend the accepted bearer transport, crypto or recovery decisions.
+
+## Decision
+
+Add POST `/api/v1/auth/logout-all` with strict JSON containing only `accountPassword`. The current session determines the owner; no account/email/target identity is accepted. The owner confirms through the existing Material Account dialog pattern, explicitly including the current browser/device. Verify the current password immediately through the shared password-work capacity, then use a separate transaction to lock/refresh the parent account, recheck the verified hash and acting session expiry/ownership, and delete all sessions belonging to that owner. Commit completes before success is returned. Other owners and Vault data are untouched. A legacy short account password remains usable as proof; registration's new-password minimum is not imposed retroactively.
+
+Login finishes expensive verification before acquiring the same account lock. It refreshes the managed entity and compares the verified hash before issuing its session. A login that issues before revocation is removed; a valid fresh login ordered after revocation can issue a new session, even if it started hashing earlier. A hash changed while login was hashing/waiting must be verified again in a new login. Registration uses a new account UUID within its existing transaction and cannot be revoked by a not-yet-issued session. A competing revocation that loses its acting session is refused. This is ordered database coordination for issuance/revocation, not a ban on future sign-in or retrospective cancellation of in-flight requests/bytes. Existing logout and other requests retain their current final-check race boundaries; export/restore keep their fresh callbacks.
+
+## Bounds and failure behavior
+
+The transport rejects query parameters, duplicate/unknown fields, trailing JSON, non-JSON, non-text/empty credentials and strings over 32768 UTF-16 units. Maximum request bytes are 200 KiB, including unknown/chunked lengths. This accommodates escaped credentials without a new registration policy. Credential bytes and caller-owned char buffers are cleared on normal/failure paths; JSON/JVM/HTTP strings and copies cannot be reliably erased. No credentials, hashes, actor IDs or metadata are returned/logged. No cookie, key, schema or backup-format change is introduced.
+
+The endpoint joins the explicit authenticated route catalog, per-IP route limiter and fixed-field `AUTH_LOGOUT_ALL` event. No-store headers wrap admission/auth/body/method failures. There is one nonqueued revocation permit per API process; password verification also retains the shared hashing budget. It does not create a new per-account/distributed critical-action throttle or durable audit log. Parent-account contention can delay sign-in and existing Vault writers. The mutation transaction requests a ten-second timeout; driver cancellation, acquisition/network waits and commit do not form a guaranteed end-to-end deadline. Operators retain ingress/timeouts/shared abuse-control responsibilities. No parent lock is held during password work in the normal HTTP flow.
+
+The browser clears the password on submit, cancellation, hiding or destruction, with explicit Show/Hide support. It waits for one request with a 15-second browser timeout. Definite password/input/admission refusals allow explicit retry; success or an ended session clears the captured tab session and returns home. A connection loss, unknown server failure, malformed success or cancellation after submission may have committed: clear the captured local session, return home, and require fresh sign-in. Never retry automatically or claim rollback. A late result cannot clear a replacement account's local bearer. A new same-account login racing an already-authorized revocation may still be removed according to database ordering.
+
+Email confirmation is a future additional gate under #300/#302. It is not silently required of existing unverified owners, does not replace fresh password proof, and is not called MFA. OIDC/provider-only proof is a separate accepted-design prerequisite; no bypass is added. Password change/revocation is a separate decision under [ADR-0018](ADR-0018-account-password-change.md) / #308. Recovery semantics stay unchanged.
+
+## Compatibility, rollback and evidence
+
+No migration is needed. Existing sessions stay valid until their normal expiry/logout or explicit owner-wide revocation. Rolling back the application removes the action/lock coordination; it cannot resurrect revoked sessions. Users can sign in again normally. Keys, envelopes, policies and database recovery remain unchanged.
+
+Required evidence: owner/foreign-account and malformed/expired/wrong-password refusals; preserved Vault data and fresh sign-in; actual PostgreSQL parent-lock waits, managed-entity hash refresh, stale proof/session/expiry, independent competing workers and rollback; browser clearing/visibility/timeout/no-retry/new-session isolation; real keyboard focus/cancel/show/hide/mobile flow in both origin topologies and motion settings. Source tests and local compilation alone are not proof of these runtime gates. The linked issue/PR records exact-SHA outcomes and limits.

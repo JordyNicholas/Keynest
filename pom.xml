@@ -32,6 +32,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>4.0.10</spring-boot.version>
     <junit.version>5.11.4</junit.version>
+    <archunit.version>1.5.1</archunit.version>
+    <jacoco.version>0.8.16</jacoco.version>
     <argon2.version>2.11</argon2.version>
     <jackson.version>2.21.8</jackson.version>
     <tomcat.version>11.0.29</tomcat.version>
@@ -138,4 +140,105 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>static-analysis</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>4.10.5.0</version>
+            <configuration>
+              <effort>Max</effort>
+              <threshold>Medium</threshold>
+              <xmlOutput>true</xmlOutput>
+              <spotbugsXmlOutputDirectory>${project.build.directory}</spotbugsXmlOutputDirectory>
+              <spotbugsXmlOutputFilename>spotbugsXml.xml</spotbugsXmlOutputFilename>
+              <includeTests>false</includeTests>
+              <failOnError>true</failOnError>
+              <maxHeap>768</maxHeap>
+              <timeout>180000</timeout>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>formatting</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <version>3.12.0</version>
+            <inherited>false</inherited>
+            <configuration>
+              <encoding>UTF-8</encoding>
+              <lineEndings>UNIX</lineEndings>
+              <ratchetFrom>c609e9634b731afc0abc4f1b94a09de8f46a1207</ratchetFrom>
+              <java>
+                <includes>
+                  <include>libs/*/src/main/java/**/*.java</include>
+                  <include>libs/*/src/test/java/**/*.java</include>
+                  <include>apps/manager-api/src/main/java/**/*.java</include>
+                  <include>apps/manager-api/src/test/java/**/*.java</include>
+                  <include>examples/external-consumer/src/main/java/**/*.java</include>
+                  <include>examples/external-consumer/src/test/java/**/*.java</include>
+                </includes>
+                <eclipse>
+                  <version>4.37</version>
+                  <file>${project.basedir}/config/eclipse-java-formatter.xml</file>
+                </eclipse>
+                <trimTrailingWhitespace/>
+                <endWithNewline/>
+              </java>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <keynestCoverageArgLine></keynestCoverageArgLine>
+        <argLine></argLine>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>@{keynestCoverageArgLine} ${argLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <execution>
+                <id>coverage-agent</id>
+                <goals><goal>prepare-agent</goal></goals>
+                <configuration>
+                  <propertyName>keynestCoverageArgLine</propertyName>
+                  <includes><include>dev.keynest.*</include></includes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>coverage-report</id>
+                <phase>test</phase>
+                <goals><goal>report</goal></goals>
+                <configuration>
+                  <formats><format>XML</format><format>HTML</format></formats>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
