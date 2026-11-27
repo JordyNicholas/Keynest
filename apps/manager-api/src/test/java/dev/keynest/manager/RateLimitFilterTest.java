@@ -59,6 +59,17 @@ class RateLimitFilterTest {
   }
 
   @Test
+  void passwordChangeSharesCanonicalRateAccountingAndNoStoreBeforeAuthentication() throws Exception {
+    for (int index = 0; index < 3; index++) {
+      mockMvc.perform(post(ApiPaths.AUTH_PASSWORD_CHANGE).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
+    }
+    mockMvc.perform(post("/keynest" + ApiPaths.AUTH_PASSWORD_CHANGE).contextPath("/keynest")
+        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+      .andExpect(status().isTooManyRequests()).andExpect(header().string("Cache-Control", "no-store"));
+  }
+
+  @Test
   void generateIsNotRateLimited() throws Exception {
     for (int i = 0; i < 5; i++) {
       mockMvc.perform(post(ApiPaths.TOOLS_GENERATE))

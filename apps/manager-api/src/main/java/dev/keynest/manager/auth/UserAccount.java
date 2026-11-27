@@ -55,6 +55,10 @@ public class UserAccount {
         return email;
     }
 
+    void replacePasswordHash(String passwordHash) {
+        this.passwordHash = java.util.Objects.requireNonNull(passwordHash);
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }

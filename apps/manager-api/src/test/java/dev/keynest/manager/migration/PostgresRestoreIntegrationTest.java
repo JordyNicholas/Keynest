@@ -2,6 +2,7 @@ package dev.keynest.manager.migration;
 
 import dev.keynest.manager.ManagerApiApplication;
 import dev.keynest.manager.auth.AuthService;
+import dev.keynest.manager.auth.PasswordChangeService;
 import dev.keynest.manager.auth.AuthSessionRepository;
 import dev.keynest.manager.vault.VaultItemRepository;
 import dev.keynest.manager.vault.VaultService;
@@ -47,6 +48,7 @@ class PostgresRestoreIntegrationTest {
     Arrays.fill(key, (byte) 0);
     String email = "restore-" + UUID.randomUUID() + "@example.com";
     String password = UUID.randomUUID() + "Aa1!";
+    String newPassword = UUID.randomUUID() + "Bb2!";
     AuthService.AuthResponse session;
     UUID itemId;
     byte[] envelope;
@@ -58,7 +60,6 @@ class PostgresRestoreIntegrationTest {
       AuthService auth = source.getBean(AuthService.class);
       VaultService vault = source.getBean(VaultService.class);
       session = auth.register(email, password);
-      sessionDigest = source.getBean(AuthSessionRepository.class).findAll().getFirst().getTokenDigest();
       var user = auth.requireUser("Bearer " + session.token());
       itemId = vault.create(user, new VaultService.CreateVaultItemRequest(
         "Restore rehearsal", "https://example.com", "demo-user", null,
@@ -67,6 +68,8 @@ class PostgresRestoreIntegrationTest {
       expectedSecret = vault.reveal(user, itemId).password();
       envelope = source.getBean(VaultItemRepository.class)
         .findByIdAndUserId(itemId, user.getId()).orElseThrow().getEnvelopeBytes().clone();
+      session = source.getBean(PasswordChangeService.class).change("Bearer " + session.token(), password.toCharArray(), newPassword.toCharArray());
+      sessionDigest = source.getBean(AuthSessionRepository.class).findAll().getFirst().getTokenDigest();
     }
 
     runPostgres("pg_dump", "--username", postgres.getUsername(), "--dbname", SOURCE_DB,
@@ -97,7 +100,9 @@ class PostgresRestoreIntegrationTest {
       String restoredSecret = restored.getBean(VaultService.class).reveal(user, itemId).password();
       // Boolean assertions avoid exposing generated secrets if a regression fails.
       assertThat(expectedSecret.equals(restoredSecret)).as("restored secret is readable with retained key").isTrue();
-      assertThat(auth.login(email, password).userId()).isEqualTo(session.userId());
+      org.assertj.core.api.Assertions.assertThatThrownBy(() -> auth.login(email, password))
+        .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+      assertThat(auth.login(email, newPassword).userId()).isEqualTo(session.userId());
     }
   }
 

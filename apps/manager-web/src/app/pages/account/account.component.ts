@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { ChangePasswordDialogComponent } from './change-password-dialog.component';
 import { SignOutDevicesDialogComponent } from './sign-out-devices-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
@@ -59,6 +60,14 @@ export class AccountPageComponent {
           }
         },
       });
+  }
+
+  changePassword(): void {
+    if (!this.auth.signedIn() || this.loggingOut() || this.dialogs.getDialogById('change-password')) return;
+    this.dialogs.open(ChangePasswordDialogComponent, {
+      id: 'change-password', width: 'min(36rem, 94vw)', maxWidth: '94vw',
+      ariaLabelledBy: 'change-password-title', autoFocus: 'first-tabbable', restoreFocus: true,
+    });
   }
 
   signOutDevices(): void {

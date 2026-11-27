@@ -64,7 +64,7 @@ The previous application version expects the old column name, so application-onl
 
 `PostgresRestoreIntegrationTest` starts PostgreSQL 16 in a disposable container and Manager against a fresh source database with an ephemeral vault key. It creates an account, session and generated vault item, closes Manager to stop writers, runs `pg_dump --format=custom`, creates a separate restore database, and runs `pg_restore --exit-on-error`. Manager then starts against the restored database with the retained key and validates Flyway history and JPA mappings.
 
-The test verifies row counts, original session authentication, preserved envelope bytes, readable secret plaintext and a fresh login using the restored password hash. Secret comparisons report only pass/fail. The dump stays inside the disposable container; it is never uploaded as an artifact. The test does not connect to any operator-supplied database.
+The test changes the account password and replaces prior sessions before backup, then verifies restored row counts, replacement-session authentication, preserved envelope bytes, readable secret plaintext, rejection of the older password and a fresh login using the changed password. Secret comparisons report only pass/fail. The dump stays inside the disposable container; it is never uploaded as an artifact. The test does not connect to any operator-supplied database.
 
 Run with Java 21+, Maven and Docker:
 
