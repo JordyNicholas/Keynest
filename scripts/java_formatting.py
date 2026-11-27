@@ -2,6 +2,7 @@
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
@@ -22,7 +23,12 @@ def execute(goal, root=ROOT):
   if available.returncode != 0:
     print('FAIL: formatting adoption commit is not available; fetch the required history.', file=sys.stderr)
     return 1
-  return subprocess.call(['mvn', '-B', '-N', '-Pformatting', f'spotless:{goal}'], cwd=root)
+  executable = shutil.which('mvn') or shutil.which('mvn.cmd')
+  if executable is None:
+    print('FAIL: Maven executable is unavailable.', file=sys.stderr)
+    return 1
+  return subprocess.run([executable, '-B', '-N', '-Pformatting', f'spotless:{goal}'],
+                        cwd=root, timeout=120).returncode
 
 
 if __name__ == '__main__':
