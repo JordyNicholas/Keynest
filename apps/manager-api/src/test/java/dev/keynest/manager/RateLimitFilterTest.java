@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 
 /**
  * Low-limit context to prove {@link dev.keynest.manager.api.RateLimitFilter}
@@ -44,6 +45,17 @@ class RateLimitFilterTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(body))
       .andExpect(status().isTooManyRequests());
+  }
+
+  @Test
+  void revokeAllSharesCanonicalRateAccountingAndNoStoreBeforeAuthentication() throws Exception {
+    for (int index = 0; index < 3; index++) {
+      mockMvc.perform(post(ApiPaths.AUTH_LOGOUT_ALL).contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isUnauthorized()).andExpect(header().string("Cache-Control", "no-store"));
+    }
+    mockMvc.perform(post("/keynest" + ApiPaths.AUTH_LOGOUT_ALL).contextPath("/keynest")
+        .contentType(MediaType.APPLICATION_JSON).content("{}"))
+      .andExpect(status().isTooManyRequests()).andExpect(header().string("Cache-Control", "no-store"));
   }
 
   @Test

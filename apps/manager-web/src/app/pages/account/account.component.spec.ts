@@ -33,7 +33,7 @@ describe('AccountPageComponent', () => {
     TestBed.inject(AuthService).setSession('test-session', 'test@example.com');
     const fixture = TestBed.createComponent(AccountPageComponent);const http = TestBed.inject(HttpTestingController);
     http.expectOne('/api/v1/auth/me').flush({ email: 'test@example.com' });fixture.detectChanges();
-    const open = spyOn(TestBed.inject(MatDialog), 'open');fixture.componentInstance.signOutDevices();
+    const open = spyOn(fixture.debugElement.injector.get(MatDialog), 'open');fixture.componentInstance.signOutDevices();
     expect(open).toHaveBeenCalledWith(SignOutDevicesDialogComponent, jasmine.objectContaining({
       id: 'sign-out-devices', ariaLabelledBy: 'sign-out-devices-title', restoreFocus: true,
     }));http.expectNone('/api/v1/auth/logout-all');
