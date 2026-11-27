@@ -1,10 +1,10 @@
 # AI and agent standards alignment — M1 paper spike
 
-**Status:** source/documentation research on November 27, 2026; #325. Proposed ADRs [0019](../../ADR-0019-ai-egress-boundaries.md) and [0020](../../ADR-0020-agent-trust-boundaries.md). No SDK installed, authorization server selected, network/provider credential used, interoperability run, outside integrator feedback or independent review is claimed. Research alone does not close M1.
+**Status:** source/documentation research on November 27, 2026; #325. Proposed ADRs [0019](ADR-0019-ai-egress-boundaries.md) and [0020](ADR-0020-agent-trust-boundaries.md). No SDK installed, authorization server selected, network/provider credential used, interoperability run, outside integrator feedback or independent review is claimed. Research alone does not close M1.
 
 ## Observed Keynest boundary
 
-Pinned source: `24727e837d771e247230f41e78ab17128f4ee1ec`. The accepted [ADR-0010](../../ADR-0010-ephemeral-byok-policy-explanation.md) plus `ai/OpenAiProvider.java` restrict explanation to a fixed destination and minimal scalar policy facts. [Central HTTP authentication](../security/CENTRAL_AUTHENTICATION.md) inventories MVC access decisions, not a future MCP transport. Browser sessions, the fixed HTTP event logger and process-local restore review store are not agent scope, durable audit or a lease engine. See [AI backend evidence](../../AI_BACKEND.md); live provider verification is pending.
+Pinned source: `24727e837d771e247230f41e78ab17128f4ee1ec`. The accepted [ADR-0010](../../architecture/decisions/ADR-0010-ephemeral-byok-policy-explanation.md) plus `ai/OpenAiProvider.java` restrict explanation to a fixed destination and minimal scalar policy facts. [Central HTTP authentication](../../security/controls/api-authentication.md) inventories MVC access decisions, not a future MCP transport. Browser sessions, the fixed HTTP event logger and process-local restore review store are not agent scope, durable audit or a lease engine. See [AI backend evidence](../../api/policy-explanations.md); live provider verification is pending.
 
 ## Primary references and application
 

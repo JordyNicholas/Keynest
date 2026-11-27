@@ -4,7 +4,7 @@
 **Captured:** November 24, 2026 (America/Sao_Paulo). Later the same day: credential kinds, companion and component meeting locally, violation fixtures, grant receipts, and the research notes below.
 **Format:** [FORMAT.md](FORMAT.md)
 
-This catalog collects the ideas from the November 24 product conversation. It is not a release commitment. The [canonical roadmap](../../MASTER_ROADMAP.md) and accepted ADRs still govern what is in scope. Nothing here is shipped.
+This catalog collects the ideas from the November 24 product conversation. It is not a release commitment. The [canonical roadmap](../../contributing/project/roadmap.md) and accepted ADRs still govern what is in scope. Nothing here is shipped.
 
 ## Standing constraints
 
