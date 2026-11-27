@@ -1,0 +1,6 @@
+{
+  "libs/keynest-policy": {"LINE": 0.85, "BRANCH": 0.60},
+  "libs/keynest-generate": {"LINE": 0.90, "BRANCH": 0.85},
+  "libs/keynest-seal": {"LINE": 0.85, "BRANCH": 0.50},
+  "apps/manager-api": {"LINE": 0.90, "BRANCH": 0.75}
+}

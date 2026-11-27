@@ -33,6 +33,7 @@
     <spring-boot.version>4.0.10</spring-boot.version>
     <junit.version>5.11.4</junit.version>
     <archunit.version>1.5.1</archunit.version>
+    <jacoco.version>0.8.16</jacoco.version>
     <argon2.version>2.11</argon2.version>
     <jackson.version>2.21.8</jackson.version>
     <tomcat.version>11.0.29</tomcat.version>
@@ -139,4 +140,48 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <keynestCoverageArgLine></keynestCoverageArgLine>
+        <argLine></argLine>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <argLine>@{keynestCoverageArgLine} ${argLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <execution>
+                <id>coverage-agent</id>
+                <goals><goal>prepare-agent</goal></goals>
+                <configuration>
+                  <propertyName>keynestCoverageArgLine</propertyName>
+                  <includes><include>dev.keynest.*</include></includes>
+                </configuration>
+              </execution>
+              <execution>
+                <id>coverage-report</id>
+                <phase>test</phase>
+                <goals><goal>report</goal></goals>
+                <configuration>
+                  <formats><format>XML</format><format>HTML</format></formats>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
