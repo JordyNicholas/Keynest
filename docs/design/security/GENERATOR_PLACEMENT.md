@@ -14,6 +14,8 @@ This removes required categories' fixed leading positions. A uniform permutation
 
 For an unconstrained four-character/four-required-category policy, every returned sample contains exactly one of each category. Across 24,000 samples, test all 24 category orders and each category at each position. Marginal expected count is 6,000 with a 5% band (±300); order expected count is 1,000 with a 15% band (±150). These broad bands catch forced-position/obvious permutation regressions without demanding an exact seeded sequence. With independent uniform permutations their widths exceed four marginal standard deviations; the actual fixed-seed tests are repeatable regression checks, not production randomness significance tests. Failures report category/order counts only, never generated password values.
 
+A second fixed-seed distribution case generates 12,000 sixteen-character candidates and compares every position with the observed global category mix using a 10% band. This accounts for different alphabet sizes/injection counts and rejects a permutation incorrectly limited to the four-character prefix.
+
 Additional cases cover a feasible digit-first rule that rejects the original fixed lower-first layout, all sixteen required-category combinations, both ambiguity modes, lengths 8/16/128, denylist/repetition restrictions, a one-character supported policy, and an unsatisfiable policy's configured retry failure. A generous test-only RNG draw guard prevents a retry regression from hanging the negative test. Existing default-policy checks keep the generate→validate invariant and omit password values from assertion messages.
 
 ## Compatibility and rollback

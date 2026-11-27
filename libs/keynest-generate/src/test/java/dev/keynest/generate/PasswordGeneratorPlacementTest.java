@@ -42,6 +42,28 @@ class PasswordGeneratorPlacementTest {
   }
 
   @Test
+  void categoryMixIsBalancedAcrossTheWholeLongerCandidate() {
+    int length = 16, samples = 12_000;
+    var generator = new PasswordGenerator(new SeededRandom(0x504c4143454d454eL), 100);
+    var policy = policy(length, 15, false);
+    int[][] counts = new int[length][4];
+    int[] totals = new int[4];
+    for (int sample = 0; sample < samples; sample++) {
+      String value = generator.generate(policy);
+      for (int position = 0; position < length; position++) {
+        int category = category(value.charAt(position));counts[position][category]++;totals[category]++;
+      }
+    }
+    // Empirical category totals account for different alphabet sizes and forced injections.
+    // Checking every position also rejects a shuffle limited to the four-character prefix.
+    for (int position = 0; position < length; position++) for (int category = 0; category < 4; category++) {
+      double expected = (double) totals[category] / length;
+      assertTrue(Math.abs(counts[position][category] - expected) <= expected * 0.10,
+        "Whole-candidate category count outside regression bound: position=" + position + ", category=" + category + ", count=" + counts[position][category]);
+    }
+  }
+
+  @Test
   void positionSensitiveRulesAreValidatedAfterPermutation() {
     var policy = PasswordPolicy.builder().minLength(8).maxLength(8).requireLower(true).requireUpper(true)
       .requireDigit(true).requireSymbol(true).minCategories(4).excludeAmbiguous(false)
