@@ -22,6 +22,7 @@ public class AuthService {
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
     private final PasswordHashingService passwords;
+    private final String missingAccountHash;
     private final SecureRandom random = new SecureRandom();
 
     public AuthService(
@@ -32,6 +33,9 @@ public class AuthService {
         this.users = users;
         this.sessions = sessions;
         this.passwords = passwords;
+        // Non-account work target, prepared once before serving requests. Its
+        // input is not a credential; a missing account can never issue a session.
+        this.missingAccountHash = passwords.hash("keynest missing-account verification");
     }
 
     @Transactional
@@ -62,9 +66,11 @@ public class AuthService {
         if (normalized.isEmpty() || password == null || password.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
-        UserAccount user = users.findByEmailIgnoreCase(normalized)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
-        if (!passwords.verify(password, user.getPasswordHash())) {
+        UserAccount user = users.findByEmailIgnoreCase(normalized).orElse(null);
+        // Do not short-circuit verification when the account is absent. Both
+        // branches must use the shared Argon2 work budget before refusing login.
+        boolean verified = passwords.verify(password, user == null ? missingAccountHash : user.getPasswordHash());
+        if (user == null || !verified) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
         }
         return issueSession(user);

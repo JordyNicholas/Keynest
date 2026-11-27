@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove the unknown-account login verification shortcut by using one prepared dummy hash through the existing Argon2 capacity budget; per-account throttling and registration enumeration remain separate hardening work.
+
 - Bind production Web CSP to the compiled API destination, add mandatory Web framing/referrer/MIME response headers and verify emitted policies with browser framing and real split-origin API tests.
 
 - Apply a shared API response-header baseline across successful, rejected, preflight and servlet error responses; preserve cache/CORS behavior and document operator-managed HTTPS/HSTS. Web CSP and browser session transport remain separate hardening work.
