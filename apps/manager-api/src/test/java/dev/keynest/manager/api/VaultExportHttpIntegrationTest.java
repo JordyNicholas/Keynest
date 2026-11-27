@@ -88,7 +88,9 @@ class VaultExportHttpIntegrationTest {
         .andExpect(header().string("Cache-Control", "no-store")).andExpect(header().string("Pragma", "no-cache"));
       if (i < 2) result.andExpect(status().isOk());else result.andExpect(status().isTooManyRequests()).andExpect(header().exists("Retry-After"));
     }
-    mvc.perform(get(ApiPaths.VAULT_EXPORT_DOWNLOAD)).andExpect(status().isMethodNotAllowed())
+    mvc.perform(get(ApiPaths.VAULT_EXPORT_DOWNLOAD)).andExpect(status().isUnauthorized())
+      .andExpect(header().string("Cache-Control", "no-store"));
+    mvc.perform(get(ApiPaths.VAULT_EXPORT_DOWNLOAD).header("Authorization", bearer)).andExpect(status().isMethodNotAllowed())
       .andExpect(header().string("Cache-Control", "no-store"));
   }
 

@@ -95,6 +95,10 @@ class CentralAuthenticationHttpIntegrationTest {
       "Access-Control-Request-Method", "POST");
     assertThat(denied.statusCode()).isEqualTo(403);
     assertThat(denied.headers().firstValue("Access-Control-Allow-Origin")).isEmpty();
+    var expired = request("GET", ApiPaths.VAULT_ITEMS, null, "Origin", "http://localhost:4200", "Authorization", "Bearer invalid");
+    assertThat(expired.statusCode()).isEqualTo(401);
+    assertThat(expired.headers().firstValue("Access-Control-Allow-Origin")).contains("http://localhost:4200");
+    assertThat(expired.headers().firstValue("Access-Control-Allow-Credentials")).isEmpty();
   }
 
   @Test

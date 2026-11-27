@@ -9,12 +9,23 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.handler.MappedInterceptor;
 
 @Configuration
 public class CentralAuthenticationConfiguration {
   private final CentralAuthenticationInterceptor authentication;
   public CentralAuthenticationConfiguration(CentralAuthenticationInterceptor authentication) { this.authentication = authentication; }
+
+  @Bean
+  FilterRegistrationBean<CorsFilter> apiCors(@Qualifier("apiCorsConfiguration") CorsConfigurationSource source) {
+    var registration = new FilterRegistrationBean<>(new CorsFilter(source));
+    registration.addUrlPatterns("/*");registration.setAsyncSupported(true);
+    registration.setOrder(Ordered.HIGHEST_PRECEDENCE + 25);
+    return registration;
+  }
 
   @Bean
   FilterRegistrationBean<CentralAuthenticationFilter> centralAuthentication(AuthService auth, RouteAccessCatalog catalog) {
