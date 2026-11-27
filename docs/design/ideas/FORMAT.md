@@ -1,6 +1,6 @@
 # Idea record format
 
-**Status:** proposed working format. It does not change the [roadmap](../../MASTER_ROADMAP.md), the charter, or any accepted ADR.
+**Status:** proposed working format. It does not change the [roadmap](../../contributing/project/roadmap.md), the charter, or any accepted ADR.
 
 Use this format for every product idea captured during brainstorming. One record per idea. Keep rejected ideas in the catalog so they are not proposed again under a new name.
 
