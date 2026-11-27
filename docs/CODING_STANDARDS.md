@@ -27,3 +27,7 @@ Root [`.editorconfig`](../.editorconfig) is authoritative. `apps/manager-web/.ed
 
 - UTF-8, LF line endings, final newline, trim trailing whitespace (except Markdown trailing breaks).
 - Do not commit secrets; keep demo keys out of docker/prod profiles (see Keynest #16).
+
+## Java formatting gate
+
+New/changed Java files use the [incremental Spotless gate](design/security/JAVA_FORMATTING_GATES.md), with a fixed adoption commit and committed two-space Eclipse profile. Run check/apply from the repository root and review the diff. Untouched legacy files and other languages are not claimed as fully formatted by this gate.
