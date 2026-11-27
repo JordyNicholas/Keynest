@@ -1,73 +1,21 @@
-# Keynest Manager Web
+# Develop Manager Web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.22.
+Use Node.js 22 and npm. Start the API and web app following [local setup](../../docs/operators/local-setup.md). Run the commands below from `apps/manager-web`.
 
-## Development server
+## Test
 
-Use Node.js 22 and npm. Start [Manager API](../../README.md#run-api), then run from `apps/manager-web`:
-
-```bash
-npm ci
-npm start
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-npm run build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-Production uses `/api/v1` on the web origin. To target a separate API, supply its public URL when building:
-
-```bash
-KEYNEST_API_BASE_URL=https://api.example.com/api/v1 npm run build
-```
-
-This is public configuration compiled into JavaScript, never a credential. Changing it requires rebuilding. The build rejects credentials, query strings/fragments, protocol-relative URLs, malformed paths, and external plain HTTP. HTTP is permitted only for explicit loopback development. Use the npm build command rather than direct `ng build` when setting this variable. See [deployment configuration](../../docs/VERCEL.md).
-
-`npm run test:config` runs destination validation tests. `npm run test:build-config` builds a custom destination and the same-origin default and inspects both bundles; CI runs this after the browser tests.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-npm test
-```
-
-For a single headless run matching CI, install Chrome/Chromium and run:
-
-```bash
+```sh
 npm ci
 npm run test:ci
 ```
 
-Set `CHROME_BIN` to your browser executable when Chrome is not found automatically. CI runs the tests before the production build and fails on a test failure. Coverage includes tab-session storage, auth-guard redirects, authenticated vault-list rendering and failure/recovery, and timed/manual secret concealment. These browser unit/component tests use mocked HTTP; they do not replace the full-stack browser rehearsal against Manager API and PostgreSQL.
+For watch mode, run `npm test`. Set `CHROME_BIN` for a locally installed Chrome or Chromium executable. The component tests use mocked HTTP. The [packaged browser fixtures](../../docs/security/controls/web-csp-verification.md) exercise the production build with a disposable Manager API and PostgreSQL.
 
-## Running end-to-end tests
+## Build
 
-Run the [manual full-stack browser rehearsal](../../docs/MVP_RELEASE_EVIDENCE.md#full-stack-browser-rehearsal) against Manager API and PostgreSQL.
+```sh
+npm run build
+npm run test:build-config
+```
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+The production output is `dist/manager-web/browser`. The second command verifies same-origin and custom API builds. Use the [Web deployment guide](../../docs/operators/web-deployment.md) to select an API destination and serve the generated security headers.

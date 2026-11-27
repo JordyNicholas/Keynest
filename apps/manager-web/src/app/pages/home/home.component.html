@@ -41,7 +41,7 @@
     <div>
       <p class="eyebrow">Understand the boundaries</p><h2 id="security-heading">Security explained.<br>Trust you can inspect.</h2>
       <p>Know how passwords are handled before you entrust them to a deployment.</p>
-      <a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/THREAT_MODEL.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the security model <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a>
+      <a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/security/threat-model.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the security model <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a>
     </div>
     <div class="security-facts">
       <article><h3>Encrypted password storage</h3><p>Vault passwords are encrypted with AES-256-GCM. The server decrypts them for authorized reveals. Keynest is not currently a zero-knowledge system.</p></article>
@@ -56,9 +56,9 @@
       <p>Start with installation, explore the reusable libraries, or understand the security and recovery model.</p>
     </div>
     <div class="columns documentation-cards">
-      <article><h3>Install and run</h3><p>Run the Manager API and PostgreSQL with Compose, then start the web app.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/COMPOSE.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the setup guide <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
-      <article><h3>Build with the libraries</h3><p>Use Keynest’s independent Java policy, generation and encryption libraries in your own project.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/tree/main/examples/external-consumer" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Explore the example <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
-      <article><h3>Understand recovery</h3><p>Recovering encrypted passwords requires a database backup and the matching retained vault key.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/DATABASE_MIGRATIONS.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the recovery guide <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
+      <article><h3>Install and run</h3><p>Run the Manager API and PostgreSQL with Compose, then start the web app.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/operators/local-setup.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the setup guide <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
+      <article><h3>Build with the libraries</h3><p>Use Keynest’s independent Java policy, generation and encryption libraries in your own project.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/libraries/README.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the Java library guide <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
+      <article><h3>Understand recovery</h3><p>Recovering encrypted passwords requires a database backup and the matching retained vault key.</p><a class="text-link" href="https://github.com/JordyNicholas/Keynest/blob/main/docs/operators/database-migrations.md" target="_blank" rel="noopener noreferrer" title="Opens in a new tab">Read the recovery guide <span aria-hidden="true">↗</span><span class="kn-sr-only"> (opens in a new tab)</span></a></article>
     </div>
   </section>
 

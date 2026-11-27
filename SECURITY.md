@@ -8,4 +8,4 @@ Include the affected version or commit, deployment configuration relevant to the
 
 The maintainer will triage private reports and coordinate disclosure through the advisory. Include any disclosure timing constraints in the report.
 
-For deployment guidance and known limitations, see the [threat model](docs/THREAT_MODEL.md) and [operations guide](docs/OPERATIONS.md).
+For deployment guidance and known limitations, see the [threat model](docs/security/threat-model.md) and [operations guide](docs/operators/runtime.md).

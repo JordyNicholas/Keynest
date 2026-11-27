@@ -19,6 +19,6 @@ CI builds and runs the consumer on Java 21 and Java 25. The `keynest.version` pr
 
 It loads the bundled schema-backed default policy, generates a password and validates it with the same policy. It seals/serializes/opens the value, rewraps under a second ephemeral key with unchanged AAD, verifies the value is preserved, and requires wrong-key/wrong-context opens to fail.
 
-Only a fixed PASS line is printed. Keys, generated values, plaintext and envelope bytes are never printed or written to files. Caller-owned key/plaintext buffers are cleared best-effort. The generator returns an immutable Java String, and JVM copies may remain; memory erasure is not guaranteed. See [Seal's buffer-hygiene notes](../../docs/ADR-0003-keynest-seal.md#appendix--sensitive-buffer-hygiene).
+Only a fixed PASS line is printed. Keys, generated values, plaintext and envelope bytes are never printed or written to files. Caller-owned key/plaintext buffers are cleared best-effort. The generator returns an immutable Java String, and JVM copies may remain; memory erasure is not guaranteed. See [Seal's buffer-hygiene notes](../../docs/architecture/decisions/ADR-0003-keynest-seal.md#appendix--sensitive-buffer-hygiene).
 
 The example's AAD is consumer-owned and is not Manager's owner/item binding format. Integrators must define their own canonical versioned context, authorization, key custody, backup/rotation and recovery rules. Both example keys are discarded after the run; this demonstrates the public API, not persistent key management.
