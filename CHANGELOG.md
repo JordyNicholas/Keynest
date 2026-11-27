@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add password-confirmed sign-out across all account sessions, including the current browser, with coordinated sign-in issuance, no automatic retry and unchanged Vault data.
+
 - Clean expired sessions in bounded scheduled batches, preserving active sessions; add the V7 expiry index and documented upgrade/worker limits.
 
 - Add central default-deny API authentication and explicit handler-access inventory, retaining public/optional tool contracts, owner checks, CORS and bulk-operation reauthentication.

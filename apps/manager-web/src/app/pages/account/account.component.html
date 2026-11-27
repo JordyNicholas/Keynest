@@ -10,7 +10,8 @@
         <dd>{{ auth.email() }}</dd>
       </dl>
     }
-    <button mat-stroked-button type="button" [disabled]="loggingOut()" (click)="logout()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button>
+    <div class="row"><button mat-stroked-button type="button" [disabled]="loggingOut()" (click)="logout()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button>
+    <button mat-stroked-button id="open-sign-out-devices" type="button" [disabled]="loggingOut()" (click)="signOutDevices()">Sign out all devices</button></div>
   </section>
 
   <section class="panel" aria-labelledby="password-policy-heading">

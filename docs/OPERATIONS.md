@@ -28,3 +28,7 @@ The tools `/api/v1/tools/health` endpoint remains a compatibility/demo response 
 ## Expired-session storage hygiene
 
 The API removes at most 500 expired sessions per five-minute scheduled tick by default. Active sessions remain valid. See [worker bounds, failure behavior and V7 upgrade](design/security/SESSION_CLEANUP.md) before tuning the batch or delay; cleanup failure does not permit expired authentication. Revoke-all sessions and password-change revocation remain separate lifecycle work.
+
+## Owner-wide sign-out
+
+Account settings → Sign out all devices requires fresh current-password verification and ends the current session too. It preserves Vault data and permits later valid sign-in. Review [database ordering, lost-response handling and rollback](ADR-0017-owner-wide-session-revocation.md); revocation does not retract responses or finish in-flight work. Email verification, MFA, password recovery and changing the account password are separate designs.

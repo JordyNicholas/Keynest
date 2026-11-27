@@ -61,6 +61,7 @@ public class SecurityEventFilter extends OncePerRequestFilter {
       if (ApiPaths.AI_EXPLAIN.equals(path)) return Action.AI_POLICY_EXPLAIN;
       if (ApiPaths.AUTH_REGISTER.equals(path)) return Action.AUTH_REGISTER;
       if (ApiPaths.AUTH_LOGIN.equals(path)) return Action.AUTH_LOGIN;
+      if (ApiPaths.AUTH_LOGOUT_ALL.equals(path)) return Action.AUTH_LOGOUT_ALL;
       if (ApiPaths.AUTH_LOGOUT.equals(path)) return Action.AUTH_LOGOUT;
       if (ApiPaths.AUTH_ME.equals(path)) return Action.AUTH_ME;
       if (ApiPaths.VAULT_ITEMS.equals(path)) return Action.VAULT_CREATE;

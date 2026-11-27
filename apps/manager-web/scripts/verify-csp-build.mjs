@@ -90,7 +90,7 @@ export async function verifyCspBuild(destination, { authenticated = false, reduc
     if (authenticated) console.log('Disposable fixture auth status codes:', JSON.stringify(authOutcomes));
     assert.equal(marker, 'KEYNEST_CSP_PASS', 'production browser CSP probe failed (payload omitted)');
     assert.equal(forbiddenRequests, 0, 'blocked requests must not reach the fixture');
-    console.log(authenticated ? `Production CSP fixture: ${splitOrigin ? 'split-origin' : 'same-origin'} real sign-in, Vault create/edit/rotate/delete, encrypted file download/restore/duplicate-ignore/reveal, framing and logout passed (${reducedMotion ? 'reduced' : 'normal'} motion)`
+    console.log(authenticated ? `Production CSP fixture: ${splitOrigin ? 'split-origin' : 'same-origin'} real sign-in, Vault create/edit/rotate/delete, encrypted file download/restore/duplicate-ignore/reveal, framing, all-device revocation with fresh sign-in, and logout passed (${reducedMotion ? 'reduced' : 'normal'} motion)`
       : 'Production CSP fixture: public tools/dialog and script/connection denials passed');
   } finally {
     await new Promise(resolve => server.close(resolve));

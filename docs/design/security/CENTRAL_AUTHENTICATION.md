@@ -14,7 +14,7 @@ The filter marks successful authentication only for its current dispatch, withou
 
 ## Explicit current surfaces
 
-The catalog declares 27 method/path/handler decisions: eight public, three optional-bearer and sixteen authenticated.
+The catalog declares 28 method/path/handler decisions: eight public, three optional-bearer and seventeen authenticated.
 
 | Treatment | Surfaces |
 | --- | --- |

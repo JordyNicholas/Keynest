@@ -67,7 +67,7 @@ class CentralAuthenticationHttpIntegrationTest {
       {"DELETE", ApiPaths.vaultItem("not-a-uuid")}, {"POST", ApiPaths.vaultItemReveal("not-a-uuid")},
       {"POST", ApiPaths.VAULT_SEARCH}, {"GET", ApiPaths.VAULT_OVERVIEW},
       {"GET", "/api/v1/account/password-policy"}, {"PUT", "/api/v1/account/password-policy"},
-      {"POST", ApiPaths.AUTH_ME}, {"POST", ApiPaths.AI_EXPLAIN},
+      {"POST", ApiPaths.AUTH_LOGOUT_ALL}, {"POST", ApiPaths.AUTH_ME}, {"POST", ApiPaths.AI_EXPLAIN},
       {"POST", ApiPaths.VAULT_EXPORT_PREVIEW}, {"POST", ApiPaths.VAULT_EXPORT_DOWNLOAD},
       {"POST", ApiPaths.VAULT_RESTORE_PREVIEW}, {"POST", ApiPaths.VAULT_RESTORE_APPLY}
     }) {

@@ -49,7 +49,7 @@ class SecurityEventFilterTest {
     "POST,/api/v1/vault/exports/preview,VAULT_EXPORT_PREVIEW",
     "POST,/api/v1/vault/exports/download,VAULT_EXPORT_DOWNLOAD",
     "POST,/api/v1/auth/register,AUTH_REGISTER", "POST,/api/v1/auth/login,AUTH_LOGIN",
-    "POST,/api/v1/auth/logout,AUTH_LOGOUT", "POST,/api/v1/auth/me,AUTH_ME",
+    "POST,/api/v1/auth/logout-all,AUTH_LOGOUT_ALL", "POST,/api/v1/auth/logout,AUTH_LOGOUT", "POST,/api/v1/auth/me,AUTH_ME",
     "GET,/api/v1/vault/items,VAULT_LIST", "POST,/api/v1/vault/items,VAULT_CREATE",
     "GET,/api/v1/vault/items/11111111-1111-1111-1111-111111111111,VAULT_READ",
     "PUT,/api/v1/vault/items/11111111-1111-1111-1111-111111111111,VAULT_UPDATE",
