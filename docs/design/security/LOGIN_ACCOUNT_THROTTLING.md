@@ -35,6 +35,8 @@ No DB/schema/key/hash/session format changes are required. Apply matching applic
 
 Deterministic monotonic-clock tests cover threshold/expiry boundaries, cooldown independent of the observation window, no extension on rejection, success clearing, infrastructure/cancel cleanup, full-table recovery, non-eviction of active entries, idempotent/stale permits, concurrent admission, clock wrap and invalid bounds/identifiers. Service tests cover verifier/repository/session errors and locale invariance. Real HTTP tests use separately resolved clients through an explicitly trusted loopback test proxy: changing IP cannot reset known/unknown identifier budgets; correct credentials are refused during cooldown; other identities and successful-reset behavior remain available; the original client limiter still applies. This test-only proxy trust does not change production proxy settings. Existing Java, PostgreSQL, both Compose checks and all four real browser lifecycle/file cases remain required.
 
+See the consolidated [availability controls](AVAILABILITY_CONTROLS.md) for client/route table saturation, shared password-work denial across owners, ingress deadlines and the source/test evidence boundary. This does not change the identifier-specific semantics above.
+
 ## Primary guidance
 
 - [OWASP authentication throttling and lockout tradeoffs](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#login-throttling)

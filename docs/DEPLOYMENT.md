@@ -16,6 +16,8 @@ A Vercel page using `localhost` or `127.0.0.1` contacts the machine running that
 
 For local development, choose one API runner. `npm run start-api` starts the standalone Java API, and `npm run start-container` starts the local Compose API with PostgreSQL. Both use port 8080 by default. Use the hosted Compose commands below for production-profile startup.
 
+Before public exposure, review [availability controls and saturation recovery](design/security/AVAILABILITY_CONTROLS.md): trusted direct proxies, body/read/request deadlines and shared edge admission remain deployment responsibilities. Local 429/503 protections do not reserve capacity per owner or provide a distributed budget.
+
 ## Verify and publish an image
 
 CI builds and starts the Manager API with the hosted Compose definition and a disposable PostgreSQL instance. It verifies that the configured origin can send bearer and JSON requests, an unlisted origin is rejected, and the packaged API supports sign-in, Vault operations and tenant isolation.
