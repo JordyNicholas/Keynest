@@ -1,5 +1,7 @@
 # Deploy Manager Web and Manager API
 
+Sign-in uses independent client/route and normalized-email admission limits. Both Compose profiles forward the four `KEYNEST_LOGIN_THROTTLE_*` settings; see [defaults, cooldown/recovery, bounded capacity and restart/replica limits](design/security/LOGIN_ACCOUNT_THROTTLING.md). These are process-local controls and do not replace shared ingress protection or database/request deadlines.
+
 Manager Web works from a local browser or Vercel. Manager API and PostgreSQL run in Docker in each environment. Set the web build's public `KEYNEST_API_BASE_URL` for its target environment. Vercel Preview and Production use distinct HTTPS API origins, with a separate database volume, database password and vault key for each Compose project.
 
 Run production on a dedicated Docker host. Prefer a second Docker host for test. If a test host is unavailable, [run the test stack locally](#local-test-fallback). To include Vercel Preview in that test, [create a temporary HTTPS URL for the local API](#test-vercel-preview-with-a-local-api).

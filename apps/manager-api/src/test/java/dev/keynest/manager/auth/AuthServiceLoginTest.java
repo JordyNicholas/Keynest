@@ -1,6 +1,7 @@
 package dev.keynest.manager.auth;
 
 import dev.keynest.manager.security.PasswordHashingService;
+import dev.keynest.manager.config.LoginThrottleProperties;
 import dev.keynest.seal.PasswordHasher;
 import java.time.Instant;
 import java.util.Optional;
@@ -25,7 +26,7 @@ class AuthServiceLoginTest {
   private AuthService auth() {
     when(passwords.hash(anyString())).thenReturn("dummy-hash");
     when(users.findByEmailIgnoreCase(known.getEmail())).thenReturn(Optional.of(known));
-    return new AuthService(users, sessions, passwords);
+    return new AuthService(users, sessions, passwords, new LoginAttemptLimiter(new LoginThrottleProperties()));
   }
 
   @Test
@@ -91,7 +92,7 @@ class AuthServiceLoginTest {
     PasswordHasher hasher = mock(PasswordHasher.class);
     when(hasher.hashPassword(any(char[].class))).thenReturn("dummy-hash");
     PasswordHashingService shared = new PasswordHashingService(hasher, 1);
-    AuthService auth = new AuthService(users, sessions, shared);
+    AuthService auth = new AuthService(users, sessions, shared, new LoginAttemptLimiter(new LoginThrottleProperties()));
     when(users.findByEmailIgnoreCase(known.getEmail())).thenReturn(Optional.of(known));
     CountDownLatch occupied = new CountDownLatch(1), release = new CountDownLatch(1);
     when(hasher.hashPassword(any(char[].class))).thenAnswer(call -> {
@@ -118,7 +119,7 @@ class AuthServiceLoginTest {
     String password = "Synthetic known passphrase!42";
     var account = new UserAccount(UUID.randomUUID(), "native@example.invalid", real.hash(password), Instant.now());
     when(users.findByEmailIgnoreCase(account.getEmail())).thenReturn(Optional.of(account));
-    AuthService auth = new AuthService(users, sessions, real);
+    AuthService auth = new AuthService(users, sessions, real, new LoginAttemptLimiter(new LoginThrottleProperties()));
     refused(() -> auth.login(account.getEmail(), "wrong synthetic credential"), HttpStatus.UNAUTHORIZED);
     refused(() -> auth.login("missing@example.invalid", "wrong synthetic credential"), HttpStatus.UNAUTHORIZED);
     // Even knowing the public non-account work input must not authenticate.

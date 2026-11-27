@@ -11,6 +11,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RateLimitFilterCapacityTest {
 
   @Test
+  void clientLimiterAloneDoesNotShareAttemptsAcrossDifferentPeers() throws Exception {
+    RateLimitProperties properties = new RateLimitProperties();properties.setLimit(1);
+    RateLimitFilter filter = new RateLimitFilter(properties, new ClientIpResolver(properties));
+    assertThat(invoke(filter, ApiPaths.AUTH_LOGIN, "198.51.100.1").getStatus()).isEqualTo(200);
+    assertThat(invoke(filter, ApiPaths.AUTH_LOGIN, "198.51.100.2").getStatus()).isEqualTo(200);
+    assertThat(invoke(filter, ApiPaths.AUTH_LOGIN, "198.51.100.1").getStatus()).isEqualTo(429);
+  }
+
+  @Test
   void failsClosedWhenActiveIdentityCapacityIsExhausted() throws Exception {
     RateLimitProperties properties = new RateLimitProperties();
     properties.setLimit(100);
