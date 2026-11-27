@@ -1,6 +1,6 @@
 # Keynest — AI and agent architecture
 
-**Status:** Implemented BYOK policy explanation and proposed follow-on AI and agent boundaries. See [Project Charter](../contributing/project/charter.md).
+**Status:** Implemented optional BYOK policy explanation, with accepted follow-on AI egress and agent trust design boundaries. Later workflows remain unimplemented. See [Project Charter](../contributing/project/charter.md).
 
 The first concrete BYOK boundary is accepted in [ADR-0010 — ephemeral policy explanation](../architecture/decisions/ADR-0010-ephemeral-byok-policy-explanation.md). The API and Manager Web workflows landed in #98 and #100. See the [contract and verification status](../api/policy-explanations.md). Live-provider verification remains pending. The broader proposal/agent workflows below remain future designs.
 
@@ -46,4 +46,4 @@ MCP is a protocol/interface, **not** a security boundary. A plan hash or model i
 
 Before implementing provider networking, credential persistence, or agent mutations, record ADRs covering data disclosure, credential custody, egress, identity/scopes, approvals, retention, and audit. Use negative and integration tests. Mark shipped features only after code, CI, and runtime evidence exist.
 
-M1 design candidates are [ADR-0019 — AI egress](ai-agent/ADR-0019-ai-egress-boundaries.md), [ADR-0020 — agent trust](ai-agent/ADR-0020-agent-trust-boundaries.md) and the [primary-source standards spike](ai-agent/STANDARDS_SPIKE.md). They are proposed for review, not accepted architecture or implemented capabilities. ADR-0010 and the current session transport remain authoritative; no provider/agent enablement or M1 exit follows from these drafts.
+M1 design contracts [ADR-0019 — AI egress](../architecture/decisions/ADR-0019-ai-egress-boundaries.md) and [ADR-0020 — agent trust](../architecture/decisions/ADR-0020-agent-trust-boundaries.md) were accepted through maintainer-approved #327 on November 27, 2026. The [primary-source standards spike](ai-agent/STANDARDS_SPIKE.md) remains research evidence. Acceptance does not implement or enable later workflows, change the current session transport, authorize provider traffic or close M1. ADR-0010 and ADR-0007 remain authoritative for the existing runtime.
