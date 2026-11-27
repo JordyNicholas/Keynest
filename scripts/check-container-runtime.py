@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 from argparse import ArgumentParser
+from container_diagnostics import failure_categories
 
 
 def output(*command):
@@ -31,16 +32,9 @@ try:
     state = json.loads(output('docker', 'inspect', '--format', '{{json .State}}', container))
     logs = subprocess.run(['docker', 'logs', container], capture_output=True, text=True, check=False)
     combined = logs.stdout + logs.stderr
-    categories = {
-      'native_library_failure': ['UnsatisfiedLinkError', 'failed to map segment'],
-      'read_only_write': ['Read-only file system'],
-      'permission_failure': ['Permission denied'],
-      'memory_failure': ['OutOfMemoryError'],
-      'startup_failure': ['APPLICATION FAILED TO START'],
-    }
     print('Container running:', state.get('Running') is True, 'OOM killed:', state.get('OOMKilled') is True)
-    for name, markers in categories.items():
-      print(name + ':', any(marker in combined for marker in markers))
+    for name, detected in failure_categories(combined).items():
+      print(name + ':', detected)
     sys.exit(0)
   # HostConfig omits environment values, keys and other application configuration.
   host = json.loads(output('docker', 'inspect', '--format', '{{json .HostConfig}}', container))

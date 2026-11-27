@@ -150,15 +150,26 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   await page.waitForFunction(() => document.querySelector('.result-count')?.textContent.includes('0 matching items'));
   assert.equal(await page.$$eval(card, nodes => nodes.length), 0);
 
-  const review = async () => {
+  const review = async prefix => {
+    stage(prefix + '_OPEN');
     await page.locator(button('Restore')).click();
+    stage(prefix + '_FILE');
     const picker = await page.waitForSelector('#restore-file');await picker.uploadFile(file);
+    stage(prefix + '_PASSPHRASE');
     await page.locator('#restore-passphrase').fill(passphrase);
-    const reply = await clickResponse('kn-vault-restore-dialog form button[type="submit"]', '/api/v1/vault/restores/preview', 'POST');
+    stage(prefix + '_RESPONSE');
+    const [reply] = await Promise.all([
+      response('/api/v1/vault/restores/preview', 'POST'),
+      page.locator('kn-vault-restore-dialog form button[type="submit"]').click(),
+    ]);
+    if (!reply.ok()) stage(prefix + (reply.status() === 429 ? '_RATE_LIMIT' : reply.status() >= 500 ? '_SERVER_FAILURE' : '_HTTP_FAILURE'));
+    assert.ok(reply.ok());
+    stage(prefix + '_JSON');
     return reply.json();
   };
   stage('RESTORE_REVIEW');
-  const preview = await review();
+  const preview = await review('RESTORE_REVIEW');
+  stage('RESTORE_REVIEW_COUNTS');
   assert.ok(preview.itemCount === 1 && preview.newItemCount === 1 && preview.updatedItemCount === 0 && preview.skippedCount === 0);
   assert.ok(await page.$eval('kn-vault-restore-dialog', node => node.textContent.includes('1 to add; 0 to update; 0 to ignore')));
   assert.equal(await page.$$eval(card, nodes => nodes.length), 0);
@@ -176,14 +187,21 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   assert.equal(await page.$$eval(card, nodes => nodes.length), 1);
   await reveal(replacement);
   stage('RESTORE_DUPLICATE');
-  const duplicate = await review();
+  const duplicate = await review('RESTORE_DUPLICATE');
+  stage('RESTORE_DUPLICATE_COUNTS');
   assert.ok(duplicate.itemCount === 1 && duplicate.newItemCount === 0 && duplicate.updatedItemCount === 0 && duplicate.skippedCount === 1);
+  stage('RESTORE_DUPLICATE_RENDER');
   await page.waitForFunction(() => document.querySelector('kn-vault-restore-dialog')?.textContent.includes('All items already exist. Nothing needs to be restored.'));
+  stage('RESTORE_DUPLICATE_NO_PASSWORD');
   assert.equal(await page.$('#restore-account-password'), null);
+  stage('RESTORE_DUPLICATE_NO_APPLY');
   assert.equal(await page.$('kn-vault-restore-dialog form button[type="submit"]'), null);
+  stage('RESTORE_DUPLICATE_CLOSE');
   await page.locator('kn-vault-restore-dialog [mat-dialog-close]').click();
   await page.waitForSelector('kn-vault-restore-dialog', { hidden: true });
+  stage('RESTORE_DUPLICATE_CSP');
   assert.ok(await page.evaluate(() => window.__fixtureViolations.length === 0));
+  stage('RESTORE_DUPLICATE_RELOAD');
   await page.reload({ waitUntil: 'networkidle0' });
   await expand();assert.equal(await itemId(), restoredId);
   await metadata();
