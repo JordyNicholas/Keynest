@@ -45,3 +45,5 @@ MCP is a protocol/interface, **not** a security boundary. A plan hash or model i
 ## Architecture decisions and evidence
 
 Before implementing provider networking, credential persistence, or agent mutations, record ADRs covering data disclosure, credential custody, egress, identity/scopes, approvals, retention, and audit. Use negative and integration tests. Mark shipped features only after code, CI, and runtime evidence exist.
+
+M1 design candidates are [ADR-0019 — AI egress](ADR-0019-ai-egress-boundaries.md), [ADR-0020 — agent trust](ADR-0020-agent-trust-boundaries.md) and the [primary-source standards spike](design/ai-agent/STANDARDS_SPIKE.md). They are proposed for review, not accepted architecture or implemented capabilities. ADR-0010 and the current session transport remain authoritative; no provider/agent enablement or M1 exit follows from these drafts.
