@@ -24,3 +24,7 @@ curl --fail http://localhost:8080/actuator/health/readiness
 The tools `/api/v1/tools/health` endpoint remains a compatibility/demo response and does not check the database. Use the readiness endpoint for traffic routing. No Compose or cloud healthcheck/restart policy is installed by this change; verify the chosen routing and orchestration settings during the full-stack rehearsal.
 
 `HealthEndpointIntegrationTest` exercises healthy responses, datasource failure/recovery, liveness independence, and denial of diagnostic endpoints. The outage is injected into the datasource after application startup; a PostgreSQL network-outage rehearsal remains deployment evidence to collect. See [database migrations](./DATABASE_MIGRATIONS.md) and the [threat model](./THREAT_MODEL.md) for backup/restore and release checks.
+
+## Expired-session storage hygiene
+
+The API removes at most 500 expired sessions per five-minute scheduled tick by default. Active sessions remain valid. See [worker bounds, failure behavior and V7 upgrade](design/security/SESSION_CLEANUP.md) before tuning the batch or delay; cleanup failure does not permit expired authentication. Revoke-all sessions and password-change revocation remain separate lifecycle work.

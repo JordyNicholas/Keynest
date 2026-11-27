@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Clean expired sessions in bounded scheduled batches, preserving active sessions; add the V7 expiry index and documented upgrade/worker limits.
+
 - Add central default-deny API authentication and explicit handler-access inventory, retaining public/optional tool contracts, owner checks, CORS and bulk-operation reauthentication.
 
 - Add bounded per-process sign-in failure/cooldown admission by normalized email across client IPs, with in-flight serialization and generic retry guidance. Document targeted-lockout, full-table, restart and replica limits.
