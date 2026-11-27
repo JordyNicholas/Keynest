@@ -20,8 +20,8 @@ export async function sessionLifecycle(page, email, password, apiBase, stage) {
   stage('DEVICES_WIDTH');assert.ok(await page.$eval('kn-sign-out-devices-dialog', node => node.scrollWidth <= node.clientWidth + 1));
   stage('DEVICES_TAB_FOCUS');await page.keyboard.press('Tab');
   assert.ok(await page.evaluate(() => document.activeElement?.getAttribute('aria-controls') === 'sign-out-devices-password'));
-  stage('DEVICES_SHOW_PASSWORD');await page.keyboard.press('Space');
-  assert.ok(await page.$eval('#sign-out-devices-password', node => node.type === 'text'));
+  stage('DEVICES_SHOW_PASSWORD_KEY');await page.keyboard.press('Space');
+  stage('DEVICES_SHOW_PASSWORD_RENDER');await page.waitForFunction(() => document.querySelector('#sign-out-devices-password')?.type === 'text');
   stage('DEVICES_CANCEL');await page.keyboard.press('Escape');
   await page.waitForSelector('kn-sign-out-devices-dialog', { hidden: true });
   stage('DEVICES_RETURN_FOCUS');await page.waitForFunction(() => document.activeElement?.id === 'open-sign-out-devices');
