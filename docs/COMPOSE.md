@@ -46,7 +46,7 @@ The final command permanently removes **only that project's test containers and 
 
 The smoke test waits up to 120 seconds for readiness, then verifies liveness, restricted diagnostics, disabled demo seal, registration/login/logout, generated vault create/list/reveal/update/delete, reveal cache headers, POST-only reveal and two-user access denial. It generates disposable account credentials in memory and prints only pass/fail outcomes. HTTP redirects and proxy environment variables are ignored so test bearers stay on the loopback API. The script creates two test accounts; their removal relies on deletion of the disposable volume.
 
-CI's `Packaged Compose smoke` job performs the same image build and HTTP test after Java and Angular gates pass, with a run-specific project name and unconditional project cleanup. Dumps, keys, response bodies and container logs are not uploaded as artifacts. A passing job demonstrates the packaged API/PostgreSQL path on a fresh runner; it is not a browser UI or real-provider/cloud/TLS rehearsal.
+CI's `Packaged Compose smoke` job performs the same image build and HTTP test after Java and Angular gates pass, with a run-specific project name and unconditional project cleanup. Dumps, keys, response bodies and container logs are not uploaded as artifacts. A passing HTTP smoke demonstrates the packaged API/PostgreSQL path on a fresh runner. Current main CI also runs the [authenticated browser/CSP lifecycle checks](design/security/WEB_CSP_VERIFICATION.md); neither check verifies a real provider, your cloud host or your public TLS ingress.
 
 ## Stop, restart and remaining deployment work
 
