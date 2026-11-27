@@ -65,7 +65,8 @@
               <mat-panel-title class="vault-header"><span class="item-info"><strong>{{ item.label }}</strong><span>{{ displayHost(item.url) }}</span></span><span class="expiry-status" [attr.data-tone]="expiry.tone"><kn-icon [name]="expiry.tone === 'healthy' ? 'check' : expiry.tone === 'urgent' ? 'alert' : expiry.tone === 'warning' ? 'clock' : 'minus'" />{{ expiry.label }}</span></mat-panel-title>
             </mat-expansion-panel-header>
             <ng-template matExpansionPanelContent>
-              <kn-vault-item-details [item]="item" [secret]="revealed()[item.id] ?? ''" [remaining]="remainingSeconds()[item.id] ?? 0"
+              <kn-vault-item-details [knPreserveDisclosureSize]="expandedId() === item.id"
+                                     [item]="item" [secret]="revealed()[item.id] ?? ''" [remaining]="remainingSeconds()[item.id] ?? 0"
                                      [pending]="pending()" [revealSeconds]="revealDurationSeconds" [revealing]="revealingId() === item.id"
                                      (reveal)="reveal(item.id)" (conceal)="conceal(item.id)" (remove)="remove(item.id)" />
             </ng-template>

@@ -65,8 +65,9 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   assert.equal(await itemId(), originalId);
   await metadata();
 
-  stage('ROTATION_OPTIONS');
+  stage('ROTATION_NAVIGATION');
   await page.locator(`${card} a.rotate-action`).click();
+  stage('ROTATION_OPTIONS');
   await page.locator('details.rotation-generator summary').click();
   stage('ROTATION_GENERATE');
   await page.locator(button('Generate replacement')).click();

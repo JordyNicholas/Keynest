@@ -2,24 +2,29 @@ import { Component, DestroyRef, ElementRef, HostListener, inject, signal, viewCh
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { PreserveDisclosureSizeDirective } from '../../ui/preserve-disclosure-size.directive';
 import { PublicGeneratorComponent } from './public-generator.component';
 import { PublicCheckerComponent } from './public-checker.component';
 
 type Tool = 'generate' | 'check';
 @Component({
   selector: 'kn-public-tools',
-  imports: [MatExpansionModule, PublicGeneratorComponent, PublicCheckerComponent],
+  imports: [MatExpansionModule, PreserveDisclosureSizeDirective, PublicGeneratorComponent, PublicCheckerComponent],
   template: `
     <h2 id="public-tools-heading">A password tool when you need it.</h2>
     <p>Open a tool to get started. No account needed. Both use fixed default rules in this browser.</p>
     <mat-accordion [multi]="false">
       <mat-expansion-panel id="generator" [expanded]="active() === 'generate'" (opened)="open('generate')" (closed)="close('generate')">
         <mat-expansion-panel-header><mat-panel-title>Generate a password</mat-panel-title><mat-panel-description>Create and copy a fresh password</mat-panel-description></mat-expansion-panel-header>
-        @if (active() === 'generate') { <kn-public-generator /> }
+        <div [knPreserveDisclosureSize]="active() === 'generate'">
+          @if (active() === 'generate') { <kn-public-generator /> }
+        </div>
       </mat-expansion-panel>
       <mat-expansion-panel id="check" [expanded]="active() === 'check'" (opened)="open('check')" (closed)="close('check')">
         <mat-expansion-panel-header><mat-panel-title>Check a password</mat-panel-title><mat-panel-description>Review the default rules locally</mat-panel-description></mat-expansion-panel-header>
-        @if (active() === 'check') { <kn-public-checker /> }
+        <div [knPreserveDisclosureSize]="active() === 'check'">
+          @if (active() === 'check') { <kn-public-checker /> }
+        </div>
       </mat-expansion-panel>
     </mat-accordion>
     <a class="back-top" href="#home-content" (click)="backToTop()">Back to top ↑</a>

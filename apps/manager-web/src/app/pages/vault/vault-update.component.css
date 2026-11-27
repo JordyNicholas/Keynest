@@ -29,6 +29,6 @@ summary:focus-visible {
   outline-offset: 2px;
 }
 
-.rotation-generator[open] > summary {
-  margin-bottom: 0.5rem;
+.generator-content {
+  padding-block-start: 0.5rem;
 }

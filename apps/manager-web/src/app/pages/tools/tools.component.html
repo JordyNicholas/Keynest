@@ -6,13 +6,17 @@
       <mat-panel-title>Generate password</mat-panel-title>
       <mat-panel-description>Create and copy a password</mat-panel-description>
     </mat-expansion-panel-header>
-    @if (active() === 'generate') { <kn-generate-password-page /> }
+    <div [knPreserveDisclosureSize]="active() === 'generate'">
+      @if (active() === 'generate') { <kn-generate-password-page /> }
+    </div>
   </mat-expansion-panel>
   <mat-expansion-panel id="check" [expanded]="active() === 'check'" (opened)="open('check')" (closed)="close('check')">
     <mat-expansion-panel-header>
       <mat-panel-title>Check password policy</mat-panel-title>
       <mat-panel-description>Understand the selected rules</mat-panel-description>
     </mat-expansion-panel-header>
-    @if (active() === 'check') { <kn-check-password-page [explanation]="explanation" /> }
+    <div [knPreserveDisclosureSize]="active() === 'check'">
+      @if (active() === 'check') { <kn-check-password-page [explanation]="explanation" /> }
+    </div>
   </mat-expansion-panel>
 </mat-accordion>
