@@ -43,11 +43,20 @@ jobs:
       - name: Verify formatter rejection and repair on disposable sources
         run: python3 scripts/verify_java_formatting.py
 
+      - name: Verify analyzer gate rejection cases
+        run: python3 -m unittest discover -s scripts/tests -p 'test_java_analysis.py'
+
       - name: Verify coverage gate rejection cases
         run: python3 -m unittest discover -s scripts/tests -p 'test_java_coverage.py'
 
       - name: Test with coverage (bytecode release 21)
-        run: mvn -B -Pcoverage clean test
+        run: mvn -B -Pcoverage,static-analysis clean test spotbugs:spotbugs
+
+      - name: Enforce source-reviewed static analysis
+        run: python3 scripts/check_java_analysis.py
+
+      - name: Verify real analyzer rejection and repaired control
+        run: python3 scripts/verify_java_analysis.py
 
       - name: Enforce every module's line and branch floors
         run: python3 scripts/check_java_coverage.py
