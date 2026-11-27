@@ -126,6 +126,14 @@ def run(cors_origin):
   _, me = expect('POST', API + '/auth/me', token=login_token)
   check(me['userId'] == registered['userId'], 'login must authenticate the registered account')
 
+  # Both failures exercise native password work; never inspect or print bodies.
+  wrong_candidate = secrets.token_urlsafe(32)
+  expect('POST', API + '/auth/login', {'email': email, 'password': wrong_candidate}, status=401)
+  expect('POST', API + '/auth/login', {
+    'email': 'missing-' + secrets.token_hex(12) + '@example.invalid', 'password': wrong_candidate,
+  }, status=401)
+  print('PASS: known-wrong and unknown-account logins both return generic 401')
+
   _, item = expect('POST', API + '/vault/items', {'label': 'Compose smoke item', 'generate': True}, token)
   item_path = API + '/vault/items/' + item['id']
   _, items = expect('GET', API + '/vault/items', token=token)

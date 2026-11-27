@@ -1,0 +1,17 @@
+<h2 mat-dialog-title id="sign-out-devices-title">Sign out all devices</h2>
+<mat-dialog-content>
+  <p>This ends every session for your account on this Keynest instance, including this one. Your saved passwords stay in your Vault. You can sign in again afterward.</p>
+  <kn-inline-error [(message)]="error" />
+  <form id="sign-out-devices-form" ngNativeValidate (submit)="submit($event)" [attr.aria-busy]="busy()">
+    <label for="sign-out-devices-password">Current account password</label>
+    <input #password id="sign-out-devices-password" [type]="visible() ? 'text' : 'password'"
+      autocomplete="current-password" required maxlength="32768" [disabled]="busy()" />
+    <button mat-stroked-button type="button" [disabled]="busy()" [attr.aria-pressed]="visible()"
+      aria-controls="sign-out-devices-password" (click)="visible.set(!visible())">{{ visible() ? 'Hide password' : 'Show password' }}</button>
+    <p role="status">{{ busy() ? 'Signing out devices…' : '' }}</p>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" [disabled]="busy()" mat-dialog-close>Cancel</button>
+  <button mat-flat-button type="submit" form="sign-out-devices-form" [disabled]="busy()">{{ busy() ? 'Signing out…' : 'Verify and sign out all devices' }}</button>
+</mat-dialog-actions>

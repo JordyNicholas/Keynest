@@ -2,12 +2,12 @@
 
 These instructions apply to the repository. Read them before planning, editing, reviewing, or merging. They apply to ChatGPT Work, Cursor, Claude, and human contributors alike; no agent's chat history is authoritative.
 
-**Canonical execution roadmap:** [docs/MASTER_ROADMAP.md](docs/MASTER_ROADMAP.md) is the start-to-finish plan and current release-scope/priority authority. Read it before choosing the next task. Accepted ADRs and explicit maintainer decisions still govern technical/security contracts.
+**Canonical execution roadmap:** [docs/contributing/project/roadmap.md](docs/contributing/project/roadmap.md) is the start-to-finish plan and current release-scope/priority authority. Read it before choosing the next task. Accepted ADRs and explicit maintainer decisions still govern technical/security contracts.
 
 ## Source of truth and coordination
 
-1. Read the adopted [Project Charter](docs/PROJECT_CHARTER.md), [Product](docs/PRODUCT.md), [Coding Standards](docs/CODING_STANDARDS.md), and applicable accepted ADRs. Read [AI Architecture](docs/AI_ARCHITECTURE.md) for AI or agent work; it remains a proposed design boundary until its decisions land through ADRs and implementation PRs.
-2. Use [Engineering Baseline](docs/ENGINEERING_BASELINE.md) as the verified historical snapshot at its pinned commit. Use [Master Roadmap](docs/MASTER_ROADMAP.md), current `main`, GitHub issues, reviewed PRs, and CI evidence for current status and sequencing. Do not rewrite the baseline to imply that later work existed at its pinned commit.
+1. Read the adopted [Project Charter](docs/contributing/project/charter.md), [Product](docs/contributing/project/product.md), [Coding Standards](docs/contributing/coding-standards.md), and applicable accepted ADRs. Read [AI Architecture](docs/design/ai-and-agents.md) for AI or agent work; it remains a proposed design boundary until its decisions land through ADRs and implementation PRs.
+2. Use [Engineering Baseline](docs/archive/engineering-baseline.md) as the verified historical snapshot at its pinned commit. Use [Master Roadmap](docs/contributing/project/roadmap.md), current `main`, GitHub issues, reviewed PRs, and CI evidence for current status and sequencing. Do not rewrite the baseline to imply that later work existed at its pinned commit.
 3. GitHub issues and reviewed PRs track work. Before changing files, inspect open PRs, active branches, and recent commits; avoid overlapping edits. Use `KN#<issue>-<slug>` branches and link the issue in the PR.
 4. Distinguish `[verified]` implementation facts, `[proposed]` designs, and `[needs verification]` assumptions. Never claim tests, security audits, deployment, or AI capabilities that have not been verified.
 5. Preserve established public contracts and existing user data unless an approved migration exists. Prefer incremental changes over rewrites without evidence.
@@ -18,7 +18,7 @@ These instructions apply to the repository. Read them before planning, editing, 
 - Java 21 / Spring Boot 4 backend, Angular 21 / Material frontend, reusable Java libraries, PostgreSQL production path, Docker deployment. Stack changes require an ADR.
 - Core tools and vault must work with AI disabled and without cloud-specific services.
 - A meaningful AI differentiation is required, but not at the cost of safe key custody, correctness, or a credible release.
-- Target release: **November 28, 2026**. Scope may shrink; security acceptance criteria may not.
+- Release scope follows the canonical roadmap and recorded acceptance gates.
 
 ## Security rules
 

@@ -8,7 +8,7 @@
     "vercel-build": "npm run build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "test:config": "node --test scripts/api-base-url.test.mjs scripts/expiry-date.test.mjs scripts/dependency-compatibility.test.mjs scripts/ensure-default-policy.test.mjs",
+    "test:config": "node --test scripts/api-base-url.test.mjs scripts/expiry-date.test.mjs scripts/dependency-compatibility.test.mjs scripts/ensure-default-policy.test.mjs scripts/web-security.test.mjs",
     "test:build-config": "node scripts/verify-build-config.mjs",
     "test:ci": "npm run test:config && ng test --watch=false --browsers=ChromeHeadless --no-progress"
   },
@@ -38,6 +38,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "puppeteer-core": "25.19.0",
     "typescript": "~5.9.3"
   },
   "overrides": {

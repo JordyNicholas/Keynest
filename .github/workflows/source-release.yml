@@ -9,7 +9,7 @@ on:
       - 'scripts/publish_source_release.py'
       - 'scripts/dependency_inventory.py'
       - 'scripts/tests/test_source_release.py'
-      - 'docs/SOURCE_RELEASE.md'
+      - 'docs/contributing/source-releases.md'
   workflow_dispatch:
     inputs:
       version:

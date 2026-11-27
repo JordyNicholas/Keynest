@@ -1,0 +1,589 @@
+[
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.ai.AiExplanationService",
+    "source_sha256": "60e437586624505c8843f36797a3a3512be043f999118fb7e7f2311033e751ba",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "properties",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.ai.OpenAiProvider",
+    "source_sha256": "e9862b832356954146de9bc942bffa24cde0d92c32f610b747e75faeff392f01",
+    "findings": [
+      {
+        "type": "REC_CATCH_EXCEPTION",
+        "priority": 2,
+        "method": "explain",
+        "field": "",
+        "count": 1,
+        "reason": "sanitized-failure-boundary"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.api.RateLimitFilter",
+    "source_sha256": "ee83919f0f1364bb1fac7066f7729c13cf2e0ba593c72bb47216c8519abf1b25",
+    "findings": [
+      {
+        "type": "CT_CONSTRUCTOR_THROW",
+        "priority": 2,
+        "method": "<init>",
+        "field": "",
+        "count": 1,
+        "reason": "startup-validation"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "properties",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.api.VaultExportRequest",
+    "source_sha256": "48bf6c292e4a9044f439f3a2c85eacafb980207a1be0aef3ef0479fde02f9ff2",
+    "findings": [
+      {
+        "type": "REC_CATCH_EXCEPTION",
+        "priority": 2,
+        "method": "read",
+        "field": "",
+        "count": 1,
+        "reason": "sanitized-failure-boundary"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.AuthService",
+    "source_sha256": "91d87d54e308689b43c9206fe4ad51370867132a485ad752328a83ff80d83a02",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "sessions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.ExpiredSessionCleanup",
+    "source_sha256": "a98143c0955a764b1cac46ef531c9d6b6feacc68596f649ac0cc151a358a2b72",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "sessions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.LoginAttemptLimiter",
+    "source_sha256": "94efa2ebf855460f1f4f13fef2213f8c03af9c9d966f46227a957cb4a729b77a",
+    "findings": [
+      {
+        "type": "CT_CONSTRUCTOR_THROW",
+        "priority": 2,
+        "method": "<init>",
+        "field": "",
+        "count": 2,
+        "reason": "startup-validation"
+      },
+      {
+        "type": "DMI_RANDOM_USED_ONLY_ONCE",
+        "priority": 1,
+        "method": "<init>",
+        "field": "",
+        "count": 1,
+        "reason": "one-time-csprng-process-key"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.LoginAttemptLimiter$Attempt",
+    "source_sha256": "94efa2ebf855460f1f4f13fef2213f8c03af9c9d966f46227a957cb4a729b77a",
+    "findings": [
+      {
+        "type": "USO_UNSAFE_OBJECT_SYNCHRONIZATION",
+        "priority": 2,
+        "method": "complete",
+        "field": "this$0",
+        "count": 1,
+        "reason": "shared-admission-monitor"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.PasswordChangeService",
+    "source_sha256": "cbaae16d03cfe245375a73b39c569919a2cd74b284847cdf4262d4152ecdcdd2",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "transactions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.PasswordChangeTransactions",
+    "source_sha256": "dbc66178369b8540112e020cac5fea3b4be381ced5d12fcba97ec98f9583deb9",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "sessions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.SessionRevocationTransactions",
+    "source_sha256": "a29015b6bcce5d436700d9dee8eb611e1c6e71a1d27039d1220636791055775e",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "sessions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.config.CorsProperties",
+    "source_sha256": "e0c2120db44bd5073802899476caa4824ab727e45a50e1776c212f1de31cc13d",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "getAllowedOrigins",
+        "field": "allowedOrigins",
+        "count": 1,
+        "reason": "operator-configuration-binding"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.config.RateLimitProperties",
+    "source_sha256": "a8c6e7f1539d1419e4fb9d404be8c2ffe7897959d5cf5d78cb85ccb9bb9e51af",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "getTrustedProxies",
+        "field": "trustedProxies",
+        "count": 1,
+        "reason": "operator-configuration-binding"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.config.VaultKeyValidator",
+    "source_sha256": "4e071aa1d7b40c6bd753f5345a269fbbcc93283868a3c635cdd823c0d6ce62bc",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "properties",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.policy.AccountPasswordPolicyService$Rules",
+    "source_sha256": "1ad10e70630f06a106547cf789c17a65c2c16c16d6f739dca21b05e622c135e7",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "bannedRegexes",
+        "field": "bannedRegexes",
+        "count": 1,
+        "reason": "request-policy-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "bannedSubstrings",
+        "field": "bannedSubstrings",
+        "count": 1,
+        "reason": "request-policy-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "bannedRegexes",
+        "count": 1,
+        "reason": "request-policy-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "bannedSubstrings",
+        "count": 1,
+        "reason": "request-policy-transport"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.security.PasswordHashingService",
+    "source_sha256": "7d687b6e122eb022d5b212a444b0a256e8fe3fd55a58eaa661db85cee5b6f17e",
+    "findings": [
+      {
+        "type": "CT_CONSTRUCTOR_THROW",
+        "priority": 2,
+        "method": "<init>",
+        "field": "",
+        "count": 1,
+        "reason": "startup-validation"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.tools.ToolsController",
+    "source_sha256": "6709c66721f7ec04fc5b89a89ac69fdeca0398a0da4d161d892df714d24178d7",
+    "findings": [
+      {
+        "type": "CT_CONSTRUCTOR_THROW",
+        "priority": 2,
+        "method": "<init>",
+        "field": "",
+        "count": 1,
+        "reason": "startup-validation"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "demoProperties",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultController",
+    "source_sha256": "a606e2e8b4dfc8e80b2b2c321366e09531bf6a9496daec56feb3e35fce1b554a",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "vaultService",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultExportSelection",
+    "source_sha256": "b0ef8c2e9690e6688992d00663d4034c4a4226a6ff6966ab254bb4acbf54a356",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "ids",
+        "field": "ids",
+        "count": 1,
+        "reason": "unmodifiable-stream-selection"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultExportSnapshots",
+    "source_sha256": "cd27844b15b84a110aa23e749a161192aeb7158808f7ec429e465e3251b9edd4",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "vault",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultItem",
+    "source_sha256": "3633538bdd14ba525660c88f8ca775745fbe9c17324b510f23e80c0198541288",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "getEnvelopeBytes",
+        "field": "envelopeBytes",
+        "count": 1,
+        "reason": "managed-ciphertext-entity"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "envelopeBytes",
+        "count": 1,
+        "reason": "managed-ciphertext-entity"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "setEnvelopeBytes",
+        "field": "envelopeBytes",
+        "count": 1,
+        "reason": "managed-ciphertext-entity"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultMetadataQueries",
+    "source_sha256": "557972eec3c35c7e904475f3e2c714c223f2167d6defe0812861c4cf571a88f4",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultQueryService$Overview",
+    "source_sha256": "2a3ed8add7e1eccf3a6cca98d72575e2ebb472d592b43df820c41de6b85aacca",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "attention",
+        "field": "attention",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "recent",
+        "field": "recent",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "attention",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "recent",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultQueryService$SearchPage",
+    "source_sha256": "2a3ed8add7e1eccf3a6cca98d72575e2ebb472d592b43df820c41de6b85aacca",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "items",
+        "field": "items",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "items",
+        "count": 1,
+        "reason": "owner-metadata-transport"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultRestorePlans$Ticket",
+    "source_sha256": "b39bb37927e042eb0ff1943648fd9498cd181e8b8b54b9e2651cbeccc927dcbb",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "entries",
+        "field": "entries",
+        "count": 1,
+        "reason": "restore-ticket-transport"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "entries",
+        "count": 1,
+        "reason": "restore-ticket-transport"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultRestoreService",
+    "source_sha256": "fc5e4122e25d138c926b67b7a464cacfdb2524d94950935f39fde2dd5ac8daf8",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "vault",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.VaultService",
+    "source_sha256": "fe8ba74bf1c4959c93a6540e1f53cda9c13c3da72a07a8296b87b9da87fadc2d",
+    "findings": [
+      {
+        "type": "CT_CONSTRUCTOR_THROW",
+        "priority": 2,
+        "method": "<init>",
+        "field": "",
+        "count": 1,
+        "reason": "startup-validation"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
+    "class": "dev.keynest.manager.vault.export.PortableVaultFormat",
+    "source_sha256": "e13cdd3e6f716e7c8109bbe6b29108f5c28c732206806c262adc69e7b0555030",
+    "findings": [
+      {
+        "type": "REC_CATCH_EXCEPTION",
+        "priority": 2,
+        "method": "loadSchema",
+        "field": "",
+        "count": 1,
+        "reason": "sanitized-failure-boundary"
+      }
+    ]
+  },
+  {
+    "module": "libs/keynest-policy",
+    "class": "dev.keynest.policy.schema.PasswordPolicyDocument",
+    "source_sha256": "b7b097c7973d55da8631df8e799d142efe99d0d58d7bb456077484223c3ef4aa",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP",
+        "priority": 2,
+        "method": "appliesTo",
+        "field": "appliesTo",
+        "count": 1,
+        "reason": "mutable-policy-document"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "setAppliesTo",
+        "field": "appliesTo",
+        "count": 1,
+        "reason": "mutable-policy-document"
+      }
+    ]
+  }
+]
