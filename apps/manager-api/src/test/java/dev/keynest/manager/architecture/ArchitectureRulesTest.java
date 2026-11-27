@@ -6,6 +6,13 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import dev.keynest.architecturefixtures.TransportDependentService;
+import dev.keynest.generate.PasswordGenerator;
+import dev.keynest.manager.auth.AuthService;
+import dev.keynest.manager.auth.PasswordChangeService;
+import dev.keynest.manager.vault.VaultRestoreService;
+import dev.keynest.manager.vault.VaultService;
+import dev.keynest.policy.PasswordPolicy;
+import dev.keynest.seal.PasswordHasher;
 import dev.keynest.policy.architecturefixtures.ManagerDependentPolicy;
 import org.junit.jupiter.api.Test;
 import org.springframework.stereotype.Service;
@@ -44,9 +51,9 @@ class ArchitectureRulesTest {
   @Test
   void productionImportsContainEveryModuleAndExcludeNegativeFixtures() {
     assertThat(PRODUCTION).extracting(JavaClass::getName).contains(
-      "dev.keynest.policy.PasswordPolicy", "dev.keynest.generate.PasswordGenerator",
-      "dev.keynest.seal.PasswordHasher", "dev.keynest.manager.auth.AuthService",
-      "dev.keynest.manager.auth.PasswordChangeService", "dev.keynest.manager.vault.VaultExportService");
+      PasswordPolicy.class.getName(), PasswordGenerator.class.getName(), PasswordHasher.class.getName(),
+      AuthService.class.getName(), PasswordChangeService.class.getName(), VaultService.class.getName(),
+      VaultRestoreService.class.getName());
     assertThat(PRODUCTION).noneMatch(type -> type.getPackageName().contains("architecturefixtures"));
   }
 
