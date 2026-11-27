@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add bounded per-process sign-in failure/cooldown admission by normalized email across client IPs, with in-flight serialization and generic retry guidance. Document targeted-lockout, full-table, restart and replica limits.
+
 - Remove the unknown-account login verification shortcut by using one prepared dummy hash through the existing Argon2 capacity budget; per-account throttling and registration enumeration remain separate hardening work.
 
 - Bind production Web CSP to the compiled API destination, add mandatory Web framing/referrer/MIME response headers and verify emitted policies with browser framing and real split-origin API tests.

@@ -19,6 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   CorsProperties.class,
   ToolsDemoProperties.class,
   RateLimitProperties.class,
+  LoginThrottleProperties.class,
   AiProperties.class
 })
 public class KeynestConfig {
