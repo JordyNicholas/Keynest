@@ -32,7 +32,8 @@ export async function sessionLifecycle(page, email, password, apiBase, stage) {
   const revoked = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/auth/logout-all');
   await page.locator('kn-sign-out-devices-dialog button[type="submit"]').click();
   assert.equal((await revoked).status(), 200);
-  await page.waitForSelector('#home-heading', { visible: true });
+  stage('DEVICES_SIGNED_OUT');await page.waitForSelector('#home-heading', { visible: true });
+  await page.waitForSelector('kn-sign-out-devices-dialog', { hidden: true });
   assert.ok(await page.evaluate(() => !sessionStorage.getItem('keynest.token') && !document.querySelector('kn-sign-out-devices-dialog')));
   assert.ok(await page.evaluate(async (tokens, apiBase) => {
     for (const token of tokens) {
