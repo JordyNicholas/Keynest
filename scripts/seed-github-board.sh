@@ -55,18 +55,18 @@ Later crypto, vault, and UI work is unsafe to land without CI, a written threat 
 ## Approach
 
 1. Keep CI green on every PR (`mvn test` + Angular build).
-2. Land `docs/THREAT_MODEL.md` stub before public release expansion.
+2. Land `docs/security/threat-model.md` stub before public release expansion.
 3. Gate or remove the hardcoded demo DEK on tools seal/open; inject Angular `API_BASE_URL`.
 4. Rate-limit tools validate and auth endpoints.
 
-Cite: `docs/ROADMAP.md` Phase 0, `docs/PRODUCT.md` security non-negotiables.
+Cite: `docs/archive/phased-roadmap.md` Phase 0, `docs/contributing/project/product.md` security non-negotiables.
 
 ## Definition of done
 
 - [ ] All `priority:p0` children of this epic closed
 - [ ] CI green on `main`
 - [ ] No production profile ships a fixed hex DEK for tools/vault demo paths
-- [ ] `docs/reference/board.md` lists this epic accurately
+- [ ] `docs/contributing/project/board.md` lists this epic accurately
 EOF
 )" | awk -F/ '{print $NF}')
 
@@ -241,11 +241,11 @@ EOF
 story "[E0] Threat model stub" "type:security,type:docs,priority:p0,phase:e0,estimate:0.5d" "$E0" "$(cat <<'EOF'
 ## Description
 
-Seal/open, master passwords, and auth are in scope for abuse, but there is no `docs/THREAT_MODEL.md` yet. Release work will invent one under pressure without a stub.
+Seal/open, master passwords, and auth are in scope for abuse, but there is no `docs/security/threat-model.md` yet. Release work will invent one under pressure without a stub.
 
 ## Approach
 
-1. Add `docs/THREAT_MODEL.md` listing assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), and abuse cases (brute force, demo-key leakage, log scraping).
+1. Add `docs/security/threat-model.md` listing assets (master password, envelopes, DEKs), trust boundaries (browser / API / DB), and abuse cases (brute force, demo-key leakage, log scraping).
 2. Keep it short; expand under E6 before public release.
 
 ## Definition of done
@@ -310,7 +310,7 @@ Manager Web hardcodes `http://localhost:8080/api/v1` in `app.component.ts`, whic
 ## Approach
 
 1. Introduce Angular environments or inject `API_BASE_URL`.
-2. Document local vs Compose vs Vercel values in `docs/VERCEL.md` / README.
+2. Document local vs Compose vs Vercel values in `docs/operators/web-deployment.md` / README.
 
 ## Definition of done
 
@@ -841,7 +841,7 @@ Before public release, expand the E0 stub and verify logs never print secrets or
 
 ## Approach
 
-1. Expand `docs/THREAT_MODEL.md`.
+1. Expand `docs/security/threat-model.md`.
 2. Grep/review logging around auth, tools, vault.
 3. Confirm rate limits from E0 are still in place.
 
@@ -957,6 +957,6 @@ EOF
 )"
 
 echo "Done. Next:"
-echo "  1. Update docs/reference/board.md with the issue numbers printed above."
+echo "  1. Update docs/contributing/project/board.md with the issue numbers printed above."
 echo "  2. Run scripts/setup-github-project.sh with PROJECT_TOKEN to create the Project board."
 echo "  3. Close fully shipped stories and any completed epics."

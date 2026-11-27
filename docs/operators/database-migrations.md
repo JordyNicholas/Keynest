@@ -1,0 +1,75 @@
+# Database migration runbook
+
+Keynest Manager uses Flyway migrations from `apps/manager-api/src/main/resources/db/migration`. Hibernate validates the resulting schema and never creates or updates it.
+
+## Fresh database
+
+Start Manager API with an empty H2 or PostgreSQL database. Flyway executes every migration in order before JPA starts. Startup must fail if migration or Hibernate validation fails; do not bypass either check.
+
+## First upgrade from a pre-Flyway installation
+
+This upgrade changes the physical session column from `token` to `token_digest` and adds referential constraints. Stored digest values and vault envelopes are not rewritten.
+
+1. Stop every Manager API writer.
+2. Back up the PostgreSQL database using the platform's verified backup/export mechanism.
+3. Back up the exact `KEYNEST_VAULT_KEY_HEX` and `KEYNEST_VAULT_KEY_ID` through the operator's secret-management process. Do not put them in the database dump, repository, logs or support messages.
+4. Confirm the target database is the intended Keynest database and contains `users`, `auth_sessions` and `vault_items`.
+5. Check for orphaned rows; both results must be zero:
+
+   ```sql
+   SELECT COUNT(*)
+   FROM auth_sessions s LEFT JOIN users u ON u.id = s.user_id
+   WHERE u.id IS NULL;
+
+   SELECT COUNT(*)
+   FROM vault_items v LEFT JOIN users u ON u.id = v.user_id
+   WHERE u.id IS NULL;
+   ```
+
+6. Start exactly one upgraded API instance. Flyway baselines the non-empty schema at V1 and applies all subsequent migrations. The current schema ends at V7. Do not start the rest of the fleet until this instance is healthy.
+7. Verify migration history and column state:
+
+   ```sql
+   SELECT installed_rank, version, description, success
+   FROM flyway_schema_history
+   ORDER BY installed_rank;
+
+   SELECT column_name
+   FROM information_schema.columns
+   WHERE table_name = 'auth_sessions'
+     AND column_name IN ('token', 'token_digest');
+   ```
+
+   Expected: successful V1 baseline and V2 through V7 migration records; `token_digest` exists and `token` does not.
+8. Exercise register/login, list, create and reveal with non-production test data, then restore normal instance capacity.
+
+If any preflight result is non-zero or migration fails, keep writers stopped and investigate. Do not delete orphaned or encrypted rows merely to make the migration pass.
+
+V3 adds the expiry outbox, V4 adds dispatch claim and retry fields, and V5 adds recipient verification and consent fields. V6 adds nullable account password policy configuration. Existing accounts retain the built-in policy. Database migration does not enable external delivery. V7 adds the session expiry index; see [bounded cleanup, operator settings and V6-compatible rollback](../security/controls/session-cleanup.md). Index creation can block session writes, so preserve the stopped-writer rollout and assess large installations before upgrading.
+
+## Rollback
+
+V7 adds only an index and is compatible with the preceding V6 application. Leave the index and migration history in place on an application rollback; deleted expired sessions were already unusable and must not be resurrected. The older V2 boundary below remains incompatible.
+
+The previous application version expects the old column name, so application-only rollback is unsafe after V2. Stop upgraded instances, restore the pre-upgrade database backup, restore the matching vault-key configuration if it changed independently, then start the previous version. Preserve the failed database separately for diagnosis.
+
+## Adding migrations
+
+- Add a new immutable `V<version>__<description>.sql`; never edit an applied migration.
+- Make data compatibility, locking, failure behavior, rollback and backup requirements explicit in the PR.
+- Test fresh H2, legacy upgrade when relevant, and PostgreSQL for dialect-sensitive changes.
+- Do not mix Hibernate schema mutation, `schema.sql` or manual production DDL with Flyway.
+
+## Automated backup/restore rehearsal
+
+`PostgresRestoreIntegrationTest` starts PostgreSQL 16 in a disposable container and Manager against a fresh source database with an ephemeral vault key. It creates an account, session and generated vault item, closes Manager to stop writers, runs `pg_dump --format=custom`, creates a separate restore database, and runs `pg_restore --exit-on-error`. Manager then starts against the restored database with the retained key and validates Flyway history and JPA mappings.
+
+The test changes the account password and replaces prior sessions before backup, then verifies restored row counts, replacement-session authentication, preserved envelope bytes, readable secret plaintext, rejection of the older password and a fresh login using the changed password. Secret comparisons report only pass/fail. The dump stays inside the disposable container; it is never uploaded as an artifact. The test does not connect to any operator-supplied database.
+
+Run with Java 21+, Maven and Docker:
+
+```bash
+mvn -pl apps/manager-api -am -Dtest=PostgresRestoreIntegrationTest -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+The container test skips when Docker is unavailable. CI must execute it and record zero skips before using it as evidence. This proves the logical dump/application restore path on PostgreSQL 16; it does not prove an operator's backup storage, key escrow, TLS/network settings, packaged container deployment, point-in-time recovery or recovery-time objective. Rehearse the actual deployment separately using the first-upgrade/rollback procedure above, and retain only sanitized outcomes as release evidence.
