@@ -37,6 +37,37 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
+      - name: Draft-only public VaultService formatting handoff
+        if: matrix.java == '21'
+        run: |
+          python3 - <<'PYTHON'
+          import subprocess, tempfile
+          from pathlib import Path
+          root = Path.cwd()
+          with tempfile.TemporaryDirectory(prefix='analysis-format-') as temporary:
+            worktree = Path(temporary) / 'source'
+            subprocess.run(['git', 'worktree', 'add', '--quiet', '--detach', str(worktree), 'HEAD'], check=True)
+            try:
+              subprocess.run(['python3', str(worktree / 'scripts/java_formatting.py'), 'apply'], cwd=worktree, check=True)
+              source = worktree / 'apps/manager-api/src/main/java/dev/keynest/manager/vault/VaultService.java'
+              output = root / 'target/analysis-format/VaultService.java'
+              output.parent.mkdir(parents=True, exist_ok=True)
+              output.write_bytes(source.read_bytes())
+            finally:
+              subprocess.run(['git', 'worktree', 'remove', '--force', str(worktree)], check=True)
+          PYTHON
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: matrix.java == '21'
+        with:
+          name: draft-public-source-formatting
+          path: target/analysis-format/VaultService.java
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Stop this reporting draft after public-source handoff
+        run: exit 1
+
       - name: Check incremental Java formatting
         run: python3 scripts/java_formatting.py check
 

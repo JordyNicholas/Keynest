@@ -96,7 +96,7 @@ public class VaultService {
                 VaultItemAad.VERSION_ITEM_V1,
                 expiresAt,
                 now,
-                request.notifyBeforeDays() == null ? 14 : request.notifyBeforeDays(),
+                request.notifyBeforeDays() == null ? Integer.valueOf(14) : request.notifyBeforeDays(),
                 now,
                 now
         );
