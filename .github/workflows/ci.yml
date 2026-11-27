@@ -37,24 +37,6 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Temporary public-source formatter handoff (never merge)
-        run: |
-          python3 scripts/java_formatting.py apply
-          python3 - <<'PYFMT'
-          import base64, gzip, json
-          from pathlib import Path
-          paths = [
-            'apps/manager-api/src/main/java/dev/keynest/manager/vault/VaultController.java',
-            'apps/manager-api/src/main/java/dev/keynest/manager/vault/VaultItemRepository.java',
-            'apps/manager-api/src/main/java/dev/keynest/manager/vault/VaultService.java',
-            'apps/manager-api/src/test/java/dev/keynest/manager/VaultAuthIntegrationTest.java',
-            'apps/manager-api/src/test/java/dev/keynest/manager/vault/VaultExportIntegrationTest.java',
-          ]
-          files = {path: Path(path).read_text() for path in paths}
-          print('KEYNEST_FORMAT_HANDOFF:' + base64.b64encode(gzip.compress(json.dumps(files).encode())).decode())
-          PYFMT
-          exit 1
-
       - name: Check incremental Java formatting
         run: python3 scripts/java_formatting.py check
 

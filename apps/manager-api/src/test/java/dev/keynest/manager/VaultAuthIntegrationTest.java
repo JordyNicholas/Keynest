@@ -48,21 +48,17 @@ class VaultAuthIntegrationTest {
     String email = "vault-user@example.com";
     String password = "MasterPassphrase!42";
 
-    MvcResult register = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"%s","password":"%s"}
-          """.formatted(email, password)))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.token", notNullValue()))
+    MvcResult register = mockMvc
+      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
+        {"email":"%s","password":"%s"}
+        """.formatted(email, password))).andExpect(status().isOk()).andExpect(jsonPath("$.token", notNullValue()))
       .andReturn();
 
     String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
 
-    MvcResult created = mockMvc.perform(post(ApiPaths.VAULT_ITEMS)
-        .header("Authorization", "Bearer " + token)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
+    MvcResult created = mockMvc
+      .perform(post(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + token)
+        .contentType(MediaType.APPLICATION_JSON).content("""
           {
             "label":"Example",
             "url":"https://example.com",
@@ -71,36 +67,25 @@ class VaultAuthIntegrationTest {
             "expiresInDays":90
           }
           """))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.label", is("Example")))
-      .andExpect(jsonPath("$.policyId", is("keynest.default.v1")))
-      .andReturn();
+      .andExpect(status().isOk()).andExpect(jsonPath("$.label", is("Example")))
+      .andExpect(jsonPath("$.policyId", is("keynest.default.v1"))).andReturn();
 
     String id = JsonPath.read(created.getResponse().getContentAsString(), "$.id");
 
-    org.assertj.core.api.Assertions.assertThat(
-        vaultItems.findById(UUID.fromString(id)).orElseThrow().getAadVersion()
-      )
+    org.assertj.core.api.Assertions.assertThat(vaultItems.findById(UUID.fromString(id)).orElseThrow().getAadVersion())
       .isEqualTo(1);
 
-    mockMvc.perform(get(ApiPaths.VAULT_ITEMS)
-        .header("Authorization", "Bearer " + token))
-      .andExpect(status().isOk())
+    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + token)).andExpect(status().isOk())
       .andExpect(jsonPath("$", hasSize(1)));
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(id))
-        .header("Authorization", "Bearer " + token))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.item.id", is(id)))
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(id)).header("Authorization", "Bearer " + token))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.item.id", is(id)))
       .andExpect(jsonPath("$.password", notNullValue()));
 
-    mockMvc.perform(delete(ApiPaths.vaultItem(id))
-        .header("Authorization", "Bearer " + token))
+    mockMvc.perform(delete(ApiPaths.vaultItem(id)).header("Authorization", "Bearer " + token))
       .andExpect(status().isOk());
 
-    mockMvc.perform(get(ApiPaths.VAULT_ITEMS)
-        .header("Authorization", "Bearer " + token))
-      .andExpect(status().isOk())
+    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + token)).andExpect(status().isOk())
       .andExpect(jsonPath("$", hasSize(0)));
   }
 
@@ -113,16 +98,14 @@ class VaultAuthIntegrationTest {
       """;
     create(owner, login).andExpect(status().isOk());
     create(owner, login.replace("Original", "Different label").replace("saved-login", "  saved-login  "))
-      .andExpect(status().isConflict())
-      .andExpect(header().string("Cache-Control", "no-store"))
-      .andExpect(jsonPath("$.code", is("VAULT_ITEM_DUPLICATE")))
-      .andExpect(jsonPath("$.password").doesNotExist());
+      .andExpect(status().isConflict()).andExpect(header().string("Cache-Control", "no-store"))
+      .andExpect(jsonPath("$.code", is("VAULT_ITEM_DUPLICATE"))).andExpect(jsonPath("$.password").doesNotExist());
     create(owner, login.replace("Cedar", "Aspen")).andExpect(status().isOk());
     create(owner, login.replace("saved-login", "another-login")).andExpect(status().isOk());
     create(owner, login.replace("example.test/a", "example.test/b")).andExpect(status().isOk());
     create(other, login).andExpect(status().isOk());
-    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + owner))
-      .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(4)));
+    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + owner)).andExpect(status().isOk())
+      .andExpect(jsonPath("$", hasSize(4)));
   }
 
   @Test
@@ -144,8 +127,7 @@ class VaultAuthIntegrationTest {
     String owner = registerForCreation("trimmed-username@example.test");
     create(owner, """
       {"label":"Example","username":"  creek  ","password":"Distant!Creek47%Cedar"}
-      """).andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.code", is("VAULT_PASSWORD_POLICY")))
+      """).andExpect(status().isBadRequest()).andExpect(jsonPath("$.code", is("VAULT_PASSWORD_POLICY")))
       .andExpect(jsonPath("$.violations[0]", is("password.contains_username")));
   }
 
@@ -160,83 +142,53 @@ class VaultAuthIntegrationTest {
     for (String fields : List.of("\"label\":\"" + "a".repeat(201) + "\"",
       "\"label\":\"Example\",\"username\":\"" + "a".repeat(321) + "\"",
       "\"label\":\"Example\",\"url\":\"" + "a".repeat(2001) + "\"")) {
-      create(owner, "{" + fields + ",\"password\":\"Distant!Creek47%Aspen\"}")
-        .andExpect(status().isBadRequest());
+      create(owner, "{" + fields + ",\"password\":\"Distant!Creek47%Aspen\"}").andExpect(status().isBadRequest());
       mockMvc.perform(put(ApiPaths.vaultItem(id)).header("Authorization", "Bearer " + owner)
-          .contentType(MediaType.APPLICATION_JSON).content("{" + fields + "}"))
-        .andExpect(status().isBadRequest());
+        .contentType(MediaType.APPLICATION_JSON).content("{" + fields + "}")).andExpect(status().isBadRequest());
     }
-    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + owner))
-      .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)))
-      .andExpect(jsonPath("$[0].label", is("Example")));
+    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + owner)).andExpect(status().isOk())
+      .andExpect(jsonPath("$", hasSize(1))).andExpect(jsonPath("$[0].label", is("Example")));
   }
 
   @Test
   void policyOnlyLegacyEnvelopeRemainsReadable() throws Exception {
-    MvcResult register = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"legacy-vault-user@example.com","password":"MasterPassphrase!42"}
-          """))
-      .andExpect(status().isOk())
-      .andReturn();
+    MvcResult register = mockMvc
+      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
+        {"email":"legacy-vault-user@example.com","password":"MasterPassphrase!42"}
+        """)).andExpect(status().isOk()).andReturn();
 
     String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
-    UUID userId = UUID.fromString(JsonPath.read(
-        register.getResponse().getContentAsString(), "$.userId"
-    ));
+    UUID userId = UUID.fromString(JsonPath.read(register.getResponse().getContentAsString(), "$.userId"));
     UUID itemId = UUID.randomUUID();
     String plaintext = "Legacy!Creek47%Cedar";
     KeynestSeal seal = new KeynestSeal();
-    byte[] envelope = seal.seal(
-        plaintext.getBytes(StandardCharsets.UTF_8),
-        HexFormat.of().parseHex(VaultKeyProperties.DEMO_KEY_HEX),
-        "vault-v1",
-        PasswordPolicy.DEFAULT_POLICY_ID.getBytes(StandardCharsets.UTF_8)
-      )
+    byte[] envelope = seal
+      .seal(plaintext.getBytes(StandardCharsets.UTF_8), HexFormat.of().parseHex(VaultKeyProperties.DEMO_KEY_HEX),
+        "vault-v1", PasswordPolicy.DEFAULT_POLICY_ID.getBytes(StandardCharsets.UTF_8))
       .toBytes();
     Instant now = Instant.now();
-    vaultItems.save(new VaultItem(
-        itemId,
-        userId,
-        "Legacy item",
-        null,
-        null,
-        envelope,
-        PasswordPolicy.DEFAULT_POLICY_ID,
-        null,
-        null,
-        now,
-        14,
-        now,
-        now
-    ));
+    vaultItems.save(new VaultItem(itemId, userId, "Legacy item", null, null, envelope, PasswordPolicy.DEFAULT_POLICY_ID,
+      null, null, now, 14, now, now));
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId.toString()))
-        .header("Authorization", "Bearer " + token))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.password", is(plaintext)));
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId.toString())).header("Authorization", "Bearer " + token))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.password", is(plaintext)));
 
     create(token, """
       {"label":"Legacy duplicate","password":"%s"}
-      """.formatted(plaintext))
-      .andExpect(status().isConflict()).andExpect(jsonPath("$.code", is("VAULT_ITEM_DUPLICATE")));
+      """.formatted(plaintext)).andExpect(status().isConflict())
+      .andExpect(jsonPath("$.code", is("VAULT_ITEM_DUPLICATE")));
   }
 
   private String registerForCreation(String email) throws Exception {
-    MvcResult register = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"%s","password":"MasterPassphrase!42"}
-          """.formatted(email)))
-      .andExpect(status().isOk()).andReturn();
+    MvcResult register = mockMvc
+      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
+        {"email":"%s","password":"MasterPassphrase!42"}
+        """.formatted(email))).andExpect(status().isOk()).andReturn();
     return JsonPath.read(register.getResponse().getContentAsString(), "$.token");
   }
 
   private ResultActions create(String token, String json) throws Exception {
-    return mockMvc.perform(post(ApiPaths.VAULT_ITEMS)
-      .header("Authorization", "Bearer " + token)
-      .contentType(MediaType.APPLICATION_JSON)
-      .content(json));
+    return mockMvc.perform(post(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + token)
+      .contentType(MediaType.APPLICATION_JSON).content(json));
   }
 }

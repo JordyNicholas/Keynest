@@ -329,7 +329,7 @@
   {
     "module": "apps/manager-api",
     "class": "dev.keynest.manager.vault.VaultController",
-    "source_sha256": "a606e2e8b4dfc8e80b2b2c321366e09531bf6a9496daec56feb3e35fce1b554a",
+    "source_sha256": "9698df8597253fc2a04898875c8fee50d9a4f2bb13673a7976ececdd70f7a501",
     "findings": [
       {
         "type": "EI_EXPOSE_REP2",
@@ -536,7 +536,7 @@
   {
     "module": "apps/manager-api",
     "class": "dev.keynest.manager.vault.VaultService",
-    "source_sha256": "fe8ba74bf1c4959c93a6540e1f53cda9c13c3da72a07a8296b87b9da87fadc2d",
+    "source_sha256": "732c904163e655fab4cb5fdfe320d569023ed6096e09f67ba1cab6c64b804e79",
     "findings": [
       {
         "type": "CT_CONSTRUCTOR_THROW",

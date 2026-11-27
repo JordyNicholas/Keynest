@@ -31,126 +31,81 @@ import java.util.UUID;
 @RequestMapping(path = ApiPaths.VAULT_ITEMS, produces = MediaType.APPLICATION_JSON_VALUE)
 public class VaultController {
 
-    private final AuthService authService;
-    private final VaultService vaultService;
+  private final AuthService authService;
+  private final VaultService vaultService;
 
-    public VaultController(AuthService authService, VaultService vaultService) {
-        this.authService = authService;
-        this.vaultService = vaultService;
-    }
+  public VaultController(AuthService authService, VaultService vaultService) {
+    this.authService = authService;
+    this.vaultService = vaultService;
+  }
 
-    @ExceptionHandler(VaultService.PolicyRejected.class)
-    ResponseEntity<PolicyError> policyRejected(VaultService.PolicyRejected failure) {
-        return ResponseEntity.badRequest().cacheControl(CacheControl.noStore())
-                .body(new PolicyError("VAULT_PASSWORD_POLICY", failure.violations()));
-    }
+  @ExceptionHandler(VaultService.PolicyRejected.class)
+  ResponseEntity<PolicyError> policyRejected(VaultService.PolicyRejected failure) {
+    return ResponseEntity.badRequest().cacheControl(CacheControl.noStore())
+      .body(new PolicyError("VAULT_PASSWORD_POLICY", failure.violations()));
+  }
 
-    record PolicyError(String code, List<String> violations) {}
+  record PolicyError(String code, List<String> violations) {
+  }
 
-    @ExceptionHandler(VaultService.DuplicateItem.class)
-    ResponseEntity<Map<String, String>> duplicateItem() {
-        return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noStore())
-                .body(Map.of("code", "VAULT_ITEM_DUPLICATE"));
-    }
+  @ExceptionHandler(VaultService.DuplicateItem.class)
+  ResponseEntity<Map<String, String>> duplicateItem() {
+    return ResponseEntity.status(HttpStatus.CONFLICT).cacheControl(CacheControl.noStore())
+      .body(Map.of("code", "VAULT_ITEM_DUPLICATE"));
+  }
 
-    @GetMapping
-    public List<VaultService.VaultItemView> list(@RequestHeader("Authorization") String authorization) {
-        UserAccount user = authService.requireUser(authorization);
-        return vaultService.list(user);
-    }
+  @GetMapping
+  public List<VaultService.VaultItemView> list(@RequestHeader("Authorization") String authorization) {
+    UserAccount user = authService.requireUser(authorization);
+    return vaultService.list(user);
+  }
 
-    @GetMapping("/{id}")
-    public VaultService.VaultItemView get(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable UUID id
-    ) {
-        UserAccount user = authService.requireUser(authorization);
-        return vaultService.get(user, id);
-    }
+  @GetMapping("/{id}")
+  public VaultService.VaultItemView get(@RequestHeader("Authorization") String authorization, @PathVariable UUID id) {
+    UserAccount user = authService.requireUser(authorization);
+    return vaultService.get(user, id);
+  }
 
-    @PostMapping("/{id}/reveal")
-    public ResponseEntity<VaultService.VaultItemSecretView> reveal(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            @PathVariable UUID id
-    ) {
-        UserAccount user = authService.requireUser(authorization);
-        return ResponseEntity.ok()
-                .cacheControl(CacheControl.noStore())
-                .header(HttpHeaders.PRAGMA, "no-cache")
-                .header(HttpHeaders.EXPIRES, "0")
-                .body(vaultService.reveal(user, id));
-    }
+  @PostMapping("/{id}/reveal")
+  public ResponseEntity<VaultService.VaultItemSecretView> reveal(
+    @RequestHeader(value = "Authorization", required = false) String authorization, @PathVariable UUID id) {
+    UserAccount user = authService.requireUser(authorization);
+    return ResponseEntity.ok().cacheControl(CacheControl.noStore()).header(HttpHeaders.PRAGMA, "no-cache")
+      .header(HttpHeaders.EXPIRES, "0").body(vaultService.reveal(user, id));
+  }
 
-    @PostMapping
-    public VaultService.VaultItemView create(
-            @RequestHeader("Authorization") String authorization,
-            @Valid @RequestBody CreateBody body
-    ) {
-        UserAccount user = authService.requireUser(authorization);
-        return vaultService.create(user, new VaultService.CreateVaultItemRequest(
-                body.label(),
-                body.url(),
-                body.username(),
-                body.password(),
-                body.generate(),
-                body.policyId(),
-                body.expiresInDays(),
-                body.notifyBeforeDays(),
-                body.expiresAt()
-        ));
-    }
+  @PostMapping
+  public VaultService.VaultItemView create(@RequestHeader("Authorization") String authorization,
+    @Valid @RequestBody CreateBody body) {
+    UserAccount user = authService.requireUser(authorization);
+    return vaultService.create(user,
+      new VaultService.CreateVaultItemRequest(body.label(), body.url(), body.username(), body.password(),
+        body.generate(), body.policyId(), body.expiresInDays(), body.notifyBeforeDays(), body.expiresAt()));
+  }
 
-    @PutMapping("/{id}")
-    public VaultService.VaultItemView update(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateBody body
-    ) {
-        UserAccount user = authService.requireUser(authorization);
-        return vaultService.update(user, id, new VaultService.UpdateVaultItemRequest(
-                body.label(),
-                body.url(),
-                body.username(),
-                body.password(),
-                body.policyId(),
-                body.expiresInDays(),
-                body.notifyBeforeDays(),
-                body.expiresAt()
-        ));
-    }
+  @PutMapping("/{id}")
+  public VaultService.VaultItemView update(@RequestHeader("Authorization") String authorization, @PathVariable UUID id,
+    @Valid @RequestBody UpdateBody body) {
+    UserAccount user = authService.requireUser(authorization);
+    return vaultService.update(user, id,
+      new VaultService.UpdateVaultItemRequest(body.label(), body.url(), body.username(), body.password(),
+        body.policyId(), body.expiresInDays(), body.notifyBeforeDays(), body.expiresAt()));
+  }
 
-    @DeleteMapping("/{id}")
-    public Map<String, String> delete(
-            @RequestHeader("Authorization") String authorization,
-            @PathVariable UUID id
-    ) {
-        UserAccount user = authService.requireUser(authorization);
-        vaultService.delete(user, id);
-        return Map.of("status", "deleted");
-    }
+  @DeleteMapping("/{id}")
+  public Map<String, String> delete(@RequestHeader("Authorization") String authorization, @PathVariable UUID id) {
+    UserAccount user = authService.requireUser(authorization);
+    vaultService.delete(user, id);
+    return Map.of("status", "deleted");
+  }
 
-    public record CreateBody(
-            @NotBlank @Size(max = 200) String label,
-            @Size(max = 2000) String url,
-            @Size(max = 320) String username,
-            String password,
-            Boolean generate,
-            String policyId,
-            Integer expiresInDays,
-            Integer notifyBeforeDays,
-            Instant expiresAt
-    ) {
-    }
+  public record CreateBody(@NotBlank @Size(max = 200) String label, @Size(max = 2000) String url,
+    @Size(max = 320) String username, String password, Boolean generate, String policyId, Integer expiresInDays,
+    Integer notifyBeforeDays, Instant expiresAt) {
+  }
 
-    public record UpdateBody(
-            @Size(max = 200) String label,
-            @Size(max = 2000) String url,
-            @Size(max = 320) String username,
-            String password,
-            String policyId,
-            Integer expiresInDays,
-            Integer notifyBeforeDays,
-            Instant expiresAt
-    ) {
-    }
+  public record UpdateBody(@Size(max = 200) String label, @Size(max = 2000) String url,
+    @Size(max = 320) String username, String password, String policyId, Integer expiresInDays, Integer notifyBeforeDays,
+    Instant expiresAt) {
+  }
 }
