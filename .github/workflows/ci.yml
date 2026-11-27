@@ -47,7 +47,10 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests -p 'test_java_coverage.py'
 
       - name: Test with coverage (bytecode release 21)
-        run: mvn -B -Pcoverage clean test
+        run: mvn -B -Pcoverage,static-analysis clean test spotbugs:spotbugs
+
+      - name: Summarize initial static analysis without source or literal payloads
+        run: python3 scripts/check_java_analysis.py
 
       - name: Enforce every module's line and branch floors
         run: python3 scripts/check_java_coverage.py

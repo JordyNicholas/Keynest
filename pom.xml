@@ -143,6 +143,29 @@
 
   <profiles>
     <profile>
+      <id>static-analysis</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>4.10.5.0</version>
+            <configuration>
+              <effort>Max</effort>
+              <threshold>Medium</threshold>
+              <xmlOutput>true</xmlOutput>
+              <spotbugsXmlOutputDirectory>${project.build.directory}</spotbugsXmlOutputDirectory>
+              <spotbugsXmlOutputFilename>spotbugsXml.xml</spotbugsXmlOutputFilename>
+              <includeTests>false</includeTests>
+              <failOnError>true</failOnError>
+              <maxHeap>768</maxHeap>
+              <timeout>180000</timeout>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>formatting</id>
       <build>
         <plugins>
