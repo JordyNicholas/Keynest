@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Randomize Java-generated password category positions with Fisher–Yates before policy validation, preserving requirements, exclusions and bounded retries.
+
 - Add current-password-confirmed account password change with atomic hash/session replacement, preserved Vault data, and fresh sign-in handling for uncertain responses.
 
 - Add password-confirmed sign-out across all account sessions, including the current browser, with coordinated sign-in issuance, no automatic retry and unchanged Vault data.
