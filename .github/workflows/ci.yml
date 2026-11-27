@@ -35,8 +35,19 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
-      - name: Test (bytecode release 21)
-        run: mvn -B test
+      - name: Test with coverage (bytecode release 21)
+        run: mvn -B -Pcoverage clean test
+
+      - name: Measure initial module coverage
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          for module in ['libs/keynest-policy', 'libs/keynest-generate', 'libs/keynest-seal', 'apps/manager-api']:
+            report = ET.parse(Path(module) / 'target/site/jacoco/jacoco.xml').getroot()
+            counters = {c.get('type'): (int(c.get('covered')), int(c.get('missed'))) for c in report.findall('counter')}
+            print(module, {k: counters[k] for k in ['LINE', 'BRANCH']})
+          PYTHON
 
   angular:
     name: Angular build
