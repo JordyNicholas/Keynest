@@ -25,6 +25,7 @@ public final class ApiPaths {
   public static final String AUTH_REGISTER = AUTH + "/register";
   public static final String AUTH_LOGIN = AUTH + "/login";
   public static final String AUTH_LOGOUT = AUTH + "/logout";
+  public static final String AUTH_LOGOUT_ALL = AUTH + "/logout-all";
   public static final String AUTH_ME = AUTH + "/me";
 
   public static final String VAULT_ITEMS = API_V1 + "/vault/items";
@@ -48,6 +49,7 @@ public final class ApiPaths {
     TOOLS_VERIFY_PASSWORD,
     AUTH_REGISTER,
     AUTH_LOGIN,
+    AUTH_LOGOUT_ALL,
     VAULT_EXPORT_PREVIEW,
     VAULT_EXPORT_DOWNLOAD,
     VAULT_RESTORE_PREVIEW,

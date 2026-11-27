@@ -3,6 +3,8 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { SignOutDevicesDialogComponent } from './sign-out-devices-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { API_BASE_URL } from '../../injectionTokens';
 import { AuthService } from '../../auth/auth.service';
@@ -15,13 +17,14 @@ import { logoutSession } from '../../auth/logout-session';
 
 @Component({
   selector: 'kn-account-page',
-  imports: [InlineErrorComponent, MatButtonModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
+  imports: [InlineErrorComponent, MatButtonModule, MatDialogModule, PolicyExplanationComponent, PasswordPolicySettingsComponent, ApiHealthPageComponent],
   templateUrl: './account.component.html',
   styleUrls: ['../page-shared.css', './account.component.css'],
 })
 export class AccountPageComponent {
   private readonly apiBaseUrl = inject(API_BASE_URL);
   private readonly http = inject(HttpClient);
+  private readonly dialogs = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   readonly auth = inject(AuthService);
@@ -56,6 +59,14 @@ export class AccountPageComponent {
           }
         },
       });
+  }
+
+  signOutDevices(): void {
+    if (!this.auth.signedIn() || this.loggingOut() || this.dialogs.getDialogById('sign-out-devices')) return;
+    this.dialogs.open(SignOutDevicesDialogComponent, {
+      id: 'sign-out-devices', width: 'min(36rem, 94vw)', maxWidth: '94vw',
+      ariaLabelledBy: 'sign-out-devices-title', autoFocus: 'first-tabbable', restoreFocus: true,
+    });
   }
 
   logout(): void {

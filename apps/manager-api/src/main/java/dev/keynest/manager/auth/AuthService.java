@@ -1,6 +1,8 @@
 package dev.keynest.manager.auth;
 
 import dev.keynest.manager.security.PasswordHashingService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class AuthService {
 
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
+    private final EntityManager em;
     private final PasswordHashingService passwords;
     private final String missingAccountHash;
     private final LoginAttemptLimiter loginAttempts;
@@ -31,12 +34,14 @@ public class AuthService {
             UserAccountRepository users,
             AuthSessionRepository sessions,
             PasswordHashingService passwords,
-            LoginAttemptLimiter loginAttempts
+            LoginAttemptLimiter loginAttempts,
+            EntityManager em
     ) {
         this.users = users;
         this.sessions = sessions;
         this.passwords = passwords;
         this.loginAttempts = loginAttempts;
+        this.em = em;
         // Non-account work target, prepared once before serving requests. Its
         // input is not a credential; a missing account can never issue a session.
         this.missingAccountHash = passwords.hash("keynest missing-account verification");
@@ -73,12 +78,20 @@ public class AuthService {
         try (var attempt = loginAttempts.begin(normalized)) {
             UserAccount user = users.findByEmailIgnoreCase(normalized).orElse(null);
             // Admitted known/unknown attempts still share the same password-work budget.
-            boolean verified = passwords.verify(password, user == null ? missingAccountHash : user.getPasswordHash());
+            String verifiedHash = user == null ? missingAccountHash : user.getPasswordHash();
+            boolean verified = passwords.verify(password, verifiedHash);
             if (user == null || !verified) {
                 attempt.failed();
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
             }
-            AuthResponse response = issueSession(user);
+            // Hashing finishes before acquiring the lock shared with owner-wide revocation.
+            UserAccount current = users.findForPolicyUpdate(user.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials"));
+            em.refresh(current, LockModeType.PESSIMISTIC_WRITE);
+            if (!verifiedHash.equals(current.getPasswordHash())) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid credentials");
+            }
+            AuthResponse response = issueSession(current);
             attempt.succeeded();
             return response;
         }

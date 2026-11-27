@@ -15,6 +15,10 @@ public interface AuthSessionRepository extends JpaRepository<AuthSession, UUID> 
     Optional<AuthSession> findByTokenDigest(String tokenDigest);
     void deleteByTokenDigest(String tokenDigest);
 
+    @Modifying
+    @Query("delete from AuthSession s where s.userId = :owner")
+    int deleteForOwner(@Param("owner") UUID owner);
+
     @Query("select s.id from AuthSession s where s.expiresAt <= :cutoff order by s.expiresAt, s.id")
     List<UUID> findExpiredIds(@Param("cutoff") Instant cutoff, Pageable page);
 

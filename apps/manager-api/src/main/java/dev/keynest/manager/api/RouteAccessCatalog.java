@@ -38,6 +38,7 @@ public class RouteAccessCatalog {
     new Route("POST", ApiPaths.AUTH_LOGIN, AuthController.class, "login", Access.PUBLIC),
     // Logout remains idempotent without a usable session; its controller revokes any presented digest.
     new Route("POST", ApiPaths.AUTH_LOGOUT, AuthController.class, "logout", Access.PUBLIC),
+    new Route("POST", ApiPaths.AUTH_LOGOUT_ALL, SessionRevocationController.class, "revoke", Access.AUTHENTICATED),
     new Route("POST", ApiPaths.AUTH_ME, AuthController.class, "me", Access.AUTHENTICATED),
     new Route("GET", ApiPaths.TOOLS_HEALTH, ToolsController.class, "health", Access.PUBLIC),
     new Route("GET", ApiPaths.TOOLS_POLICY, ToolsController.class, "policy", Access.OPTIONAL_BEARER),

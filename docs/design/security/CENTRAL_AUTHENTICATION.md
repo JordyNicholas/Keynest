@@ -14,18 +14,18 @@ The filter marks successful authentication only for its current dispatch, withou
 
 ## Explicit current surfaces
 
-The catalog declares 27 method/path/handler decisions: eight public, three optional-bearer and sixteen authenticated.
+The catalog declares 28 method/path/handler decisions: eight public, three optional-bearer and seventeen authenticated.
 
 | Treatment | Surfaces |
 | --- | --- |
 | Public | Register/login; idempotent logout; tool health; bounded hash/verify tools |
 | Public subject to existing operator gate | Development seal/open; Docker/production gate still refuses them |
 | Optional bearer | Policy, generate and validate: no header uses the default policy; a supplied header must be valid before using account policy |
-| Authenticated | Identity lookup; Vault CRUD/reveal/search/overview; account policy; export/restore preview/apply; AI explanation |
+| Authenticated | Password-confirmed owner-wide sign-out; identity lookup; Vault CRUD/reveal/search/overview; account policy; export/restore preview/apply; AI explanation |
 
 GET-backed HEAD requests keep the same admission as their selected GET handler. The existing exact-origin/method/header configuration moves from late MVC handling to a Spring CorsFilter before authentication, with no credentialed CORS added. This single configuration source handles preflight without application execution and supplies the allowed origin on early 401s, so split-origin clients can observe expiry rather than a generic network failure. Unlisted origins still receive no grant. Public routes retain their existing handling of irrelevant Authorization headers. Protected/optional supplied credentials must be exactly one header; the earlier per-controller first-header behavior is tightened. Public logout remains an idempotent digest-revocation endpoint and grants no authentication.
 
-Existing ordering is explicit: API baseline headers, fixed security outcomes, CORS, export/restore size/cache bounds, client/route rate admission, then central authentication. Thus bounded size/rate failures can still precede a 401 and preserve their existing status/headers. Account-level login throttling remains inside the public login use case. Known export/restore 401 responses preserve their fixed SESSION_REQUIRED codes. Other authentication refusals use a fixed generic body without raw credentials or account data.
+Existing ordering is explicit: API baseline headers, fixed security outcomes, CORS, export/restore/revocation size/cache bounds, client/route rate admission, then central authentication. Thus bounded size/rate failures can still precede a 401 and preserve their existing status/headers. Account-level login throttling remains inside the public login use case. Known export/restore 401 responses preserve their fixed SESSION_REQUIRED codes. Other authentication refusals use a fixed generic body without raw credentials or account data.
 
 ## Scope and compatibility
 

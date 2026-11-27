@@ -20,7 +20,7 @@ class LoginThrottleFailureTest {
   private AuthService auth(int failures) {
     var settings = new LoginThrottleProperties();settings.setFailureLimit(failures);
     when(passwords.hash(anyString())).thenReturn("dummy-hash");
-    return new AuthService(users, sessions, passwords, new LoginAttemptLimiter(settings));
+    return new AuthService(users, sessions, passwords, new LoginAttemptLimiter(settings), mock(jakarta.persistence.EntityManager.class));
   }
 
   @Test
@@ -49,6 +49,7 @@ class LoginThrottleFailureTest {
     var auth = auth(2);
     var account = new UserAccount(UUID.randomUUID(), "known@example.invalid", "stored-hash", Instant.now());
     when(users.findByEmailIgnoreCase(account.getEmail())).thenReturn(Optional.of(account));
+    when(users.findForPolicyUpdate(account.getId())).thenReturn(Optional.of(account));
     when(passwords.verify("correct synthetic candidate", "stored-hash")).thenReturn(true);
     status(() -> auth.login(account.getEmail(), "wrong"), HttpStatus.UNAUTHORIZED);
     when(sessions.save(any())).thenThrow(new IllegalStateException("synthetic session failure"));
