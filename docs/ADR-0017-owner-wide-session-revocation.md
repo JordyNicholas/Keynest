@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed implementation decision for roadmap H4 / #307. Reviewed acceptance and exact-source evidence are recorded on its pull request. This does not amend the accepted bearer transport, crypto or recovery decisions.
+Proposed implementation decision for roadmap H4 / #307 in [PR #309](https://github.com/JordyNicholas/Keynest/pull/309). Reviewed acceptance and exact-source evidence are recorded on its pull request. This does not amend the accepted bearer transport, crypto or recovery decisions.
 
 ## Decision
 

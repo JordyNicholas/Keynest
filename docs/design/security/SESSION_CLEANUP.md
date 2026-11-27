@@ -1,6 +1,6 @@
 # Bounded expired-session cleanup
 
-Roadmap M1 H4, issue #305. This is the first lifecycle slice; revoke-all and changing the account password remain separate work. Authentication already denies expired rows whether or not cleanup succeeds.
+Roadmap M1 H4, issue #305. This is the first lifecycle slice. [Owner-wide sign-out](../../ADR-0017-owner-wide-session-revocation.md) is a separate action; changing the account password remains separate work. Authentication already denies expired rows whether or not cleanup succeeds.
 
 ## Execution and limits
 
