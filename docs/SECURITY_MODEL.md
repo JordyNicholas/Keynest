@@ -39,7 +39,7 @@ If a mutation's connection fails, it may already have committed. Do not automati
 
 ## Current limits
 
-AI is optional and disabled by default. The limited authenticated policy-explanation backend uses an ephemeral supplied provider key and explicit operator/provider configuration; enabling it involves third-party processing. Live-provider verification and the browser workflow remain pending in [the AI backend contract](AI_BACKEND.md). Core Vault/tools need no AI key. No raw Vault password is an input to that built-in policy explanation.
+AI is optional and disabled by default. The limited authenticated policy-explanation workflow uses an ephemeral supplied provider key and explicit operator/provider configuration; enabling it involves third-party processing. Its Account settings UI exists, with mocked HTTP tests; live-provider verification remains pending in [the AI backend contract](AI_BACKEND.md). Provider credentials are distinct from vault encryption keys. Core Vault/tools need no AI key. No raw Vault password is an input to that built-in policy explanation.
 
 Verified-email activation, external reminder delivery, OIDC/SSO, MFA, password recovery, team sharing, shared rate limiting, keyring/KMS custody and agent capabilities remain separate work; this onboarding path does not enable them. Main's newer hardening controls must not be relabelled as published v0.1.1 features. Source distribution does not imply Maven registry availability or a hosted service.
 
