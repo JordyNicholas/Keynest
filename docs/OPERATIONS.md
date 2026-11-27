@@ -36,3 +36,7 @@ Account settings → Sign out all devices requires fresh current-password verifi
 ## Changing the account password
 
 Account settings → Change password verifies the current password, replaces the hash and every prior session atomically, and issues a fresh bearer for the current browser. Vault keys/data and export passphrases stay unchanged. On an uncertain response, sign in again with the new password first; the browser does not replay the request. See [ordering, failure/rollback and retained-key recovery](ADR-0018-account-password-change.md). Restoring an older database may restore an older password/session state; verify that state after recovery and deliberately revoke/change again when required.
+
+## Saturation and admission failures
+
+Hashing slots and bounded client/route and login-identifier tables protect process resources, but can deny legitimate users when occupied/full. A 503 at password-work admission and a 429 at a limiter are distinct from probe health; readiness can remain UP. See [availability controls](design/security/AVAILABILITY_CONTROLS.md) for admission ordering, expiry/recovery, safe tuning, restart/replica limits and shared ingress requirements. Do not automatically replay an uncertain mutation after a connection failure. This guidance does not accept the open T01/T09/T13 residual risks.
