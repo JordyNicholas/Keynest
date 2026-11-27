@@ -8,19 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.SecureRandom;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.Locale;
 import java.util.UUID;
 
 @Service
 public class AuthService {
 
-    private static final int SESSION_DAYS = 7;
-    private static final int MIN_MASTER_PASSWORD_LENGTH = 15;
+    static final int MIN_MASTER_PASSWORD_LENGTH = 15;
 
     private final UserAccountRepository users;
     private final AuthSessionRepository sessions;
@@ -28,7 +23,6 @@ public class AuthService {
     private final PasswordHashingService passwords;
     private final String missingAccountHash;
     private final LoginAttemptLimiter loginAttempts;
-    private final SecureRandom random = new SecureRandom();
 
     public AuthService(
             UserAccountRepository users,
@@ -122,24 +116,7 @@ public class AuthService {
     }
 
     private AuthResponse issueSession(UserAccount user) {
-        byte[] raw = new byte[32];
-        String token;
-        try {
-            random.nextBytes(raw);
-            token = Base64.getUrlEncoder().withoutPadding().encodeToString(raw);
-        } finally {
-            Arrays.fill(raw, (byte) 0);
-        }
-        Instant now = Instant.now();
-        AuthSession session = new AuthSession(
-                UUID.randomUUID(),
-                user.getId(),
-                SessionTokenDigest.digest(token),
-                now.plus(SESSION_DAYS, ChronoUnit.DAYS),
-                now
-        );
-        sessions.save(session);
-        return new AuthResponse(user.getId(), user.getEmail(), token, session.getExpiresAt());
+        return AuthSessionIssuer.issue(user, sessions);
     }
 
     private static String extractToken(String authorizationHeader) {

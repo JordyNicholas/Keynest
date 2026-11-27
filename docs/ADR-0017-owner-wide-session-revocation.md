@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed implementation decision for roadmap H4 / #307 in [PR #309](https://github.com/JordyNicholas/Keynest/pull/309). Reviewed acceptance and exact-source evidence are recorded on its pull request. This does not amend the accepted bearer transport, crypto or recovery decisions.
+Accepted through maintainer-approved [PR #309](https://github.com/JordyNicholas/Keynest/pull/309) for roadmap H4 / #307 on November 27, 2026. Exact-source evidence is recorded on its pull request. This does not amend the accepted bearer transport, crypto or recovery decisions.
 
 ## Decision
 
@@ -18,7 +18,7 @@ The endpoint joins the explicit authenticated route catalog, per-IP route limite
 
 The browser clears the password on submit, cancellation, hiding or destruction, with explicit Show/Hide support. It waits for one request with a 15-second browser timeout. Definite password/input/admission refusals allow explicit retry; success or an ended session clears the captured tab session and returns home. A connection loss, unknown server failure, malformed success or cancellation after submission may have committed: clear the captured local session, return home, and require fresh sign-in. Never retry automatically or claim rollback. A late result cannot clear a replacement account's local bearer. A new same-account login racing an already-authorized revocation may still be removed according to database ordering.
 
-Email confirmation is a future additional gate under #300/#302. It is not silently required of existing unverified owners, does not replace fresh password proof, and is not called MFA. OIDC/provider-only proof is a separate accepted-design prerequisite; no bypass is added. Password change/revocation remains #308. Recovery semantics stay unchanged.
+Email confirmation is a future additional gate under #300/#302. It is not silently required of existing unverified owners, does not replace fresh password proof, and is not called MFA. OIDC/provider-only proof is a separate accepted-design prerequisite; no bypass is added. Password change/revocation is a separate decision under [ADR-0018](ADR-0018-account-password-change.md) / #308. Recovery semantics stay unchanged.
 
 ## Compatibility, rollback and evidence
 

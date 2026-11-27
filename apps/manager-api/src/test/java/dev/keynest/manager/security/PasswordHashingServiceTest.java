@@ -43,6 +43,9 @@ class PasswordHashingServiceTest {
         char[] rejected = "synthetic password".toCharArray();
         assertThatThrownBy(() -> work.verifyAndClear(rejected, "synthetic hash")).isInstanceOf(ResponseStatusException.class);
         assertThat(rejected).containsOnly('\0');
+        char[] newPassword = "synthetic replacement".toCharArray();
+        assertThatThrownBy(() -> work.hashAndClear(newPassword)).isInstanceOf(ResponseStatusException.class);
+        assertThat(newPassword).containsOnly('\0');
         verify(hasher, never()).verifyPassword(any(char[].class), eq("synthetic hash"));
       } finally {
         finish.countDown();
@@ -64,6 +67,18 @@ class PasswordHashingServiceTest {
     when(hasher.verifyPassword(any(char[].class), eq("synthetic hash"))).thenThrow(new IllegalStateException());
     char[] failed = "synthetic credential".toCharArray();
     assertThatThrownBy(() -> work.verifyAndClear(failed, "synthetic hash")).isInstanceOf(IllegalStateException.class);
+    assertThat(failed).containsOnly('\0');
+  }
+
+  @Test
+  void newPasswordHashingConsumesOwnedBuffersOnSuccessAndFailure() {
+    PasswordHasher hasher = mock(PasswordHasher.class);
+    PasswordHashingService work = new PasswordHashingService(hasher, 1);
+    when(hasher.hashPassword(any(char[].class))).thenReturn("synthetic hash").thenThrow(new IllegalStateException());
+    char[] success = "synthetic replacement".toCharArray();
+    assertThat(work.hashAndClear(success)).isEqualTo("synthetic hash");assertThat(success).containsOnly('\0');
+    char[] failed = "synthetic replacement".toCharArray();
+    assertThatThrownBy(() -> work.hashAndClear(failed)).isInstanceOf(IllegalStateException.class);
     assertThat(failed).containsOnly('\0');
   }
 

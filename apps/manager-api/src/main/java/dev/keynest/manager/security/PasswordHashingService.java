@@ -35,6 +35,12 @@ public class PasswordHashingService {
     return withSlot(() -> hasher.verifyPassword(password.toCharArray(), hash));
   }
 
+  /** Consumes a caller-owned new password even when capacity is unavailable. */
+  public String hashAndClear(char[] password) {
+    try { return withSlot(() -> hasher.hashPassword(password)); }
+    finally { if (password != null) java.util.Arrays.fill(password, '\0'); }
+  }
+
   /** Consumes caller-owned credentials, including when the shared work budget is full. */
   public boolean verifyAndClear(char[] password, String hash) {
     try {

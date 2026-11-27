@@ -27,8 +27,12 @@ The tools `/api/v1/tools/health` endpoint remains a compatibility/demo response 
 
 ## Expired-session storage hygiene
 
-The API removes at most 500 expired sessions per five-minute scheduled tick by default. Active sessions remain valid. See [worker bounds, failure behavior and V7 upgrade](design/security/SESSION_CLEANUP.md) before tuning the batch or delay; cleanup failure does not permit expired authentication. Owner-wide sign-out is described below; password-change revocation remains separate lifecycle work.
+The API removes at most 500 expired sessions per five-minute scheduled tick by default. Active sessions remain valid. See [worker bounds, failure behavior and V7 upgrade](design/security/SESSION_CLEANUP.md) before tuning the batch or delay; cleanup failure does not permit expired authentication. Owner-wide sign-out and account password change are described below.
 
 ## Owner-wide sign-out
 
-Account settings → Sign out all devices requires fresh current-password verification and ends the current session too. It preserves Vault data and permits later valid sign-in. Review [database ordering, lost-response handling and rollback](ADR-0017-owner-wide-session-revocation.md); revocation does not retract responses or retrospectively cancel work already authorized. Email verification, MFA, password recovery and changing the account password are separate designs.
+Account settings → Sign out all devices requires fresh current-password verification and ends the current session too. It preserves Vault data and permits later valid sign-in. Review [database ordering, lost-response handling and rollback](ADR-0017-owner-wide-session-revocation.md); revocation does not retract responses or retrospectively cancel work already authorized. Email verification, MFA and password recovery remain separate designs.
+
+## Changing the account password
+
+Account settings → Change password verifies the current password, replaces the hash and every prior session atomically, and issues a fresh bearer for the current browser. Vault keys/data and export passphrases stay unchanged. On an uncertain response, sign in again with the new password first; the browser does not replay the request. See [ordering, failure/rollback and retained-key recovery](ADR-0018-account-password-change.md). Restoring an older database may restore an older password/session state; verify that state after recovery and deliberately revoke/change again when required.

@@ -30,6 +30,7 @@ class VaultRestoreHttpIntegrationTest {
   private static final ObjectMapper JSON = new ObjectMapper();
   @Autowired MockMvc mvc;
   @Autowired AuthService auth;
+  @Autowired dev.keynest.manager.auth.PasswordChangeService passwordChanges;
   @Autowired VaultService vault;
   @Autowired VaultExportSnapshots exports;
   @Autowired VaultItemRepository items;
@@ -108,6 +109,22 @@ class VaultRestoreHttpIntegrationTest {
       .andReturn().getResponse().getContentAsByteArray();
     return JSON.readTree(response).path("planId").textValue();
   }
+  @Test void passwordChangeRequiresANewReviewBoundToTheReplacementSession() throws Exception {
+    String oldPlan = preview(bearer);
+    String nextPassword = "New synthetic account passphrase!42";
+    String replacement = "Bearer " + passwordChanges.change(bearer, ACCOUNT.toCharArray(), nextPassword.toCharArray()).token();
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON)
+      .content(apply(oldPlan).toString())).andExpect(status().isUnauthorized());
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", replacement).contentType(MediaType.APPLICATION_JSON)
+      .content(apply(oldPlan).put("accountPassword", nextPassword).toString())).andExpect(status().isConflict())
+      .andExpect(jsonPath("$.code").value("RESTORE_PLAN_INVALID"));
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).isEmpty();
+    String fresh = preview(replacement);
+    mvc.perform(post(ApiPaths.VAULT_RESTORE_APPLY).header("Authorization", replacement).contentType(MediaType.APPLICATION_JSON)
+      .content(apply(fresh).put("accountPassword", nextPassword).toString())).andExpect(status().isOk());
+    assertThat(items.findByUserIdOrderByUpdatedAtDesc(receiver)).hasSize(1);
+  }
+
   @Test void anotherOwnerCannotUseThePlan() throws Exception {
     String plan = preview(bearer);
     String other = "Bearer " + auth.register("restore-other-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
