@@ -1,6 +1,6 @@
 # AI and agent standards alignment — M1 paper spike
 
-**Status:** source/documentation research on November 27, 2026; #325. Proposed ADRs [0019](ADR-0019-ai-egress-boundaries.md) and [0020](ADR-0020-agent-trust-boundaries.md). No SDK installed, authorization server selected, network/provider credential used, interoperability run, outside integrator feedback or independent review is claimed. Research alone does not close M1.
+**Status:** source/documentation research on November 27, 2026; #325. Accepted design ADRs [0019](../../architecture/decisions/ADR-0019-ai-egress-boundaries.md) and [0020](../../architecture/decisions/ADR-0020-agent-trust-boundaries.md). No SDK installed, authorization server selected, network/provider credential used, interoperability run, outside integrator feedback or independent review is claimed. The maintainer approved the design contracts in #327 on November 27; research alone does not close M1.
 
 ## Observed Keynest boundary
 
