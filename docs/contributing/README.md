@@ -1,5 +1,7 @@
 # Contributing to Keynest
 
+Start with [CONTRIBUTING.md](../../CONTRIBUTING.md) for development setup and local commands.
+
 - [Project charter](project/charter.md) and [product scope](project/product.md) explain the purpose and boundaries.
 - [Canonical roadmap](project/roadmap.md) covers sequencing, release gates, and proposed work. See [the board reference](project/board.md) for issue templates and tracking conventions.
 - [Pull requests](pull-requests.md) covers branches, verification, and approval. [AGENTS.md](../../AGENTS.md) contains repository instructions for engineering agents.
