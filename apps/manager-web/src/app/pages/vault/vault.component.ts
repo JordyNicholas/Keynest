@@ -17,13 +17,14 @@ import { httpErrorMessage } from '../http-error-message';
 import { confirmVaultChange } from '../confirm-vault-change';
 import { IconComponent } from '../../ui/icon.component';
 import { PaginationComponent } from '../../ui/pagination.component';
+import { PreserveDisclosureSizeDirective } from '../../ui/preserve-disclosure-size.directive';
 import { VaultItem } from './vault-item';
 import { VaultItemDetailsComponent } from './vault-item-details.component';
 import { ExpiryCounts, ExpiryFilter, expiryFilters, expiryStatus, SearchField, VaultOrder, VaultPage } from './vault-metadata';
 
 @Component({
   selector: 'kn-vault-page',
-  imports: [InlineErrorComponent, DatePipe, RouterLink, FormsModule, MatButtonModule, MatExpansionModule, VaultItemDetailsComponent, IconComponent, PaginationComponent],
+  imports: [InlineErrorComponent, DatePipe, RouterLink, FormsModule, MatButtonModule, MatExpansionModule, VaultItemDetailsComponent, IconComponent, PaginationComponent, PreserveDisclosureSizeDirective],
   templateUrl: './vault.component.html',
   styleUrls: ['../page-shared.css', './vault.component.css', './expiry-status.css', './vault-selection.css'],
 })

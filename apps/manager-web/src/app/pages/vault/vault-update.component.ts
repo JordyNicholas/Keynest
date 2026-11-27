@@ -1,4 +1,5 @@
 import { ExpiryDatePickerComponent } from '../../ui/expiry-date-picker.component';
+import { PreserveDisclosureSizeDirective } from '../../ui/preserve-disclosure-size.directive';
 import { expiryInstant, localDateAfterDays } from '../../ui/expiry-date';
 import { httpErrorMessage } from '../http-error-message';
 import { NgTemplateOutlet } from '@angular/common';
@@ -22,7 +23,7 @@ import { VaultItem } from './vault-item';
 
 @Component({
   selector: 'kn-vault-update-page',
-  imports: [ExpiryDatePickerComponent, FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, RouterLink],
+  imports: [ExpiryDatePickerComponent, FormsModule, NgTemplateOutlet, InlineErrorComponent, MatButtonModule, PasswordGeneratorOptionsComponent, PreserveDisclosureSizeDirective, RouterLink],
   templateUrl: './vault-update.component.html',
   styleUrls: ['../page-shared.css', './vault-create.component.css', './vault-update.component.css'],
 })
