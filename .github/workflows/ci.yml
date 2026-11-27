@@ -156,6 +156,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Test sanitized container diagnostic classification
+        run: python3 -m unittest discover -s scripts/tests -p 'test_container_diagnostics.py'
+
       - name: Build and start disposable API and PostgreSQL
         run: docker compose -f deploy/docker-compose.yml up --build -d
 
