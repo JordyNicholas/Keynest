@@ -15,7 +15,7 @@ def run(command, cwd):
 
 
 def maven(worktree, goal):
-  return run(['mvn', '-B', '-N', '-Pformatting', f'spotless:{goal}'], worktree)
+  return run([sys.executable, str(worktree / 'scripts/java_formatting.py'), goal], worktree)
 
 
 def require(condition, category):
@@ -29,7 +29,9 @@ def probe(worktree, relative, package):
   try:
     path.parent.mkdir(parents=True, exist_ok=True)
     if package:
-      bad = f'package {package};\npublic class FormattingProbe{{public int value(){{return 1;}}}}\n'
+      parameters = ','.join(f'int alpha{index:04d}' for index in range(12))
+      bad = (f'package {package};\npublic class FormattingProbe{{public int value(){{return 1;}}'
+             f'public int sum({parameters}){{return 1;}}}}\n')
     else:
       require(original is not None, 'legacy probe target is missing')
       bad = '   ' + original.decode('utf-8')
@@ -43,6 +45,8 @@ def probe(worktree, relative, package):
     require(fixed != bad and '\t' not in fixed, f'{relative}: repair did not normalize the probe')
     if package:
       require('  public int value() {' in fixed, f'{relative}: expected two-space method indentation')
+      require(any(line.startswith('    int alpha') for line in fixed.splitlines()),
+              f'{relative}: expected two-space parameter continuation')
     require(maven(worktree, 'check').returncode == 0, f'{relative}: repaired source was rejected')
   finally:
     if original is None:
@@ -77,7 +81,7 @@ def verify():
       try:
         pom.write_text(original.replace(marker, '<ratchetFrom>' + 'f' * 40 + '</ratchetFrom>'), encoding='utf-8')
         rejected = maven(worktree, 'check')
-        require(rejected.returncode != 0 and any(term in rejected.stdout.lower() for term in ['reference', 'ratchetfrom']),
+        require(rejected.returncode != 0 and 'adoption commit' in rejected.stdout.lower(),
                 'missing adoption reference did not fail closed')
       finally:
         pom.write_text(original, encoding='utf-8')
