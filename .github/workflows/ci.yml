@@ -35,19 +35,27 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: maven
 
+      - name: Verify coverage gate rejection cases
+        run: python3 -m unittest discover -s scripts/tests -p 'test_java_coverage.py'
+
       - name: Test with coverage (bytecode release 21)
         run: mvn -B -Pcoverage clean test
 
-      - name: Measure initial module coverage
-        run: |
-          python3 - <<'PYTHON'
-          from pathlib import Path
-          import xml.etree.ElementTree as ET
-          for module in ['libs/keynest-policy', 'libs/keynest-generate', 'libs/keynest-seal', 'apps/manager-api']:
-            report = ET.parse(Path(module) / 'target/site/jacoco/jacoco.xml').getroot()
-            counters = {c.get('type'): (int(c.get('covered')), int(c.get('missed'))) for c in report.findall('counter')}
-            print(module, {k: counters[k] for k in ['LINE', 'BRANCH']})
-          PYTHON
+      - name: Enforce every module's line and branch floors
+        run: python3 scripts/check_java_coverage.py
+
+      - name: Retain only JaCoCo XML coverage metadata
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: java-coverage-${{ matrix.java }}-${{ github.sha }}
+          path: |
+            libs/keynest-policy/target/site/jacoco/jacoco.xml
+            libs/keynest-generate/target/site/jacoco/jacoco.xml
+            libs/keynest-seal/target/site/jacoco/jacoco.xml
+            apps/manager-api/target/site/jacoco/jacoco.xml
+          if-no-files-found: error
+          retention-days: 7
 
   angular:
     name: Angular build
