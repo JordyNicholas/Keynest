@@ -20,6 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
   ToolsDemoProperties.class,
   RateLimitProperties.class,
   LoginThrottleProperties.class,
+  SessionCleanupProperties.class,
   AiProperties.class
 })
 public class KeynestConfig {

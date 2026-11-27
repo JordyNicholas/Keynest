@@ -26,7 +26,7 @@ This upgrade changes the physical session column from `token` to `token_digest` 
    WHERE u.id IS NULL;
    ```
 
-6. Start exactly one upgraded API instance. Flyway baselines the non-empty schema at V1 and applies all subsequent migrations. The MVP schema ends at V6. Do not start the rest of the fleet until this instance is healthy.
+6. Start exactly one upgraded API instance. Flyway baselines the non-empty schema at V1 and applies all subsequent migrations. The current schema ends at V7. Do not start the rest of the fleet until this instance is healthy.
 7. Verify migration history and column state:
 
    ```sql
@@ -40,14 +40,16 @@ This upgrade changes the physical session column from `token` to `token_digest` 
      AND column_name IN ('token', 'token_digest');
    ```
 
-   Expected: successful V1 baseline and V2 through V6 migration records; `token_digest` exists and `token` does not.
+   Expected: successful V1 baseline and V2 through V7 migration records; `token_digest` exists and `token` does not.
 8. Exercise register/login, list, create and reveal with non-production test data, then restore normal instance capacity.
 
 If any preflight result is non-zero or migration fails, keep writers stopped and investigate. Do not delete orphaned or encrypted rows merely to make the migration pass.
 
-V3 adds the expiry outbox, V4 adds dispatch claim and retry fields, and V5 adds recipient verification and consent fields. V6 adds nullable account password policy configuration. Existing accounts retain the built-in policy. Database migration does not enable external delivery.
+V3 adds the expiry outbox, V4 adds dispatch claim and retry fields, and V5 adds recipient verification and consent fields. V6 adds nullable account password policy configuration. Existing accounts retain the built-in policy. Database migration does not enable external delivery. V7 adds the session expiry index; see [bounded cleanup, operator settings and V6-compatible rollback](design/security/SESSION_CLEANUP.md). Index creation can block session writes, so preserve the stopped-writer rollout and assess large installations before upgrading.
 
 ## Rollback
+
+V7 adds only an index and is compatible with the preceding V6 application. Leave the index and migration history in place on an application rollback; deleted expired sessions were already unusable and must not be resurrected. The older V2 boundary below remains incompatible.
 
 The previous application version expects the old column name, so application-only rollback is unsafe after V2. Stop upgraded instances, restore the pre-upgrade database backup, restore the matching vault-key configuration if it changed independently, then start the previous version. Preserve the failed database separately for diagnosis.
 
