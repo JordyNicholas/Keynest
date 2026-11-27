@@ -21,10 +21,14 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
     await page.locator(header).click();
     await page.waitForSelector(`${card} a.rotate-action`, { visible: true });
   };
-  const reveal = async expected => {
+  const reveal = async (expected, prefix) => {
+    if (prefix) stage(prefix + '_CLICK');
     await page.locator(`${card} .reveal-action`).click();
+    if (prefix) stage(prefix + '_VALUE');
     await page.waitForFunction(expected => document.querySelector('.vault-card output.secret')?.textContent === expected, {}, expected);
+    if (prefix) stage(prefix + '_CONCEAL');
     await page.locator(`${card} .reveal-action`).click();
+    if (prefix) stage(prefix + '_HIDDEN');
     await page.waitForSelector(secretOutput, { hidden: true });
   };
   const response = (path, method) => page.waitForResponse(reply => new URL(reply.url()).pathname === path && reply.request().method() === method);
@@ -203,9 +207,15 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   assert.ok(await page.evaluate(() => window.__fixtureViolations.length === 0));
   stage('RESTORE_DUPLICATE_RELOAD');
   await page.reload({ waitUntil: 'networkidle0' });
-  await expand();assert.equal(await itemId(), restoredId);
+  stage('RESTORE_RELOAD_EXPAND');
+  await expand();
+  stage('RESTORE_RELOAD_IDENTITY');
+  assert.equal(await itemId(), restoredId);
+  stage('RESTORE_RELOAD_METADATA');
   await metadata();
+  stage('RESTORE_RELOAD_COUNT');
   assert.equal(await page.$$eval(card, nodes => nodes.length), 1);
-  await reveal(replacement);
+  await reveal(replacement, 'RESTORE_RELOAD_REVEAL');
+  stage('RESTORE_RELOAD_APPLY_COUNT');
   assert.equal(applyRequests, 1);
 }

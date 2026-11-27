@@ -78,9 +78,11 @@ export async function authenticatedBrowser(url, profile, reducedMotion, apiBase 
     assert.ok(await page.evaluate(() => !sessionStorage.getItem('keynest.token') && !document.querySelector('.shell.authenticated')));
     stage = 'CSP';assert.ok(await page.evaluate(() => window.__fixtureViolations.length === 0));
     return 'KEYNEST_CSP_PASS';
-  } catch {
+  } catch (error) {
     // Puppeteer errors can include supplied values; propagate only a fixed stage.
-    return 'KEYNEST_CSP_FAIL_' + stage;
+    const category = error?.name === 'TimeoutError' ? '_TIMEOUT'
+      : error?.code === 'ERR_ASSERTION' ? '_ASSERTION' : '_OTHER';
+    return 'KEYNEST_CSP_FAIL_' + stage + category;
   } finally {
     if (browser) await browser.close().catch(() => {});
   }
