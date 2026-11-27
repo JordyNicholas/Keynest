@@ -14,7 +14,7 @@ class PasswordGeneratorTest {
         PasswordGenerator generator = new PasswordGenerator();
         for (int i = 0; i < 20; i++) {
             String password = generator.generate(policy);
-            assertTrue(PasswordValidator.validate(password, policy).valid(), password);
+            assertTrue(PasswordValidator.validate(password, policy).valid(), "Generated value must satisfy its policy");
         }
     }
 
@@ -26,6 +26,6 @@ class PasswordGeneratorTest {
                 .build();
         PasswordGenerator generator = new PasswordGenerator();
         String password = generator.generate(policy);
-        assertTrue(PasswordValidator.validate(password, policy).valid(), password);
+        assertTrue(PasswordValidator.validate(password, policy).valid(), "Generated value must satisfy its policy");
     }
 }
