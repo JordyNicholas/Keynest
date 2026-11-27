@@ -33,6 +33,8 @@ New Manager accounts require at least 15 Unicode code points in the master passw
 
 The rate limiter uses Spring's application-relative path matching and counts requests by configured route and resolved client. This keeps throttling consistent when Keynest runs under a servlet context path. The deployment limits under T09 and T13 still apply.
 
+The H3 [central authentication boundary](design/security/CENTRAL_AUTHENTICATION.md) adds a primary API filter and an explicit matched-handler catalog before MVC binding. New/unclassified application handlers deny access, and an inventory test checks every controller mapping. Public/optional tool contracts and exact CORS are retained; controller/owner and bulk reauthentication/revocation checks remain. New servlets, filters or non-MVC transports require separate security review. This does not change the accepted bearer or introduce email/OIDC authentication.
+
 The public password verification tool checks the Argon2id format and bounds the requested work before calling the native verifier. The bound is per request. See T13 for the remaining request-size and concurrency considerations.
 
 Evidence reviewed for #43:

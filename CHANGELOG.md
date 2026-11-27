@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add central default-deny API authentication and explicit handler-access inventory, retaining public/optional tool contracts, owner checks, CORS and bulk-operation reauthentication.
+
 - Add bounded per-process sign-in failure/cooldown admission by normalized email across client IPs, with in-flight serialization and generic retry guidance. Document targeted-lockout, full-table, restart and replica limits.
 
 - Remove the unknown-account login verification shortcut by using one prepared dummy hash through the existing Argon2 capacity budget; per-account throttling and registration enumeration remain separate hardening work.

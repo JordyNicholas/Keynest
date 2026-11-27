@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Per-instance only — not shared across replicas (document for self-host).
  */
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE + 40)
 public class RateLimitFilter extends OncePerRequestFilter {
 
   private static final List<PathPattern> RATE_LIMITED_PATHS = ApiPaths.RATE_LIMITED_POSTS.stream()
