@@ -31,3 +31,7 @@ Root [`.editorconfig`](../.editorconfig) is authoritative. `apps/manager-web/.ed
 ## Java formatting gate
 
 New/changed Java files use the [incremental Spotless gate](design/security/JAVA_FORMATTING_GATES.md), with a fixed adoption commit and committed two-space Eclipse profile. Run check/apply from the repository root and review the diff. Untouched legacy files and other languages are not claimed as fully formatted by this gate.
+
+## Java static analysis
+
+The [SpotBugs gate](design/security/JAVA_STATIC_ANALYSIS.md) checks all production Java modules and requires exact source-reviewed treatment of intentional findings. Run its documented full test/analysis and guard commands; a reporting goal alone is not enforcement. Source edits invalidate associated review digests, so re-review before updating them.
