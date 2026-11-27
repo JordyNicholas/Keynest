@@ -32,6 +32,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>4.0.10</spring-boot.version>
     <junit.version>5.11.4</junit.version>
+    <archunit.version>1.5.1</archunit.version>
     <argon2.version>2.11</argon2.version>
     <jackson.version>2.21.8</jackson.version>
     <tomcat.version>11.0.29</tomcat.version>
