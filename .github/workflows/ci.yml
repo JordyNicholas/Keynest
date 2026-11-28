@@ -159,6 +159,9 @@ jobs:
       - name: Test sanitized container diagnostic classification
         run: python3 -m unittest discover -s scripts/tests -p 'test_container_diagnostics.py'
 
+      - name: Test opt-in ingress checker against disposable loopback TLS
+        run: python3 -m unittest discover -s scripts/tests -p 'test_https_ingress.py'
+
       - name: Build and start disposable API and PostgreSQL
         run: docker compose -f deploy/docker-compose.yml up --build -d
 

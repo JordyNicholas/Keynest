@@ -4,6 +4,7 @@
 | --- | --- |
 | Try the app or run a development stack | [Local setup](local-setup.md) |
 | Deploy an isolated test or production stack | [Manager deployment](deployment.md) |
+| Check the selected HTTPS ingress response contracts | [Opt-in HTTPS ingress verification](https-ingress.md) |
 | Build and serve the Angular frontend | [Web deployment and API connectivity](web-deployment.md) |
 | Back up, migrate, or restore PostgreSQL and the matching vault key | [Database migrations and recovery](database-migrations.md) |
 | Configure probes and investigate saturation or session issues | [Runtime operations](runtime.md) |
