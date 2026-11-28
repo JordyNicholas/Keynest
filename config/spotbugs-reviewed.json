@@ -69,8 +69,31 @@
   },
   {
     "module": "apps/manager-api",
+    "class": "dev.keynest.manager.auth.AccountVerificationTransactions",
+    "source_sha256": "76194aaff3cfc0f14ef638436941af0356c331da24a196557e6fb70bac7a276b",
+    "findings": [
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "em",
+        "count": 1,
+        "reason": "managed-dependency"
+      },
+      {
+        "type": "EI_EXPOSE_REP2",
+        "priority": 2,
+        "method": "<init>",
+        "field": "sessions",
+        "count": 1,
+        "reason": "managed-dependency"
+      }
+    ]
+  },
+  {
+    "module": "apps/manager-api",
     "class": "dev.keynest.manager.auth.AuthService",
-    "source_sha256": "b0262db810cca26fc765d28aaf3f80299e3d01dcb94f9c75ad36540ca9e801d9",
+    "source_sha256": "1b03f4f32971a1e3723161076e83d04ec71d4907ee2713e38462fbb2b78d0e3e",
     "findings": [
       {
         "type": "EI_EXPOSE_REP2",

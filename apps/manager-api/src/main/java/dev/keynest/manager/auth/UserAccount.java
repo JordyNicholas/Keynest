@@ -72,6 +72,14 @@ public class UserAccount {
     return emailVerifiedAt != null;
   }
 
+  /** Caller has consumed the exact owner/session/address-bound proof in this account transaction. */
+  void confirmEmail(String deliveryEmail, Instant now) {
+    if (isEmailVerified() || !email.equals(deliveryEmail))
+      throw new IllegalStateException("Verification binding unavailable");
+    this.deliveryEmail = java.util.Objects.requireNonNull(deliveryEmail);
+    this.emailVerifiedAt = java.util.Objects.requireNonNull(now);
+  }
+
   public boolean isActivationEligible() {
     return isEmailVerified() || legacyAccessGranted;
   }

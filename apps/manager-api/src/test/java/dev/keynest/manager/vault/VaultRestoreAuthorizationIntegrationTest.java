@@ -33,6 +33,8 @@ class VaultRestoreAuthorizationIntegrationTest {
   @Autowired
   AuthService auth;
   @Autowired
+  dev.keynest.manager.auth.AuthSessionRepository sessions;
+  @Autowired
   VaultExportSnapshots exports;
   @Autowired
   EncryptedVaultBackup backups;
@@ -43,7 +45,7 @@ class VaultRestoreAuthorizationIntegrationTest {
   @MockitoSpyBean
   VaultService vault;
   @Test
-  void independentlyCommittedRevocationDuringReceivingWorkRollsBackEveryInsert() throws Exception {
+  void independentlyCommittedSessionDeletionDuringReceivingWorkRollsBackEveryInsert() throws Exception {
     String account = "Synthetic account passphrase!42", phrase = "Synthetic separate file passphrase";
     var source = auth.requireUser(
       "Bearer " + accounts.register("restore-auth-source-" + UUID.randomUUID() + "@example.invalid", account).token());
@@ -61,6 +63,8 @@ class VaultRestoreAuthorizationIntegrationTest {
     String bearer = "Bearer "
       + accounts.register("restore-auth-receiver-" + UUID.randomUUID() + "@example.invalid", account).token();
     var receiver = auth.requireUser(bearer);
+    String digest = sessions.findAll().stream().filter(session -> session.getUserId().equals(receiver.getId()))
+      .findFirst().orElseThrow().getTokenDigest();
     var json = new ObjectMapper();
     var body = json.createObjectNode().put("file", file).put("backupPassphrase", phrase);
     byte[] preview = mvc
@@ -72,7 +76,9 @@ class VaultRestoreAuthorizationIntegrationTest {
     independent.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     doAnswer(call -> {
       Object envelope = call.callRealMethod();
-      independent.executeWithoutResult(status -> auth.logout(bearer));
+      // Administrative deletion can bypass application owner ordering. The late session guard must still roll back.
+      // Ordinary logout now serializes behind this already-locked owner mutation.
+      independent.executeWithoutResult(status -> sessions.deleteByTokenDigest(digest));
       return envelope;
     }).when(vault).sealPassword(anyString(), eq(receiver.getId()), any(), anyString());
     mvc

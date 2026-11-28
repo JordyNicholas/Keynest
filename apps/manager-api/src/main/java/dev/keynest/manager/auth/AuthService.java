@@ -81,19 +81,26 @@ public class AuthService {
       .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "user missing"));
   }
 
-  @Transactional
+  @Transactional(timeout = 10)
   public void logout(String authorizationHeader) {
     if (authorizationHeader == null || authorizationHeader.isBlank()) {
       return;
     }
-    sessions.deleteByTokenDigest(SessionTokenDigest.digest(extractToken(authorizationHeader)));
+    String digest = SessionTokenDigest.digest(extractToken(authorizationHeader));
+    sessions.findByTokenDigest(digest).ifPresent(session -> {
+      // All current authority-revoking writers share the owner-first verification ordering.
+      users.findForPolicyUpdate(session.getUserId()).ifPresent(owner -> {
+        em.refresh(owner, LockModeType.PESSIMISTIC_WRITE);
+        sessions.deleteByTokenDigest(digest);
+      });
+    });
   }
 
   private AuthResponse issueSession(UserAccount user) {
     return AuthSessionIssuer.issue(user, sessions);
   }
 
-  private static String extractToken(String authorizationHeader) {
+  static String extractToken(String authorizationHeader) {
     if (authorizationHeader == null || authorizationHeader.isBlank()) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "missing bearer token");
     }
