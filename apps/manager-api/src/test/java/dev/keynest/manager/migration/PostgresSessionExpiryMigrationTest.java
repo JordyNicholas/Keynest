@@ -63,8 +63,8 @@ class PostgresSessionExpiryMigrationTest {
       }
       var latest = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
         .load();
-      assertThat(latest.migrate().migrationsExecuted).isEqualTo(2);
-      assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("8");
+      assertThat(latest.migrate().migrationsExecuted).isEqualTo(3);
+      assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("9");
       latest.validate();
       try (var statement = connection.createStatement();
         var rows = statement.executeQuery("SELECT token_digest, expires_at FROM auth_sessions")) {

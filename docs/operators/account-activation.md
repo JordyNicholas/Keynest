@@ -1,14 +1,20 @@
 # Account activation transition
 
-**Unreleased implementation under #336, based on accepted [ADR-0021](../architecture/decisions/ADR-0021-verified-email-activation.md).** This guide does not describe v0.1.1's published behavior or claim a working mail flow.
+**Unreleased foundation merged through #337 / #336, based on accepted [ADR-0021](../architecture/decisions/ADR-0021-verified-email-activation.md).** This guide does not describe v0.1.1's published behavior or claim a working mail flow.
 
-The first slice retires direct signup: `POST /api/v1/auth/register` returns fixed HTTP 410 with `code: REGISTRATION_REQUIRES_VERIFICATION`, without creating an account/session or inspecting the submitted address. The Web signup entry explains the temporary pause and offers existing-owner sign-in. There is no allow-unverified switch, bootstrap owner endpoint, or production fixture API. **Fresh installations cannot onboard owners until the later activation implementation ships.** Operators needing new signups should evaluate this transition before upgrading; this PR is not a release/publication decision.
+The first slice retires direct signup: `POST /api/v1/auth/register` returns fixed HTTP 410 with `code: REGISTRATION_REQUIRES_VERIFICATION`, without creating an account/session or inspecting the submitted address. The Web signup entry explains the temporary pause and offers existing-owner sign-in. There is no allow-unverified switch, bootstrap owner endpoint, or production fixture API. **Fresh installations cannot onboard owners until the later activation implementation ships.** Operators needing new signups should evaluate this transition before upgrading; the foundation is not a release/publication decision.
 
 ## Existing owners and upgrade
 
 V8 adds nullable verification timestamp/delivery-address metadata and a false-by-default legacy eligibility flag. Only rows present during migration receive the legacy flag; none is labeled email-verified. A database constraint rejects a new unverified/nonlegacy account. Login/session resolution also rejects ineligible state. Existing passwords, session digests/expiry, Vault envelopes, identifiers and installation keys are retained. A legacy owner can continue sign-in, reveal, export/restore and account operations with current password proof; Account settings shows an informational verification-pending notice. Verification request/confirmation and SMTP configuration are not available in this slice.
 
 Before applying V8, take and retain the normal database backup and matching installation key. Pause registration and stop old application writers during migration; never load-balance old/new signup handlers during the transition. Deploy matching API/Web, verify old signup refusal, an existing owner's password/session/Vault access and `emailVerified: false`, then retain the signup pause until reviewed activation is ready. Do not hand-edit existing owners' verification timestamps to bypass the later flow or delete data to repair startup.
+
+## Internal verification state candidate
+
+V9 under #339 adds empty internal challenge, quota and reference-only delivery-job tables. It changes no existing owner/session/Vault data and adds no public endpoint, sender or activation method. The [state contract](../architecture/verification-state.md) documents shared database limits, one committed claim per generation, ten-minute digest-only tokens and bounded scheduled cleanup. No worker sends mail in this slice; SMTP is not configurable yet.
+
+Keep SQL/bind-parameter tracing off: recipient/session metadata is sensitive even without raw tokens. Healthy running maintenance removes expired state in bounded passes; offline databases, failed maintenance and backups require operator retention controls. Do not treat restoring this database as token revocation: restoration can revive consumed state. Before future mail/activation enablement after recovery, pending generations/jobs must be invalidated and restored sessions revoked through a reviewed, rehearsed runbook. That enablement remains #338 work.
 
 ## Failure and rollback
 
