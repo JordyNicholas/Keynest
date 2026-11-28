@@ -159,6 +159,9 @@ jobs:
       - name: Test sanitized container diagnostic classification
         run: python3 -m unittest discover -s scripts/tests -p 'test_container_diagnostics.py'
 
+      - name: Test disposable account setup guards
+        run: python3 -m unittest discover -s scripts/tests -p 'test_disposable_accounts.py'
+
       - name: Test opt-in ingress checker against disposable loopback TLS
         run: python3 -m unittest discover -s scripts/tests -p 'test_https_ingress.py'
 
@@ -234,7 +237,7 @@ jobs:
       - name: Verify hosted runtime and browser preflight
         run: |
           python3 scripts/check-container-runtime.py --compose-file deploy/docker-compose.hosted.yml
-          python3 scripts/compose-smoke.py --disposable --cors-origin "$KEYNEST_CORS_ALLOWED_ORIGINS"
+          python3 scripts/compose-smoke.py --disposable --compose-file deploy/docker-compose.hosted.yml --cors-origin "$KEYNEST_CORS_ALLOWED_ORIGINS"
           postgres="$(docker compose -f deploy/docker-compose.hosted.yml ps -q postgres)"
           test "$(docker inspect --format '{{len .HostConfig.PortBindings}}' "$postgres")" = 0
 

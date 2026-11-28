@@ -121,3 +121,7 @@ The inventory is generated here for readability from the committed entries; the 
 | `dev.keynest.manager.vault.export.PortableVaultFormat` | `REC_CATCH_EXCEPTION`: `loadSchema` | 1 | `sanitized-failure-boundary` |
 | `dev.keynest.policy.schema.PasswordPolicyDocument` | `EI_EXPOSE_REP`: `appliesTo (appliesTo)` | 1 | `mutable-policy-document` |
 | `dev.keynest.policy.schema.PasswordPolicyDocument` | `EI_EXPOSE_REP2`: `setAppliesTo (appliesTo)` | 1 | `mutable-policy-document` |
+
+## Activation foundation source review (#336)
+
+The two existing `AuthService` constructor findings still retain the Spring-managed EntityManager/session repository references; constructor ownership and dependency handling are unchanged. Retiring direct signup and checking account eligibility does not add an exposed mutable value or suppress another finding. Only that reviewed source digest is refreshed after formatting; existing fingerprints, counts, threshold and rationale remain enforced. Real analyzer/CI evidence belongs to the implementation PR.

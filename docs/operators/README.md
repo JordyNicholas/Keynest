@@ -12,3 +12,5 @@
 | Read or configure sanitized security event logging | [Security events](../security/events.md) |
 
 [Vault backup and restore](../manager/backup-and-restore.md) explains the separate `.keynest` file workflow for moving items between compatible accounts or installations.
+
+- [Account activation transition](account-activation.md): unreleased signup pause, retained-owner eligibility, upgrade and compatible rollback.

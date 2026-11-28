@@ -1,5 +1,7 @@
 """Exercise only the disposable local Compose API; never print secret payloads."""
 
+from disposable_accounts import seed, PASSWORD as FIXTURE_PASSWORD
+
 import argparse
 import base64
 import json
@@ -105,7 +107,7 @@ def check_cors(allowed_origin):
         check('Access-Control-Allow-Origin' not in error.headers, 'unlisted origin must receive no CORS grant')
 
 
-def run(cors_origin):
+def run(cors_origin, compose_file):
   wait_until_ready()
   if cors_origin:
     check_cors(cors_origin)
@@ -115,16 +117,19 @@ def run(cors_origin):
   expect('GET', '/actuator/env', status=404)
   expect('POST', API + '/tools/seal', {'plaintext': 'demo'}, status=403)
 
-  email = 'compose-' + secrets.token_hex(12) + '@example.com'
-  password = secrets.token_urlsafe(32) + 'Aa1!'
-  headers, registered = expect('POST', API + '/auth/register', {'email': email, 'password': password})
-  check(headers.get('Cache-Control') == 'no-store', 'registration must be no-store')
+  email = 'compose-' + secrets.token_hex(12) + '@example.invalid'
+  password = FIXTURE_PASSWORD
+  headers, _ = expect('POST', API + '/auth/register', {'email': email, 'password': password}, status=410)
+  check(headers.get('Cache-Control') == 'no-store', 'retired registration must be no-store')
+  seed(email, compose_file)
+  _, registered = expect('POST', API + '/auth/login', {'email': email, 'password': password})
   token = registered['token']
   headers, logged_in = expect('POST', API + '/auth/login', {'email': email, 'password': password})
   check(headers.get('Cache-Control') == 'no-store', 'login must be no-store')
   login_token = logged_in['token']
   _, me = expect('POST', API + '/auth/me', token=login_token)
-  check(me['userId'] == registered['userId'], 'login must authenticate the registered account')
+  check(me['userId'] == registered['userId'], 'login must authenticate the existing fixture account')
+  check(me.get('emailVerified') is False, 'legacy fixture must not be labelled verified')
 
   # Both failures exercise native password work; never inspect or print bodies.
   wrong_candidate = secrets.token_urlsafe(32)
@@ -171,11 +176,10 @@ def run(cors_origin):
   check(revealed['password'].encode('utf-8') not in protected, 'export must not expose plaintext')
   check(int.from_bytes(protected[26:30], 'big') == len(protected) - 30, 'export container length must match')
 
-  other_password = secrets.token_urlsafe(32) + 'Aa1!'
-  _, other = expect('POST', API + '/auth/register', {
-    'email': 'compose-' + secrets.token_hex(12) + '@example.com',
-    'password': other_password,
-  })
+  other_password = FIXTURE_PASSWORD
+  other_email = 'compose-' + secrets.token_hex(12) + '@example.invalid'
+  seed(other_email, compose_file)
+  _, other = expect('POST', API + '/auth/login', {'email': other_email, 'password': other_password})
   _, other_items = expect('GET', API + '/vault/items', token=other['token'])
   check(other_items == [], 'other user must have an empty vault')
   _, other_overview = expect('GET', API + '/vault/overview', token=other['token'])
@@ -251,9 +255,10 @@ if __name__ == '__main__':
   parser.add_argument('--disposable', action='store_true', required=True,
     help='confirm localhost:8080 belongs to a fresh disposable Compose project')
   parser.add_argument('--cors-origin', help='expected browser origin for a hosted Compose preflight')
+  parser.add_argument('--compose-file', choices=('deploy/docker-compose.yml', 'deploy/docker-compose.hosted.yml'), default='deploy/docker-compose.yml')
   args = parser.parse_args()
   try:
-    run(args.cors_origin)
+    run(args.cors_origin, args.compose_file)
   except SmokeFailure as error:
     print('FAIL: ' + str(error), file=sys.stderr)
     sys.exit(1)

@@ -2,7 +2,7 @@
 
 ## Entry and navigation
 
-On the homepage, choose **Start your vault** or **Sign in**. Registration requires a Keynest password of at least 15 Unicode code points. Your Keynest password authenticates you to the instance. The server vault key is configured separately. The shared sign-in and signup dialog clears inputs on cancellation and returns keyboard focus to its trigger.
+On the homepage, choose **Start your vault** or **Sign in**. On unreleased `main`, **Start your vault** explains that signup is temporarily paused while verified-email activation is built; it does not collect a signup password. Existing owners retain sign-in/Vault access and see an informational email-verification-pending notice. See the [transition guide](../operators/account-activation.md). Published v0.1.1 still uses direct registration with a minimum of 15 Unicode code points. Your Keynest password authenticates you to the instance. The server vault key is configured separately. The shared sign-in and signup dialog clears inputs on cancellation and returns keyboard focus to its trigger.
 
 Successful sign-in opens **Overview** by default. Explicit safe in-app return links can send you to a Vault item or the Account AI setup. A signed-out workspace URL redirects to the homepage. **Account settings** contains profile, security, password rules, optional AI, diagnostics, and help.
 

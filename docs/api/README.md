@@ -6,15 +6,17 @@ Paths below use the `/api/v1` base. Start the API using [local setup](../operato
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| POST | `/auth/register` | Create an account and issue a session |
+| POST | `/auth/register` | Retired on unreleased `main`: fixed HTTP 410 `REGISTRATION_REQUIRES_VERIFICATION`, no account or session |
 | POST | `/auth/login` | Verify the account password and issue a session |
-| POST | `/auth/me` | Check the current session and account identity |
+| POST | `/auth/me` | Check session/identity; unreleased `main` adds owner-only `emailVerified` |
 | POST | `/auth/logout` | End the current session |
 | POST | `/auth/logout-all` | Verify the current password and revoke all account sessions on unreleased `main` |
 | POST | `/auth/password` | Change the account password and replace its sessions on unreleased `main` |
 | GET, PUT | `/account/password-policy` | Read or update [account password rules](account-password-policy.md) |
 
 See the [session transport decision](../architecture/decisions/ADR-0007-session-token-storage-and-browser-transport.md) and the separate contracts for [owner-wide sign-out](../architecture/decisions/ADR-0017-owner-wide-session-revocation.md) and [password change](../architecture/decisions/ADR-0018-account-password-change.md).
+
+New signup is temporarily unavailable on this implementation branch while verified-email activation is built. Existing owners retain access. See the [activation transition guide](../operators/account-activation.md); this is a signup API compatibility change, not a new published release.
 
 ## Vault
 

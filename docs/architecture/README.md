@@ -13,3 +13,5 @@ An ADR records an accepted decision and its context. Use the [design index](../d
 ## Accepted follow-on designs
 
 [0019 AI egress](decisions/ADR-0019-ai-egress-boundaries.md) and [0020 Agent trust](decisions/ADR-0020-agent-trust-boundaries.md) were accepted in maintainer-approved #327. They define requirements for later work; acceptance is not evidence of implementation, provider verification or enabled agent access.
+
+[0021 Verified-email activation](decisions/ADR-0021-verified-email-activation.md) was accepted in #335. Its first implementation slice retires direct signup and preserves existing owners under #336; mail delivery, activation and owner confirmation remain unimplemented until their own reviewed slices.

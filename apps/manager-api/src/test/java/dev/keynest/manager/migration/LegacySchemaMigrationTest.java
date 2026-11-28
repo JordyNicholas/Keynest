@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LegacySchemaMigrationTest {
 
   @Test
-  void baselinesLegacySchemaAndPreservesRowsThroughV7() throws Exception {
+  void baselinesLegacySchemaAndPreservesRowsThroughV8() throws Exception {
     String url = "jdbc:h2:mem:legacy-" + UUID.randomUUID()
       + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1";
     UUID userId = UUID.randomUUID();
@@ -30,38 +30,29 @@ class LegacySchemaMigrationTest {
       insertLegacyRows(connection, userId, sessionId, itemId, digest);
     }
 
-    Flyway flyway = Flyway.configure()
-      .dataSource(url, "sa", "")
-      .locations("classpath:db/migration")
-      .baselineOnMigrate(true)
-      .baselineVersion("1")
-      .validateMigrationNaming(true)
-      .load();
+    Flyway flyway = Flyway.configure().dataSource(url, "sa", "").locations("classpath:db/migration")
+      .baselineOnMigrate(true).baselineVersion("1").validateMigrationNaming(true).load();
 
-    // V1 is a baseline record; only V2 through V7 execute.
-    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(6);
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("7");
+    // V1 is a baseline record; only V2 through V8 execute.
+    assertThat(flyway.migrate().migrationsExecuted).isEqualTo(7);
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("8");
 
     try (Connection connection = DriverManager.getConnection(url, "sa", "")) {
       assertThat(singleString(connection, "SELECT token_digest FROM auth_sessions WHERE id = '" + sessionId + "'"))
         .isEqualTo(digest);
-      assertThat(singleLong(connection, "SELECT COUNT(*) FROM users WHERE id = '" + userId + "'"))
-        .isEqualTo(1);
-      assertThat(singleLong(connection, "SELECT COUNT(*) FROM vault_items WHERE id = '" + itemId + "'"))
-        .isEqualTo(1);
+      assertThat(singleLong(connection, "SELECT COUNT(*) FROM users WHERE id = '" + userId + "'")).isEqualTo(1);
+      assertThat(singleLong(connection, "SELECT COUNT(*) FROM vault_items WHERE id = '" + itemId + "'")).isEqualTo(1);
       assertThat(singleLong(connection, """
         SELECT COUNT(*) FROM flyway_schema_history
         WHERE success = TRUE AND version IS NOT NULL
-        """))
-        .isEqualTo(7);
+        """)).isEqualTo(8);
 
       try (Statement statement = connection.createStatement()) {
         statement.executeUpdate("DELETE FROM users WHERE id = '" + userId + "'");
       }
       assertThat(singleLong(connection, "SELECT COUNT(*) FROM auth_sessions WHERE user_id = '" + userId + "'"))
         .isZero();
-      assertThat(singleLong(connection, "SELECT COUNT(*) FROM vault_items WHERE user_id = '" + userId + "'"))
-        .isZero();
+      assertThat(singleLong(connection, "SELECT COUNT(*) FROM vault_items WHERE user_id = '" + userId + "'")).isZero();
     }
   }
 
@@ -104,17 +95,11 @@ class LegacySchemaMigrationTest {
     }
   }
 
-  private static void insertLegacyRows(
-    Connection connection,
-    UUID userId,
-    UUID sessionId,
-    UUID itemId,
-    String digest
-  ) throws Exception {
+  private static void insertLegacyRows(Connection connection, UUID userId, UUID sessionId, UUID itemId, String digest)
+    throws Exception {
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-    try (PreparedStatement statement = connection.prepareStatement(
-      "INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)"
-    )) {
+    try (PreparedStatement statement = connection
+      .prepareStatement("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)")) {
       statement.setObject(1, userId);
       statement.setString(2, "legacy@example.com");
       statement.setString(3, "legacy-hash");
@@ -122,8 +107,7 @@ class LegacySchemaMigrationTest {
       statement.executeUpdate();
     }
     try (PreparedStatement statement = connection.prepareStatement(
-      "INSERT INTO auth_sessions (id, user_id, token, expires_at, created_at) VALUES (?, ?, ?, ?, ?)"
-    )) {
+      "INSERT INTO auth_sessions (id, user_id, token, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")) {
       statement.setObject(1, sessionId);
       statement.setObject(2, userId);
       statement.setString(3, digest);

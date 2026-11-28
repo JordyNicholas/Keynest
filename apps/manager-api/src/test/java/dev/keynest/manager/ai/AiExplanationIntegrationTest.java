@@ -27,23 +27,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = "keynest.ai.enabled=true")
 @AutoConfigureMockMvc
 class AiExplanationIntegrationTest {
+  @org.springframework.beans.factory.annotation.Autowired
+  dev.keynest.manager.testing.TestAccounts accounts;
+
   private static final String BODY = "{\"providerId\":\"test\",\"policyId\":\"keynest.default.v1\"}";
-  @Autowired MockMvc mvc;
-  @Autowired AuthService auth;
-  @Autowired AiCoreTest.Fake fake;
+  @Autowired
+  MockMvc mvc;
+  @Autowired
+  AuthService auth;
+  @Autowired
+  AiCoreTest.Fake fake;
   private String bearer;
 
   @TestConfiguration
   static class Config {
-    @Bean AiCoreTest.Fake fakeAiProvider() { return new AiCoreTest.Fake(); }
-    @Bean @Primary AiAdmission fixedAiAdmission() {
-      return new AiAdmission(java.time.Clock.fixed(java.time.Instant.parse("2026-11-11T12:00:00Z"), java.time.ZoneOffset.UTC));
+    @Bean
+    AiCoreTest.Fake fakeAiProvider() {
+      return new AiCoreTest.Fake();
+    }
+    @Bean
+    @Primary
+    AiAdmission fixedAiAdmission() {
+      return new AiAdmission(
+        java.time.Clock.fixed(java.time.Instant.parse("2026-11-11T12:00:00Z"), java.time.ZoneOffset.UTC));
     }
   }
 
   @BeforeEach
   void session() {
-    bearer = "Bearer " + auth.register("ai-" + UUID.randomUUID() + "@example.com", "SyntheticMaster!42").token();
+    bearer = "Bearer " + accounts.register("ai-" + UUID.randomUUID() + "@example.com", "SyntheticMaster!42").token();
     fake.calls = 0;
     fake.failure = null;
     fake.output = "Use the selected character categories and length bounds.";
@@ -56,11 +68,11 @@ class AiExplanationIntegrationTest {
     capture.start();
     logger.addAppender(capture);
     try {
-      mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
+      mvc
+        .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
           .contentType(MediaType.APPLICATION_JSON).content(BODY))
         .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
-        .andExpect(jsonPath("$.providerId").value("test"))
-        .andExpect(jsonPath("$.explanation").value(fake.output));
+        .andExpect(jsonPath("$.providerId").value("test")).andExpect(jsonPath("$.explanation").value(fake.output));
       assertThat(fake.calls).isEqualTo(1);
       assertThat(capture.list).hasSize(1);
       assertThat(capture.list.getFirst().getFormattedMessage()).contains("action=AI_POLICY_EXPLAIN outcome=SUCCESS")
@@ -82,14 +94,15 @@ class AiExplanationIntegrationTest {
   void strictBoundedBodyAndDuplicateHeadersAreRejected() throws Exception {
     for (String body : new String[]{"{}", BODY + "{}", BODY.replace("}", ",\"password\":\"secret-sentinel\"}"),
       "{\"providerId\":\"test\",\"providerId\":\"other\",\"policyId\":\"keynest.default.v1\"}"}) {
-      mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
+      mvc
+        .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
           .contentType(MediaType.APPLICATION_JSON).content(body))
         .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("AI_INVALID_REQUEST"));
     }
     mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
-        .contentType(MediaType.APPLICATION_JSON).content(" ".repeat(8193)))
-      .andExpect(status().isPayloadTooLarge());
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", "first", "second")
+      .contentType(MediaType.APPLICATION_JSON).content(" ".repeat(8193))).andExpect(status().isPayloadTooLarge());
+    mvc
+      .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", "first", "second")
         .contentType(MediaType.APPLICATION_JSON).content(BODY))
       .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("AI_CREDENTIAL_INVALID"));
     assertThat(fake.calls).isZero();
@@ -97,11 +110,13 @@ class AiExplanationIntegrationTest {
 
   @Test
   void missingCredentialAndUnsupportedIdsMakeNoProviderCalls() throws Exception {
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(BODY))
+    mvc
+      .perform(
+        post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).contentType(MediaType.APPLICATION_JSON).content(BODY))
       .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").value("AI_CREDENTIAL_REQUIRED"));
     for (String body : new String[]{BODY.replace("test", "unknown"), BODY.replace("keynest.default.v1", "private")}) {
       mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
-          .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
+        .contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isBadRequest());
     }
     assertThat(fake.calls).isZero();
   }
@@ -110,9 +125,10 @@ class AiExplanationIntegrationTest {
   void rateLimitAndProviderFailuresHaveStableNoStoreErrors() throws Exception {
     for (int i = 0; i < 5; i++) {
       mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
-          .contentType(MediaType.APPLICATION_JSON).content(BODY)).andExpect(status().isOk());
+        .contentType(MediaType.APPLICATION_JSON).content(BODY)).andExpect(status().isOk());
     }
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
+    mvc
+      .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
         .contentType(MediaType.APPLICATION_JSON).content(BODY))
       .andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.error").value("AI_RATE_LIMITED"));
     assertThat(fake.calls).isEqualTo(5);
@@ -121,13 +137,15 @@ class AiExplanationIntegrationTest {
   @Test
   void upstreamDetailsAndCredentialReflectionAreNeverReturned() throws Exception {
     fake.failure = new IllegalStateException(AiCoreTest.KEY);
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
+    mvc
+      .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
         .contentType(MediaType.APPLICATION_JSON).content(BODY))
       .andExpect(status().isBadGateway()).andExpect(header().string("Cache-Control", "no-store"))
       .andExpect(content().json("{\"error\":\"AI_UNAVAILABLE\"}"));
     fake.failure = null;
     fake.output = "echo " + AiCoreTest.KEY;
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
+    mvc
+      .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", bearer).header("X-Keynest-AI-Key", AiCoreTest.KEY)
         .contentType(MediaType.APPLICATION_JSON).content(BODY))
       .andExpect(status().isBadGateway()).andExpect(content().json("{\"error\":\"AI_INVALID_OUTPUT\"}"));
   }

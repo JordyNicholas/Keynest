@@ -43,16 +43,12 @@ class VaultTenantIsolationIntegrationTest {
     assertNotFoundForAllItemOperations(secondToken, firstItemId);
     assertNotFoundForAllItemOperations(secondToken, UUID.randomUUID().toString());
 
-    mockMvc.perform(get(ApiPaths.vaultItem(firstItemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(firstToken)))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id", is(firstItemId)))
+    mockMvc.perform(get(ApiPaths.vaultItem(firstItemId)).header(HttpHeaders.AUTHORIZATION, bearer(firstToken)))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.id", is(firstItemId)))
       .andExpect(jsonPath("$.label", is("First owner item")));
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(firstItemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(firstToken)))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.item.id", is(firstItemId)))
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(firstItemId)).header(HttpHeaders.AUTHORIZATION, bearer(firstToken)))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.item.id", is(firstItemId)))
       .andExpect(jsonPath("$.password", notNullValue()));
 
     assertListContainsOnly(firstToken, firstItemId);
@@ -60,56 +56,38 @@ class VaultTenantIsolationIntegrationTest {
   }
 
   private void assertNotFoundForAllItemOperations(String token, String itemId) throws Exception {
-    mockMvc.perform(get(ApiPaths.vaultItem(itemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+    mockMvc.perform(get(ApiPaths.vaultItem(itemId)).header(HttpHeaders.AUTHORIZATION, bearer(token)))
       .andExpect(status().isNotFound());
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
-      .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.password").doesNotExist());
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId)).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+      .andExpect(status().isNotFound()).andExpect(jsonPath("$.password").doesNotExist());
 
-    mockMvc.perform(put(ApiPaths.vaultItem(itemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(token))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"label":"Unauthorized change"}
-          """))
-      .andExpect(status().isNotFound());
+    mockMvc.perform(put(ApiPaths.vaultItem(itemId)).header(HttpHeaders.AUTHORIZATION, bearer(token))
+      .contentType(MediaType.APPLICATION_JSON).content("""
+        {"label":"Unauthorized change"}
+        """)).andExpect(status().isNotFound());
 
-    mockMvc.perform(delete(ApiPaths.vaultItem(itemId))
-        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+    mockMvc.perform(delete(ApiPaths.vaultItem(itemId)).header(HttpHeaders.AUTHORIZATION, bearer(token)))
       .andExpect(status().isNotFound());
   }
 
   private void assertListContainsOnly(String token, String expectedItemId) throws Exception {
-    mockMvc.perform(get(ApiPaths.VAULT_ITEMS)
-        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$", hasSize(1)))
+    mockMvc.perform(get(ApiPaths.VAULT_ITEMS).header(HttpHeaders.AUTHORIZATION, bearer(token)))
+      .andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(1)))
       .andExpect(jsonPath("$[0].id", is(expectedItemId)));
   }
 
   private String register(String prefix) throws Exception {
-    MvcResult result = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"%s-%s@example.com","password":"MasterPassphrase!42"}
-          """.formatted(prefix, UUID.randomUUID())))
-      .andExpect(status().isOk())
-      .andReturn();
-    return JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+    return mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class)
+      .register(prefix + "-" + UUID.randomUUID() + "@example.com", "MasterPassphrase!42").token();
   }
 
   private String createGeneratedItem(String token, String label) throws Exception {
-    MvcResult result = mockMvc.perform(post(ApiPaths.VAULT_ITEMS)
-        .header(HttpHeaders.AUTHORIZATION, bearer(token))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"label":"%s","generate":true}
-          """.formatted(label)))
-      .andExpect(status().isOk())
-      .andReturn();
+    MvcResult result = mockMvc.perform(post(ApiPaths.VAULT_ITEMS).header(HttpHeaders.AUTHORIZATION, bearer(token))
+      .contentType(MediaType.APPLICATION_JSON).content("""
+        {"label":"%s","generate":true}
+        """.formatted(label))).andExpect(status().isOk()).andReturn();
     return JsonPath.read(result.getResponse().getContentAsString(), "$.id");
   }
 

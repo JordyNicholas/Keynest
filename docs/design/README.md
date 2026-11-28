@@ -1,6 +1,6 @@
 # Design documents
 
-- [Proposed verified-email activation](account-lifecycle/ADR-0021-verified-email-activation.md) details #300's signup, operator mail delivery, existing-owner access and rollout boundaries for review. Mail runtime and the detailed design are not yet accepted or implemented.
+- [Accepted verified-email activation design](account-lifecycle/ADR-0021-verified-email-activation.md) records #300/#335's signup, operator mail delivery, existing-owner access and rollout contracts. Implementation starts in #336; accepted design is not delivered mail runtime.
 - [AI and agent architecture](ai-and-agents.md) describes the proposed trust boundaries and future capabilities. The implemented optional explanation has its own [runtime/API guide](../api/policy-explanations.md).
 - Accepted M1 design contracts: [AI egress](../architecture/decisions/ADR-0019-ai-egress-boundaries.md), [agent trust](../architecture/decisions/ADR-0020-agent-trust-boundaries.md), and the [standards spike](ai-agent/STANDARDS_SPIKE.md). The maintainer approved the contracts in #327; the standards record is research, and later capabilities remain unimplemented and disabled.
 - [Homepage and account overview](home-overview/DESIGN.md) records the reviewed design and links to its synthetic prototype. The [Manager guide](../manager/README.md) documents the current application.

@@ -25,7 +25,6 @@ export class AuthFormComponent {
   private requestToken = '';
   readonly mode = model<AuthMode>('signin');
   readonly authenticated = output<void>();
-  readonly minimumMasterPasswordLength = 15;
   readonly email = signal('');
   readonly password = signal('');
   readonly pending = signal(false);
@@ -45,23 +44,24 @@ export class AuthFormComponent {
 
   submit(): void {
     if (this.pending()) return;
+    if (this.mode() === 'signup') {
+      this.password.set('');
+      this.error.set('New accounts are temporarily unavailable while email verification is being prepared. Existing owners can sign in.');
+      return;
+    }
     this.error.set('');
     const emailInput = document.createElement('input');
     emailInput.type = 'email';emailInput.required = true;emailInput.value = this.email().trim();
     if (!emailInput.checkValidity()) {
       this.error.set('Enter a valid email address, such as name@example.com.');return;
     }
-    if (this.mode() === 'signup' && [...this.password()].length < this.minimumMasterPasswordLength) {
-      this.error.set(`Your Keynest password must contain at least ${this.minimumMasterPasswordLength} characters to create an account.`);return;
-    }
     if (!this.password()) {
       this.error.set('Enter your Keynest password.');return;
     }
-    const mode = this.mode();
     const attempt = ++this.attempt;
     this.requestToken = this.auth.token();
     this.pending.set(true);
-    this.request = this.http.post<AuthResponse>(`${this.api}/auth/${mode === 'signup' ? 'register' : 'login'}`, {
+    this.request = this.http.post<AuthResponse>(`${this.api}/auth/login`, {
       email: this.email().trim(), password: this.password(),
     }).subscribe({
       next: (body) => {
@@ -74,7 +74,6 @@ export class AuthFormComponent {
         if (attempt !== this.attempt || this.auth.token() !== this.requestToken) return;
         this.pending.set(false);
         this.error.set(status === 401 ? 'The email address or Keynest password is incorrect.'
-          : status === 409 && mode === 'signup' ? 'An account with this email already exists. Try signing in.'
           : status === 400 ? 'Check the email address and Keynest password requirements.'
           : status === 429 ? 'Too many attempts. Wait a minute and try again.'
           : status === 503 ? 'Password operations are busy. Wait a moment and try again.'

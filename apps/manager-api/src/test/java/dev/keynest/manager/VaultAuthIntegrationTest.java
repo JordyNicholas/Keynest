@@ -48,13 +48,8 @@ class VaultAuthIntegrationTest {
     String email = "vault-user@example.com";
     String password = "MasterPassphrase!42";
 
-    MvcResult register = mockMvc
-      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
-        {"email":"%s","password":"%s"}
-        """.formatted(email, password))).andExpect(status().isOk()).andExpect(jsonPath("$.token", notNullValue()))
-      .andReturn();
-
-    String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
+    String token = mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class).register(email, password).token();
 
     MvcResult created = mockMvc
       .perform(post(ApiPaths.VAULT_ITEMS).header("Authorization", "Bearer " + token)
@@ -152,13 +147,11 @@ class VaultAuthIntegrationTest {
 
   @Test
   void policyOnlyLegacyEnvelopeRemainsReadable() throws Exception {
-    MvcResult register = mockMvc
-      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
-        {"email":"legacy-vault-user@example.com","password":"MasterPassphrase!42"}
-        """)).andExpect(status().isOk()).andReturn();
-
-    String token = JsonPath.read(register.getResponse().getContentAsString(), "$.token");
-    UUID userId = UUID.fromString(JsonPath.read(register.getResponse().getContentAsString(), "$.userId"));
+    String token = mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class)
+      .register("legacy-vault-user@example.com", "MasterPassphrase!42").token();
+    UUID userId = mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.auth.AuthService.class).requireUser("Bearer " + token).getId();
     UUID itemId = UUID.randomUUID();
     String plaintext = "Legacy!Creek47%Cedar";
     KeynestSeal seal = new KeynestSeal();
@@ -180,11 +173,8 @@ class VaultAuthIntegrationTest {
   }
 
   private String registerForCreation(String email) throws Exception {
-    MvcResult register = mockMvc
-      .perform(post(ApiPaths.AUTH_REGISTER).contentType(MediaType.APPLICATION_JSON).content("""
-        {"email":"%s","password":"MasterPassphrase!42"}
-        """.formatted(email))).andExpect(status().isOk()).andReturn();
-    return JsonPath.read(register.getResponse().getContentAsString(), "$.token");
+    return mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class).register(email, "MasterPassphrase!42").token();
   }
 
   private ResultActions create(String token, String json) throws Exception {

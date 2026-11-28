@@ -45,17 +45,18 @@ The standalone profile listens on `127.0.0.1:8080` and uses H2 in memory. Accoun
 
 ## Disposable HTTP smoke test
 
-Use a fresh, isolated project with no existing data and ports 8080/5432 free:
+Use a fresh, isolated project with no existing data and ports 8080/5432 free. On unreleased `main`, signup is paused; this test explicitly seeds synthetic existing-owner rows in PostgreSQL. It is not a production onboarding procedure:
 
 ```bash
-docker compose -p keynest-rehearsal -f deploy/docker-compose.yml up --build -d
+export COMPOSE_PROJECT_NAME=keynest-ci-0-1
+docker compose -f deploy/docker-compose.yml up --build -d
 python3 scripts/compose-smoke.py --disposable
-docker compose -p keynest-rehearsal -f deploy/docker-compose.yml down --volumes --remove-orphans
+docker compose -f deploy/docker-compose.yml down --volumes --remove-orphans
 ```
 
 The final command permanently removes **only that project's test containers and database volume**. Do not run it against an installation whose data you want to keep. Stop your normal local project first if it owns these ports; stopping with `down` without `--volumes` retains its database.
 
-The smoke test waits up to 120 seconds for readiness, then verifies liveness, restricted diagnostics, disabled demo seal, registration/login/logout, generated vault create/list/reveal/update/delete, reveal cache headers, POST-only reveal and two-user access denial. It generates disposable account credentials in memory and prints only pass/fail outcomes. HTTP redirects and proxy environment variables are ignored so test bearers stay on the loopback API. The script creates two test accounts; their removal relies on deletion of the disposable volume.
+The smoke test waits up to 120 seconds for readiness, then verifies liveness, restricted diagnostics, disabled demo seal, retired-registration refusal and existing-owner login/logout, generated vault create/list/reveal/update/delete, reveal cache headers, POST-only reveal and two-user access denial. It uses constrained `example.invalid` database fixtures with a known test-only credential and prints only pass/fail outcomes. The seeding guard rejects ordinary deployment project names; see the [activation transition](account-activation.md). HTTP redirects and proxy environment variables are ignored so test bearers stay on the loopback API. The script creates two test accounts; their removal relies on deletion of the disposable volume.
 
 CI's `Packaged Compose smoke` job performs the same image build and HTTP test after Java and Angular gates pass, with a run-specific project name and unconditional project cleanup. Dumps, keys, response bodies and container logs are not uploaded as artifacts. CI also runs [authenticated browser fixtures](../security/controls/web-csp-verification.md) against the packaged API. These are disposable local checks. Refer to the workflow result for the revision being tested. Verify your own provider, hosting, and TLS ingress separately.
 

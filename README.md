@@ -44,7 +44,7 @@ npm ci
 npm start
 ```
 
-Open [http://localhost:4200](http://localhost:4200). Use **Generate a password** or **Check a password** without an account, or create an account and choose **Vault → Add Vault item**. The default API allows the `http://localhost:4200` browser origin.
+Open [http://localhost:4200](http://localhost:4200). Use **Generate a password** or **Check a password** without an account, or sign in as an existing owner and choose **Vault → Add Vault item**. On unreleased `main`, new signup is paused during the [verified-email transition](docs/operators/account-activation.md); fresh instances cannot onboard owners yet. The default API allows the `http://localhost:4200` browser origin.
 
 To stop API and PostgreSQL while retaining the database volume, run this from the repository root:
 

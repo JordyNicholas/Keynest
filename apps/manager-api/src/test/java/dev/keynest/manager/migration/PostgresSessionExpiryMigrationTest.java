@@ -21,44 +21,61 @@ class PostgresSessionExpiryMigrationTest {
 
   @Test
   void upgradesPopulatedV6WithoutRewritingSessionsOrVaultRows() throws Exception {
-    Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-      .target("6").load().migrate();
+    Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()).target("6")
+      .load().migrate();
     UUID owner = UUID.randomUUID();
     UUID session = UUID.randomUUID();
     UUID item = UUID.randomUUID();
     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC).truncatedTo(java.time.temporal.ChronoUnit.MICROS);
     String digest = "a".repeat(64);
     byte[] envelope = new byte[]{1, 2, 3};
-    try (var connection = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
-      try (var statement = connection.prepareStatement("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)")) {
-        statement.setObject(1, owner);statement.setString(2, "upgrade@example.com");
-        statement.setString(3, "synthetic-unused-hash");statement.setObject(4, now);statement.executeUpdate();
+    try (var connection = DriverManager.getConnection(postgres.getJdbcUrl(), postgres.getUsername(),
+      postgres.getPassword())) {
+      try (var statement = connection
+        .prepareStatement("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)")) {
+        statement.setObject(1, owner);
+        statement.setString(2, "upgrade@example.com");
+        statement.setString(3, "synthetic-unused-hash");
+        statement.setObject(4, now);
+        statement.executeUpdate();
       }
-      try (var statement = connection.prepareStatement("INSERT INTO auth_sessions (id, user_id, token_digest, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")) {
-        statement.setObject(1, session);statement.setObject(2, owner);statement.setString(3, digest);
-        statement.setObject(4, now.plusDays(7));statement.setObject(5, now);statement.executeUpdate();
+      try (var statement = connection.prepareStatement(
+        "INSERT INTO auth_sessions (id, user_id, token_digest, expires_at, created_at) VALUES (?, ?, ?, ?, ?)")) {
+        statement.setObject(1, session);
+        statement.setObject(2, owner);
+        statement.setString(3, digest);
+        statement.setObject(4, now.plusDays(7));
+        statement.setObject(5, now);
+        statement.executeUpdate();
       }
       try (var statement = connection.prepareStatement("""
         INSERT INTO vault_items (id, user_id, label, envelope_bytes, policy_id, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """)) {
-        statement.setObject(1, item);statement.setObject(2, owner);statement.setString(3, "synthetic upgrade item");
-        statement.setBytes(4, envelope);statement.setString(5, "keynest.default.v1");
-        statement.setObject(6, now);statement.setObject(7, now);statement.executeUpdate();
+        statement.setObject(1, item);
+        statement.setObject(2, owner);
+        statement.setString(3, "synthetic upgrade item");
+        statement.setBytes(4, envelope);
+        statement.setString(5, "keynest.default.v1");
+        statement.setObject(6, now);
+        statement.setObject(7, now);
+        statement.executeUpdate();
       }
-      var latest = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword()).load();
-      assertThat(latest.migrate().migrationsExecuted).isEqualTo(1);
-      assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("7");
+      var latest = Flyway.configure().dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+        .load();
+      assertThat(latest.migrate().migrationsExecuted).isEqualTo(2);
+      assertThat(latest.info().current().getVersion().getVersion()).isEqualTo("8");
       latest.validate();
       try (var statement = connection.createStatement();
-           var rows = statement.executeQuery("SELECT token_digest, expires_at FROM auth_sessions")) {
+        var rows = statement.executeQuery("SELECT token_digest, expires_at FROM auth_sessions")) {
         assertThat(rows.next()).isTrue();
         assertThat(digest.equals(rows.getString(1))).as("session digest preserved").isTrue();
         assertThat(rows.getObject(2, OffsetDateTime.class).toInstant())
           .isEqualTo(now.plusDays(7).toInstant().truncatedTo(java.time.temporal.ChronoUnit.MICROS));
         assertThat(rows.next()).isFalse();
       }
-      try (var statement = connection.createStatement(); var rows = statement.executeQuery("SELECT envelope_bytes FROM vault_items")) {
+      try (var statement = connection.createStatement();
+        var rows = statement.executeQuery("SELECT envelope_bytes FROM vault_items")) {
         assertThat(rows.next()).isTrue();
         assertThat(java.util.Arrays.equals(envelope, rows.getBytes(1))).as("envelope bytes preserved").isTrue();
       }

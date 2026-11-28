@@ -21,13 +21,43 @@ class AuthServiceLoginTest {
   private final UserAccountRepository users = mock(UserAccountRepository.class);
   private final AuthSessionRepository sessions = mock(AuthSessionRepository.class);
   private final PasswordHashingService passwords = mock(PasswordHashingService.class);
-  private final UserAccount known = new UserAccount(UUID.randomUUID(), "known@example.invalid", "stored-hash", Instant.now());
+  private final UserAccount known = dev.keynest.manager.testing.TestAccounts.account(UUID.randomUUID(),
+    "known@example.invalid", "stored-hash", Instant.now());
 
   private AuthService auth() {
     when(passwords.hash(anyString())).thenReturn("dummy-hash");
     when(users.findByEmailIgnoreCase(known.getEmail())).thenReturn(Optional.of(known));
     when(users.findForPolicyUpdate(known.getId())).thenReturn(Optional.of(known));
-    return new AuthService(users, sessions, passwords, new LoginAttemptLimiter(new LoginThrottleProperties()), mock(jakarta.persistence.EntityManager.class));
+    return new AuthService(users, sessions, passwords, new LoginAttemptLimiter(new LoginThrottleProperties()),
+      mock(jakarta.persistence.EntityManager.class));
+  }
+
+  @Test
+  void eligibilityIsRecheckedUnderTheOwnerLockBeforeIssuingASession() {
+    AuthService auth = auth();
+    when(passwords.verify("synthetic candidate", "stored-hash")).thenReturn(true);
+    when(users.findForPolicyUpdate(known.getId()))
+      .thenReturn(Optional.of(new UserAccount(known.getId(), known.getEmail(), "stored-hash", Instant.now())));
+    refused(() -> auth.login(known.getEmail(), "synthetic candidate"), HttpStatus.UNAUTHORIZED);
+    verifyNoInteractions(sessions);
+  }
+
+  @Test
+  void correctCredentialsCannotAuthenticateAnIneligibleAccountOrAnExistingBearer() {
+    AuthService auth = auth();
+    UserAccount ineligible = new UserAccount(known.getId(), known.getEmail(), "stored-hash", Instant.now());
+    when(users.findByEmailIgnoreCase(known.getEmail())).thenReturn(Optional.of(ineligible));
+    when(passwords.verify("synthetic candidate", "stored-hash")).thenReturn(true);
+    refused(() -> auth.login(known.getEmail(), "synthetic candidate"), HttpStatus.UNAUTHORIZED);
+    verify(passwords).verify("synthetic candidate", "stored-hash");
+    verifyNoInteractions(sessions);
+    String bearer = "synthetic-ineligible-bearer";
+    when(sessions.findByTokenDigest(SessionTokenDigest.digest(bearer)))
+      .thenReturn(Optional.of(new AuthSession(UUID.randomUUID(), known.getId(), SessionTokenDigest.digest(bearer),
+        Instant.now().plusSeconds(60), Instant.now())));
+    when(users.findById(known.getId())).thenReturn(Optional.of(ineligible));
+    assertThatThrownBy(() -> auth.requireUser("Bearer " + bearer)).isInstanceOfSatisfying(ResponseStatusException.class,
+      failure -> assertThat(failure.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED));
   }
 
   @Test
@@ -76,8 +106,8 @@ class AuthServiceLoginTest {
   @Test
   void invalidInputHasTheSamePreLookupRefusalRegardlessOfAccount() {
     AuthService auth = auth();
-    for (String email : new String[] {known.getEmail(), "missing@example.invalid"}) {
-      for (String candidate : new String[] {null, "", " "}) {
+    for (String email : new String[]{known.getEmail(), "missing@example.invalid"}) {
+      for (String candidate : new String[]{null, "", " "}) {
         refused(() -> auth.login(email, candidate), HttpStatus.UNAUTHORIZED);
       }
     }
@@ -93,12 +123,15 @@ class AuthServiceLoginTest {
     PasswordHasher hasher = mock(PasswordHasher.class);
     when(hasher.hashPassword(any(char[].class))).thenReturn("dummy-hash");
     PasswordHashingService shared = new PasswordHashingService(hasher, 1);
-    AuthService auth = new AuthService(users, sessions, shared, new LoginAttemptLimiter(new LoginThrottleProperties()), mock(jakarta.persistence.EntityManager.class));
+    AuthService auth = new AuthService(users, sessions, shared, new LoginAttemptLimiter(new LoginThrottleProperties()),
+      mock(jakarta.persistence.EntityManager.class));
     when(users.findByEmailIgnoreCase(known.getEmail())).thenReturn(Optional.of(known));
     when(users.findForPolicyUpdate(known.getId())).thenReturn(Optional.of(known));
     CountDownLatch occupied = new CountDownLatch(1), release = new CountDownLatch(1);
     when(hasher.hashPassword(any(char[].class))).thenAnswer(call -> {
-      occupied.countDown();assertThat(release.await(5, TimeUnit.SECONDS)).isTrue();return "work complete";
+      occupied.countDown();
+      assertThat(release.await(5, TimeUnit.SECONDS)).isTrue();
+      return "work complete";
     });
     try (var worker = Executors.newSingleThreadExecutor()) {
       var hashing = worker.submit(() -> shared.hash("synthetic concurrent work"));
@@ -107,7 +140,9 @@ class AuthServiceLoginTest {
         refused(() -> auth.login(known.getEmail(), "synthetic candidate"), HttpStatus.SERVICE_UNAVAILABLE);
         refused(() -> auth.login("missing@example.invalid", "synthetic candidate"), HttpStatus.SERVICE_UNAVAILABLE);
         verify(hasher, never()).verifyPassword(any(), anyString());
-      } finally { release.countDown(); }
+      } finally {
+        release.countDown();
+      }
       hashing.get(5, TimeUnit.SECONDS);
     }
     refused(() -> auth.login("missing@example.invalid", "synthetic candidate"), HttpStatus.UNAUTHORIZED);
@@ -119,14 +154,17 @@ class AuthServiceLoginTest {
   void actualArgon2UnknownAndKnownFailuresCannotCreateSessions() {
     PasswordHashingService real = new PasswordHashingService(new PasswordHasher(), 1);
     String password = "Synthetic known passphrase!42";
-    var account = new UserAccount(UUID.randomUUID(), "native@example.invalid", real.hash(password), Instant.now());
+    var account = dev.keynest.manager.testing.TestAccounts.account(UUID.randomUUID(), "native@example.invalid",
+      real.hash(password), Instant.now());
     when(users.findByEmailIgnoreCase(account.getEmail())).thenReturn(Optional.of(account));
     when(users.findForPolicyUpdate(account.getId())).thenReturn(Optional.of(account));
-    AuthService auth = new AuthService(users, sessions, real, new LoginAttemptLimiter(new LoginThrottleProperties()), mock(jakarta.persistence.EntityManager.class));
+    AuthService auth = new AuthService(users, sessions, real, new LoginAttemptLimiter(new LoginThrottleProperties()),
+      mock(jakarta.persistence.EntityManager.class));
     refused(() -> auth.login(account.getEmail(), "wrong synthetic credential"), HttpStatus.UNAUTHORIZED);
     refused(() -> auth.login("missing@example.invalid", "wrong synthetic credential"), HttpStatus.UNAUTHORIZED);
     // Even knowing the public non-account work input must not authenticate.
-    refused(() -> auth.login("missing@example.invalid", "keynest missing-account verification"), HttpStatus.UNAUTHORIZED);
+    refused(() -> auth.login("missing@example.invalid", "keynest missing-account verification"),
+      HttpStatus.UNAUTHORIZED);
     verifyNoInteractions(sessions);
     assertThat(auth.login(account.getEmail(), password).userId()).isEqualTo(account.getId());
   }
@@ -134,7 +172,8 @@ class AuthServiceLoginTest {
   private static void refused(Runnable call, HttpStatus status) {
     assertThatThrownBy(call::run).isInstanceOfSatisfying(ResponseStatusException.class, failure -> {
       assertThat(failure.getStatusCode()).isEqualTo(status);
-      assertThat(failure.getReason()).isEqualTo(status == HttpStatus.UNAUTHORIZED ? "invalid credentials" : "password operations are busy");
+      assertThat(failure.getReason())
+        .isEqualTo(status == HttpStatus.UNAUTHORIZED ? "invalid credentials" : "password operations are busy");
     });
   }
 }
