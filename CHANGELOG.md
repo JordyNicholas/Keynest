@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Add internal atomic activation, fresh-password/same-session owner verification and explicit one-attempt delivery coordination, with owner-ordered logout and reviewed restore-authority invalidation. Public signup/activation routes and automatic delivery remain closed; see [the use-case contract](docs/architecture/account-verification-use-cases.md).
+
 - Add an internal verification-mail adapter with authenticated TLS, bounded socket cancellation, fixed HTTPS links and maintained mailbox parsing. No automatic sender or public activation endpoint is enabled; see [configuration and limits](docs/operators/verification-mail.md).
 
 - Add internal verification-state tables, shared bounded admission and single-claim delivery jobs with digest-only tokens and scheduled cleanup. No mail sender or activation endpoint is enabled; see [the state contract](docs/architecture/verification-state.md).

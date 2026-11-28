@@ -125,3 +125,7 @@ The inventory is generated here for readability from the committed entries; the 
 ## Activation foundation source review (#336)
 
 The two existing `AuthService` constructor findings still retain the Spring-managed EntityManager/session repository references; constructor ownership and dependency handling are unchanged. Retiring direct signup and checking account eligibility does not add an exposed mutable value or suppress another finding. Only that reviewed source digest is refreshed after formatting; existing fingerprints, counts, threshold and rationale remain enforced. Real analyzer/CI evidence belongs to the implementation PR.
+
+## Verification use-case source review (#343)
+
+The two `AccountVerificationTransactions` constructor findings retain the Spring-managed EntityManager/session repository references so owner/session refresh and JDBC proof consumption share the real account transaction. They are not caller-owned collections, raw secrets or public getters; copying/replacing the managed proxies would break that ownership. Both exact fingerprints use `managed-dependency`, bound to the reviewed source digest. `AuthService` retains its same two constructor findings; its updated digest covers owner-ordered logout and package-scoped token extraction without changing dependency custody. No analyzer severity, threshold, existing fingerprint or general exclusion is weakened.

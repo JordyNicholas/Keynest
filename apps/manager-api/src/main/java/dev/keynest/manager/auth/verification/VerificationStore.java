@@ -178,6 +178,30 @@ public class VerificationStore {
       """, result.name(), delivery.generation(), delivery.claim(), utc(now)) == 1));
   }
 
+  /** Non-consuming preflight before password work. Never grants authority; consumption rechecks in the account transaction. */
+  public boolean canConsume(char[] token, Purpose expected, OwnerBinding owner) {
+    try {
+      requireIndependentTransaction();
+      if (expected == null || (expected == Purpose.NEW_ACCOUNT) != (owner == null))
+        throw new IllegalArgumentException("Invalid verification purpose binding");
+      String digest = VerificationDelivery.digestPresented(token);
+      if (digest == null)
+        return false;
+      return transaction(() -> gated(now -> {
+        Optional<Row> found = find(" WHERE c.token_digest = ?", digest);
+        if (found.isEmpty())
+          return false;
+        Row row = found.get();
+        return row.request().purpose() == expected && Objects.equals(row.request().owner(), owner)
+          && row.expiresAt().isAfter(now) && currentBinding(row.request(), now)
+          && (expected != Purpose.NEW_ACCOUNT || !accountExists(row.request().recipient()));
+      }));
+    } finally {
+      if (token != null)
+        Arrays.fill(token, '\0');
+    }
+  }
+
   /** MUST join the account mutation's writable transaction; it never activates/authenticates by itself. */
   public Optional<VerificationRequest> consume(char[] token, Purpose expected, OwnerBinding owner) {
     try {

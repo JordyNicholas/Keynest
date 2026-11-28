@@ -53,6 +53,82 @@ abstract class VerificationStoreContract {
   }
 
   @Test
+  void coordinatorDoesNotClaimWithoutMailAndRecordsEachOneAttemptOutcomeWithoutReplay() {
+    var mail = org.mockito.Mockito.mock(VerificationMail.class);
+    var dispatcher = new VerificationDispatcher(store, mail);
+    store.admit(signup(), "client-a");
+    org.mockito.Mockito.when(mail.readiness()).thenReturn(VerificationMail.Readiness.INVALID);
+    assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.UNAVAILABLE);
+    assertThat(
+      jdbc.queryForObject("SELECT COUNT(*) FROM verification_challenges WHERE token_digest IS NOT NULL", Integer.class))
+      .isZero();
+    for (var result : VerificationMail.Result.values()) {
+      org.mockito.Mockito.when(mail.readiness()).thenReturn(VerificationMail.Readiness.READY);
+      AtomicReference<VerificationDelivery> material = new AtomicReference<>();
+      org.mockito.Mockito.doAnswer(call -> {
+        assertThat(
+          org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive())
+          .isFalse();
+        assertThat(((java.util.function.BooleanSupplier) call.getArgument(1)).getAsBoolean()).isTrue();
+        material.set(call.getArgument(0));
+        return result;
+      }).when(mail).send(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+      var expected = result == VerificationMail.Result.SENT
+        ? VerificationDispatcher.Outcome.SENT
+        : result == VerificationMail.Result.AMBIGUOUS
+          ? VerificationDispatcher.Outcome.AMBIGUOUS
+          : VerificationDispatcher.Outcome.FAILED;
+      assertThat(dispatcher.dispatchOne()).isEqualTo(expected);
+      assertThat(material.get().closed()).isTrue();
+      assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.EMPTY);
+      org.mockito.Mockito.verify(mail).send(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+      org.mockito.Mockito.clearInvocations(mail);
+      if (result != VerificationMail.Result.SUPPRESSED)
+        store.admit(signup(), "client-" + result);
+    }
+  }
+
+  @Test
+  void coordinatorTreatsThrownSendAsAmbiguousAndStaleResendAsTerminal() {
+    var mail = org.mockito.Mockito.mock(VerificationMail.class);
+    org.mockito.Mockito.when(mail.readiness()).thenReturn(VerificationMail.Readiness.READY);
+    var dispatcher = new VerificationDispatcher(store, mail);
+    store.admit(signup(), "client-a");
+    org.mockito.Mockito.when(mail.send(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
+      .thenThrow(new IllegalStateException("Private provider acknowledgement detail"));
+    assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.AMBIGUOUS);
+    assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.EMPTY);
+    var request = signup();
+    store.admit(request, "client-b");
+    org.mockito.Mockito.doAnswer(call -> {
+      clock.advance(60);
+      store.admit(request, "client-c");
+      return VerificationMail.Result.SENT;
+    }).when(mail).send(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.STALE);
+    try (var next = store.claimNext().orElseThrow()) {
+      assertThat(next.request()).isEqualTo(request);
+    }
+  }
+
+  @Test
+  void coordinatorFailsClosedForUnavailableStateAndRefusesOwningTransactions() {
+    var mail = org.mockito.Mockito.mock(VerificationMail.class);
+    org.mockito.Mockito.when(mail.readiness()).thenReturn(VerificationMail.Readiness.READY);
+    var dispatcher = new VerificationDispatcher(store, mail);
+    assertThatThrownBy(() -> new TransactionTemplate(manager).execute(status -> dispatcher.dispatchOne()))
+      .isInstanceOf(IllegalStateException.class);
+    jdbc.update("DELETE FROM verification_gate");
+    try {
+      assertThat(dispatcher.dispatchOne()).isEqualTo(VerificationDispatcher.Outcome.UNAVAILABLE);
+      org.mockito.Mockito.verify(mail, org.mockito.Mockito.never()).send(org.mockito.ArgumentMatchers.any(),
+        org.mockito.ArgumentMatchers.any());
+    } finally {
+      jdbc.update("INSERT INTO verification_gate (id) VALUES (1)");
+    }
+  }
+
+  @Test
   void supportedMailboxKeysAgreeWithDatabaseComparisonAndCanonicalUniqueness() {
     for (String input : new String[]{"Owner.Name+Tag@Example.Invalid", "\"Local Part\"@Example.Invalid",
       "\"Quoted@Part\"@Example.Invalid", "I.i@Example.Invalid"}) {
