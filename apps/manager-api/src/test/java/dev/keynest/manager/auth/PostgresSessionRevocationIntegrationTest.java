@@ -31,6 +31,9 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest
 @Testcontainers(disabledWithoutDocker = true)
 class PostgresSessionRevocationIntegrationTest {
+  @org.springframework.beans.factory.annotation.Autowired
+  dev.keynest.manager.testing.TestAccounts accounts;
+
   @Container
   static final PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:16-alpine"))
     .withDatabaseName("session_revocation").withUsername("keynest").withPassword("disposable_test");
@@ -41,25 +44,42 @@ class PostgresSessionRevocationIntegrationTest {
     registry.add("spring.datasource.password", postgres::getPassword);
     registry.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
   }
-  @Autowired AuthService auth;
-  @Autowired SessionRevocationService revocation;
-  @Autowired SessionRevocationTransactions revocationTransactions;
-  @Autowired UserAccountRepository users;
-  @Autowired AuthSessionRepository sessions;
-  @Autowired JdbcTemplate jdbc;
-  @Autowired PlatformTransactionManager transactions;
-  @MockitoSpyBean PasswordHashingService passwords;
+  @Autowired
+  AuthService auth;
+  @Autowired
+  SessionRevocationService revocation;
+  @Autowired
+  SessionRevocationTransactions revocationTransactions;
+  @Autowired
+  UserAccountRepository users;
+  @Autowired
+  AuthSessionRepository sessions;
+  @Autowired
+  JdbcTemplate jdbc;
+  @Autowired
+  PlatformTransactionManager transactions;
+  @MockitoSpyBean
+  PasswordHashingService passwords;
   private static final String PASSWORD = "Synthetic account passphrase!42";
 
-  private AuthService.AuthResponse register() { return auth.register(UUID.randomUUID() + "@example.invalid", PASSWORD); }
-  private String bearer(AuthService.AuthResponse session) { return "Bearer " + session.token(); }
-  private void revoke(AuthService.AuthResponse session) { revocation.revokeAll(bearer(session), PASSWORD.toCharArray()); }
+  private AuthService.AuthResponse register() {
+    return accounts.register(UUID.randomUUID() + "@example.invalid", PASSWORD);
+  }
+  private String bearer(AuthService.AuthResponse session) {
+    return "Bearer " + session.token();
+  }
+  private void revoke(AuthService.AuthResponse session) {
+    revocation.revokeAll(bearer(session), PASSWORD.toCharArray());
+  }
 
   @Test
   void verifiesOutsideMutationTransactionAndPreservesAnotherOwner() {
-    var owner = register();var second = auth.login(owner.email(), PASSWORD);var other = register();
+    var owner = register();
+    var second = auth.login(owner.email(), PASSWORD);
+    var other = register();
     doAnswer(call -> {
-      assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();return call.callRealMethod();
+      assertThat(TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+      return call.callRealMethod();
     }).when(passwords).verifyAndClear(any(), anyString());
     revoke(owner);
     assertThat(status(() -> auth.requireUser(bearer(owner)))).isEqualTo(401);
@@ -70,13 +90,19 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void revokedActingSessionAfterPasswordProofCannotRemoveOtherSessions() throws Exception {
-    var owner = register();var otherSession = auth.login(owner.email(), PASSWORD);
-    var verified = new CountDownLatch(1);var release = new CountDownLatch(1);
+    var owner = register();
+    var otherSession = auth.login(owner.email(), PASSWORD);
+    var verified = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
     holdProof(verified, release);
     try (var pool = Executors.newSingleThreadExecutor()) {
       var result = pool.submit(() -> status(() -> revoke(owner)));
-      try { await(verified);auth.logout(bearer(owner)); }
-      finally { release.countDown(); }
+      try {
+        await(verified);
+        auth.logout(bearer(owner));
+      } finally {
+        release.countDown();
+      }
       assertThat(result.get(15, TimeUnit.SECONDS)).isEqualTo(401);
     }
     assertThat(auth.requireUser(bearer(otherSession)).getId()).isEqualTo(owner.userId());
@@ -84,13 +110,20 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void expiredActingSessionAfterProofCannotRevokeOthers() throws Exception {
-    var owner = register();var other = auth.login(owner.email(), PASSWORD);
-    var verified = new CountDownLatch(1);var release = new CountDownLatch(1);holdProof(verified, release);
+    var owner = register();
+    var other = auth.login(owner.email(), PASSWORD);
+    var verified = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
+    holdProof(verified, release);
     try (var pool = Executors.newSingleThreadExecutor()) {
       var result = pool.submit(() -> status(() -> revoke(owner)));
-      try { await(verified);jdbc.update("UPDATE auth_sessions SET expires_at = ? WHERE token_digest = ?",
-        java.sql.Timestamp.from(Instant.now().minusSeconds(1)), SessionTokenDigest.digest(owner.token())); }
-      finally { release.countDown(); }
+      try {
+        await(verified);
+        jdbc.update("UPDATE auth_sessions SET expires_at = ? WHERE token_digest = ?",
+          java.sql.Timestamp.from(Instant.now().minusSeconds(1)), SessionTokenDigest.digest(owner.token()));
+      } finally {
+        release.countDown();
+      }
       assertThat(result.get(15, TimeUnit.SECONDS)).isEqualTo(401);
     }
     assertThat(auth.requireUser(bearer(other)).getId()).isEqualTo(owner.userId());
@@ -98,12 +131,19 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void changedCredentialAfterProofCannotRevokeAndDoesNotOverwriteIt() throws Exception {
-    var owner = register();String changed = passwords.hash("Synthetic replacement password!42");
-    var verified = new CountDownLatch(1);var release = new CountDownLatch(1);holdProof(verified, release);
+    var owner = register();
+    String changed = passwords.hash("Synthetic replacement password!42");
+    var verified = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
+    holdProof(verified, release);
     try (var pool = Executors.newSingleThreadExecutor()) {
       var result = pool.submit(() -> status(() -> revoke(owner)));
-      try { await(verified);jdbc.update("UPDATE users SET password_hash = ? WHERE id = ?", changed, owner.userId()); }
-      finally { release.countDown(); }
+      try {
+        await(verified);
+        jdbc.update("UPDATE users SET password_hash = ? WHERE id = ?", changed, owner.userId());
+      } finally {
+        release.countDown();
+      }
       assertThat(result.get(15, TimeUnit.SECONDS)).isEqualTo(401);
     }
     assertThat(auth.requireUser(bearer(owner)).getId()).isEqualTo(owner.userId());
@@ -112,13 +152,20 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void racingIndependentWorkersCanConsumeTheActingAuthorityOnlyOnce() throws Exception {
-    var owner = register();var second = auth.login(owner.email(), PASSWORD);
+    var owner = register();
+    var second = auth.login(owner.email(), PASSWORD);
     var independent = new SessionRevocationService(auth, passwords, revocationTransactions);
-    var verified = new CountDownLatch(2);var release = new CountDownLatch(1);holdProof(verified, release);
+    var verified = new CountDownLatch(2);
+    var release = new CountDownLatch(1);
+    holdProof(verified, release);
     try (var pool = Executors.newFixedThreadPool(2)) {
       var first = pool.submit(() -> status(() -> revoke(owner)));
       var next = pool.submit(() -> status(() -> independent.revokeAll(bearer(second), PASSWORD.toCharArray())));
-      try { await(verified); } finally { release.countDown(); }
+      try {
+        await(verified);
+      } finally {
+        release.countDown();
+      }
       assertThat(java.util.List.of(first.get(15, TimeUnit.SECONDS), next.get(15, TimeUnit.SECONDS)))
         .containsExactlyInAnyOrder(200, 401);
     }
@@ -128,12 +175,23 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void loginVerifiedBeforeRevocationCanIssueOnlyAsANewSignInAfterIt() throws Exception {
-    var owner = register();var verified = new CountDownLatch(1);var release = new CountDownLatch(1);
-    doAnswer(call -> { boolean valid = (boolean) call.callRealMethod();verified.countDown();await(release);return valid; })
-      .when(passwords).verify(eq(PASSWORD), anyString());
+    var owner = register();
+    var verified = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
+    doAnswer(call -> {
+      boolean valid = (boolean) call.callRealMethod();
+      verified.countDown();
+      await(release);
+      return valid;
+    }).when(passwords).verify(eq(PASSWORD), anyString());
     try (var pool = Executors.newSingleThreadExecutor()) {
       var login = pool.submit(() -> auth.login(owner.email(), PASSWORD));
-      try { await(verified);revoke(owner); } finally { release.countDown(); }
+      try {
+        await(verified);
+        revoke(owner);
+      } finally {
+        release.countDown();
+      }
       var fresh = login.get(15, TimeUnit.SECONDS);
       assertThat(auth.requireUser(bearer(fresh)).getId()).isEqualTo(owner.userId());
     }
@@ -142,25 +200,41 @@ class PostgresSessionRevocationIntegrationTest {
 
   @Test
   void loginRefreshRejectsCredentialChangedWhileItsOldEntityIsManaged() throws Exception {
-    var owner = register();String changed = passwords.hash("Synthetic replacement password!42");
-    var verified = new CountDownLatch(1);var release = new CountDownLatch(1);
-    doAnswer(call -> { boolean valid = (boolean) call.callRealMethod();verified.countDown();await(release);return valid; })
-      .when(passwords).verify(eq(PASSWORD), anyString());
+    var owner = register();
+    String changed = passwords.hash("Synthetic replacement password!42");
+    var verified = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
+    doAnswer(call -> {
+      boolean valid = (boolean) call.callRealMethod();
+      verified.countDown();
+      await(release);
+      return valid;
+    }).when(passwords).verify(eq(PASSWORD), anyString());
     try (var pool = Executors.newSingleThreadExecutor()) {
       var login = pool.submit(() -> status(() -> auth.login(owner.email(), PASSWORD)));
-      try { await(verified);jdbc.update("UPDATE users SET password_hash = ? WHERE id = ?", changed, owner.userId()); }
-      finally { release.countDown(); }
+      try {
+        await(verified);
+        jdbc.update("UPDATE users SET password_hash = ? WHERE id = ?", changed, owner.userId());
+      } finally {
+        release.countDown();
+      }
       assertThat(login.get(15, TimeUnit.SECONDS)).isEqualTo(401);
     }
-    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM auth_sessions WHERE user_id = ?", Long.class, owner.userId())).isEqualTo(1L);
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM auth_sessions WHERE user_id = ?", Long.class, owner.userId()))
+      .isEqualTo(1L);
   }
 
   @Test
   void loginAndRevocationBothWaitForTheSameParentAccountLock() throws Exception {
-    var owner = register();var locked = new CountDownLatch(1);var release = new CountDownLatch(1);
+    var owner = register();
+    var locked = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
     try (var pool = Executors.newFixedThreadPool(3)) {
       var holder = pool.submit(() -> new TransactionTemplate(transactions).execute(status -> {
-        users.findForPolicyUpdate(owner.userId()).orElseThrow();locked.countDown();await(release);return null;
+        users.findForPolicyUpdate(owner.userId()).orElseThrow();
+        locked.countDown();
+        await(release);
+        return null;
       }));
       try {
         await(locked);
@@ -173,24 +247,30 @@ class PostgresSessionRevocationIntegrationTest {
             SELECT COUNT(*) FROM pg_stat_activity
             WHERE datname = current_database() AND wait_event_type = 'Lock' AND query LIKE '%users%'
             """, Long.class);
-          if (waiters >= 2) break;
+          if (waiters >= 2)
+            break;
           Thread.sleep(10);
         }
         assertThat(waiters).as("both operations wait for the account lock").isGreaterThanOrEqualTo(2);
-        release.countDown();holder.get(15, TimeUnit.SECONDS);
+        release.countDown();
+        holder.get(15, TimeUnit.SECONDS);
         assertThat(revoke.get(15, TimeUnit.SECONDS)).isEqualTo(200);
         login.get(15, TimeUnit.SECONDS);
         assertThat(status(() -> auth.requireUser(bearer(owner)))).isEqualTo(401);
-      } finally { release.countDown(); }
+      } finally {
+        release.countDown();
+      }
     }
   }
 
   @Test
   void ownerMismatchAndRollbackCannotRevokeAnUnrelatedAccount() {
-    var owner = register();var other = register();
+    var owner = register();
+    var other = register();
     String verifiedHash = users.findById(owner.userId()).orElseThrow().getPasswordHash();
-    assertThat(status(() -> revocationTransactions.revoke(owner.userId(), verifiedHash,
-      SessionTokenDigest.digest(other.token())))).isEqualTo(401);
+    assertThat(status(
+      () -> revocationTransactions.revoke(owner.userId(), verifiedHash, SessionTokenDigest.digest(other.token()))))
+      .isEqualTo(401);
     assertThatThrownBy(() -> new TransactionTemplate(transactions).executeWithoutResult(transaction -> {
       revocationTransactions.revoke(owner.userId(), verifiedHash, SessionTokenDigest.digest(owner.token()));
       throw new IllegalStateException("synthetic outer rollback");
@@ -200,15 +280,28 @@ class PostgresSessionRevocationIntegrationTest {
   }
 
   private void holdProof(CountDownLatch verified, CountDownLatch release) {
-    doAnswer(call -> { boolean valid = (boolean) call.callRealMethod();verified.countDown();await(release);return valid; })
-      .when(passwords).verifyAndClear(any(), anyString());
+    doAnswer(call -> {
+      boolean valid = (boolean) call.callRealMethod();
+      verified.countDown();
+      await(release);
+      return valid;
+    }).when(passwords).verifyAndClear(any(), anyString());
   }
   private static void await(CountDownLatch latch) {
-    try { if (!latch.await(12, TimeUnit.SECONDS)) throw new IllegalStateException("test coordination timed out"); }
-    catch (InterruptedException failure) { Thread.currentThread().interrupt();throw new IllegalStateException("test interrupted"); }
+    try {
+      if (!latch.await(12, TimeUnit.SECONDS))
+        throw new IllegalStateException("test coordination timed out");
+    } catch (InterruptedException failure) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException("test interrupted");
+    }
   }
   private static int status(Runnable operation) {
-    try { operation.run();return 200; }
-    catch (ResponseStatusException failure) { return failure.getStatusCode().value(); }
+    try {
+      operation.run();
+      return 200;
+    } catch (ResponseStatusException failure) {
+      return failure.getStatusCode().value();
+    }
   }
 }

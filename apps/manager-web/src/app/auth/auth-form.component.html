@@ -1,23 +1,25 @@
 <kn-inline-error [(message)]="error" />
+@if (mode() === 'signup') {
+  <p role="status">New accounts are temporarily unavailable while email verification is being prepared. Existing owners can sign in.</p>
+  <button mat-stroked-button type="button" (click)="switchMode()">Sign in instead</button>
+} @else {
 <form (ngSubmit)="submit()" [attr.aria-busy]="pending()">
   <label for="auth-email">Email</label>
   <input id="auth-email" type="email" name="email" autocomplete="username" required
          [disabled]="pending()" [ngModel]="email()" (ngModelChange)="email.set($event)" />
   <label for="auth-password">Keynest password</label>
   <input id="auth-password" type="password" name="password" required
-         [attr.autocomplete]="mode() === 'signup' ? 'new-password' : 'current-password'"
+         autocomplete="current-password"
          aria-describedby="keynest-password-help"
          [disabled]="pending()" [ngModel]="password()" (ngModelChange)="password.set($event)" />
-  @if (mode() === 'signup') {
-    <p id="keynest-password-help">Use at least {{ minimumMasterPasswordLength }} characters for your Keynest account password.</p>
-  } @else {
-    <p id="keynest-password-help">Use your account password to sign in to this Keynest instance.</p>
-  }
+  <p id="keynest-password-help">Use your account password to sign in to this Keynest instance.</p>
   @if (pending()) {
-    <p role="status">{{ mode() === 'signup' ? 'Creating your account…' : 'Signing in…' }}</p>
+    <p role="status">Signing in…</p>
   }
   <div class="auth-actions">
-    <button mat-flat-button type="submit" [disabled]="pending()">{{ mode() === 'signup' ? 'Create account' : 'Sign in' }}</button>
-    <button mat-stroked-button type="button" (click)="switchMode()" [disabled]="pending()">{{ mode() === 'signup' ? 'Sign in instead' : 'Create an account' }}</button>
+    <button mat-flat-button type="submit" [disabled]="pending()">Sign in</button>
+    <button mat-stroked-button type="button" (click)="switchMode()" [disabled]="pending()">Create an account</button>
   </div>
 </form>
+
+}

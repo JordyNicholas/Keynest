@@ -26,15 +26,25 @@ abstract class ExpiredSessionCleanupContract {
   static final Instant NOW = Instant.parse("2026-01-01T12:00:00Z");
   @TestConfiguration(proxyBeanMethods = false)
   static class TimeConfiguration {
-    @Bean @Primary Clock cleanupTestClock() { return Clock.fixed(NOW, ZoneOffset.UTC); }
+    @Bean
+    @Primary
+    Clock cleanupTestClock() {
+      return Clock.fixed(NOW, ZoneOffset.UTC);
+    }
   }
 
-  @Autowired ExpiredSessionCleanup cleanup;
-  @Autowired AuthService auth;
-  @Autowired AuthSessionRepository sessions;
-  @Autowired UserAccountRepository users;
-  @Autowired JdbcTemplate jdbc;
-  @Autowired PlatformTransactionManager transactions;
+  @Autowired
+  ExpiredSessionCleanup cleanup;
+  @Autowired
+  AuthService auth;
+  @Autowired
+  AuthSessionRepository sessions;
+  @Autowired
+  UserAccountRepository users;
+  @Autowired
+  JdbcTemplate jdbc;
+  @Autowired
+  PlatformTransactionManager transactions;
   private UUID owner;
 
   @BeforeEach
@@ -42,7 +52,8 @@ abstract class ExpiredSessionCleanupContract {
     sessions.deleteAll();
     users.deleteAll();
     owner = UUID.randomUUID();
-    users.save(new UserAccount(owner, owner + "@example.com", "synthetic-unused-hash", NOW));
+    users.save(
+      dev.keynest.manager.testing.TestAccounts.account(owner, owner + "@example.com", "synthetic-unused-hash", NOW));
   }
 
   @Test
@@ -65,8 +76,8 @@ abstract class ExpiredSessionCleanupContract {
     String expired = UUID.randomUUID().toString();
     String active = UUID.randomUUID().toString();
     // Authentication intentionally retains its real server clock, separate from this fixed cleanup cutoff.
-    sessions.save(new AuthSession(UUID.randomUUID(), owner, SessionTokenDigest.digest(expired),
-      NOW.minusSeconds(1), NOW.minusSeconds(60)));
+    sessions.save(new AuthSession(UUID.randomUUID(), owner, SessionTokenDigest.digest(expired), NOW.minusSeconds(1),
+      NOW.minusSeconds(60)));
     sessions.save(new AuthSession(UUID.randomUUID(), owner, SessionTokenDigest.digest(active),
       Instant.now().plusSeconds(3600), NOW));
     org.assertj.core.api.Assertions.assertThatThrownBy(() -> auth.requireUser("Bearer " + expired))
@@ -81,8 +92,8 @@ abstract class ExpiredSessionCleanupContract {
     UUID extended = add(NOW);
     UUID removed = add(NOW.minusSeconds(1));
     List<UUID> ids = sessions.findExpiredIds(NOW, PageRequest.of(0, 2));
-    jdbc.update("UPDATE auth_sessions SET expires_at = ? WHERE id = ?",
-      java.sql.Timestamp.from(NOW.plusSeconds(60)), extended);
+    jdbc.update("UPDATE auth_sessions SET expires_at = ? WHERE id = ?", java.sql.Timestamp.from(NOW.plusSeconds(60)),
+      extended);
     sessions.deleteById(removed);
     int deleted = new TransactionTemplate(transactions).execute(status -> sessions.deleteExpiredIds(ids, NOW));
     assertThat(deleted).isZero();
@@ -106,14 +117,15 @@ abstract class ExpiredSessionCleanupContract {
   }
 
   private int deleteAfter(CountDownLatch start, List<UUID> ids) throws InterruptedException {
-    if (!start.await(10, TimeUnit.SECONDS)) throw new IllegalStateException("cleanup test did not start");
+    if (!start.await(10, TimeUnit.SECONDS))
+      throw new IllegalStateException("cleanup test did not start");
     return new TransactionTemplate(transactions).execute(status -> sessions.deleteExpiredIds(ids, NOW));
   }
 
   private UUID add(Instant expiry) {
     UUID id = UUID.randomUUID();
-    sessions.save(new AuthSession(id, owner, SessionTokenDigest.digest(UUID.randomUUID().toString()),
-      expiry, NOW.minusSeconds(60)));
+    sessions.save(new AuthSession(id, owner, SessionTokenDigest.digest(UUID.randomUUID().toString()), expiry,
+      NOW.minusSeconds(60)));
     return id;
   }
 }

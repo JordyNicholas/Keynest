@@ -29,6 +29,19 @@ describe('AccountPageComponent', () => {
     TestBed.inject(AuthService).clearSession();
   });
 
+  it('informs an unverified existing owner without blocking account actions', () => {
+    TestBed.inject(AuthService).setSession('test-session', 'test@example.com');
+    const fixture = TestBed.createComponent(AccountPageComponent);
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/me')
+      .flush({ email: 'test@example.com', emailVerified: false });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#email-verification-pending')?.textContent).toContain('continue using');
+    expect(fixture.nativeElement.querySelector('#open-change-password').disabled).toBeFalse();
+    expect(TestBed.inject(AuthService).signedIn()).toBeTrue();
+    TestBed.inject(AuthService).setSession('different-session', 'other@example.test');fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#email-verification-pending')).toBeNull();
+  });
+
 
   it('opens the shared confirmation dialog without sending revocation itself', () => {
     TestBed.inject(AuthService).setSession('test-session', 'test@example.com');

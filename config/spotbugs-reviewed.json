@@ -70,7 +70,7 @@
   {
     "module": "apps/manager-api",
     "class": "dev.keynest.manager.auth.AuthService",
-    "source_sha256": "91d87d54e308689b43c9206fe4ad51370867132a485ad752328a83ff80d83a02",
+    "source_sha256": "b0262db810cca26fc765d28aaf3f80299e3d01dcb94f9c75ad36540ca9e801d9",
     "findings": [
       {
         "type": "EI_EXPOSE_REP2",

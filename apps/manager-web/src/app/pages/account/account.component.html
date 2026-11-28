@@ -10,6 +10,9 @@
         <dd>{{ auth.email() }}</dd>
       </dl>
     }
+    @if (verificationPending()) {
+      <p role="status" id="email-verification-pending">Your email has not been verified. You can continue using your account and Vault. Email verification will be available here when it is ready.</p>
+    }
     <div class="row"><button mat-stroked-button id="open-change-password" type="button" [disabled]="loggingOut()" (click)="changePassword()">Change password</button><button mat-stroked-button type="button" [disabled]="loggingOut()" (click)="logout()">{{ loggingOut() ? 'Signing out…' : 'Sign out' }}</button>
     <button mat-stroked-button id="open-sign-out-devices" type="button" [disabled]="loggingOut()" (click)="signOutDevices()">Sign out all devices</button></div>
   </section>

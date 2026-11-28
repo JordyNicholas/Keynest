@@ -85,7 +85,7 @@ describe('Manager entry routes', () => {
     TestBed.inject(HttpTestingController).expectNone(() => true);
   });
 
-  it('opens direct signup entry and cancels pending authentication before the closing animation', async () => {
+  it('opens paused signup and cancels a later sign-in before the closing animation', async () => {
     const harness = await RouterTestingHarness.create('/?auth=signup');
     await harness.fixture.whenStable();
     const dialog = TestBed.inject(MatDialog).openDialogs[0];
@@ -93,20 +93,23 @@ describe('Manager entry routes', () => {
     expect(component.mode()).toBe('signup');
     const form = component.form()!;
     form.email.set('sample@example.test');form.password.set('Sample master password');form.submit();
-    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/register');
+    TestBed.inject(HttpTestingController).expectNone('/api/v1/auth/register');
+    form.switchMode();harness.detectChanges();await harness.fixture.whenStable();
+    form.email.set('sample@example.test');form.password.set('Existing account password');form.submit();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/v1/auth/login');
     const closed = firstValueFrom(dialog.afterClosed());
     dialog.close();expect(request.cancelled).toBeTrue();expect(form.password()).toBe('');
     await closed;await harness.fixture.whenStable();expect(TestBed.inject(AuthService).signedIn()).toBeFalse();
     expect(TestBed.inject(Router).url).toBe('/');
   });
 
-  it('takes a newly created account to an empty real overview', async () => {
-    const harness = await RouterTestingHarness.create('/?auth=signup');await harness.fixture.whenStable();
+  it('takes an existing signed-in owner to an empty real overview', async () => {
+    const harness = await RouterTestingHarness.create('/?auth=signin');await harness.fixture.whenStable();
     const dialog = TestBed.inject(MatDialog).openDialogs[0];
     const form = (dialog.componentInstance as AuthDialogComponent).form()!;
     form.email.set('new-account@example.test');form.password.set('Sample master password');form.submit();
     const http = TestBed.inject(HttpTestingController);const closed = firstValueFrom(dialog.afterClosed());
-    http.expectOne('/api/v1/auth/register').flush({ token: 'new-session', email: 'new-account@example.test' });
+    http.expectOne('/api/v1/auth/login').flush({ token: 'new-session', email: 'new-account@example.test' });
     await closed;await harness.fixture.whenStable();harness.detectChanges();await harness.fixture.whenStable();
     expect(TestBed.inject(Router).url).toBe('/overview');
     http.expectOne('/api/v1/vault/overview').flush(emptyOverview());harness.detectChanges();

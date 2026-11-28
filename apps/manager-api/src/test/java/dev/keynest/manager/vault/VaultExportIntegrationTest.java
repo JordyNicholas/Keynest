@@ -30,6 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(properties = "keynest.rate-limit.enabled=false")
 @AutoConfigureMockMvc
 class VaultExportIntegrationTest {
+  @org.springframework.beans.factory.annotation.Autowired
+  dev.keynest.manager.testing.TestAccounts accounts;
+
   private static final String ACCOUNT = "Synthetic account password!42";
   private static final String BACKUP = "Synthetic backup passphrase!42";
   private static final String SECRET = "aB2#cD3$eF4%gH5&jK6*";
@@ -60,7 +63,7 @@ class VaultExportIntegrationTest {
 
   @BeforeEach
   void setup() {
-    bearer = "Bearer " + auth.register("export-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
+    bearer = "Bearer " + accounts.register("export-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
     owner = auth.requireUser(bearer);
     first = add("Synthetic first", "sample", "https://example.invalid/login");
     clearInvocations(seal, backups, passwords);
@@ -68,7 +71,8 @@ class VaultExportIntegrationTest {
 
   @Test
   void databaseProjectionMeasuresOnlyOwnedCiphertextLengths() {
-    String other = "Bearer " + auth.register("projection-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
+    String other = "Bearer "
+      + accounts.register("projection-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
     UUID foreign = vault.create(auth.requireUser(other),
       new VaultService.CreateVaultItemRequest("Other owner", null, null, SECRET, false, null, null, null)).id();
     var result = snapshots.ciphertextLengths(owner,
@@ -142,7 +146,7 @@ class VaultExportIntegrationTest {
 
   @Test
   void emptyMissingAndMixedOwnerSelectionsFailWithoutOpeningAnyPassword() throws Exception {
-    String other = "Bearer " + auth.register("other-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
+    String other = "Bearer " + accounts.register("other-" + UUID.randomUUID() + "@example.invalid", ACCOUNT).token();
     UUID foreign = vault.create(auth.requireUser(other),
       new VaultService.CreateVaultItemRequest("Other owner", null, null, SECRET, false, null, null, null)).id();
     JsonNode ownedPreview = preview(selected(first));

@@ -18,16 +18,21 @@ class ExpiryOutboxIntegrationTest {
   private static final Instant NOW = Instant.parse("2026-11-12T12:00:00Z");
   private static final OffsetDateTime OLD = OffsetDateTime.parse("2026-08-01T12:00:00Z");
 
-  @Autowired JdbcTemplate jdbc;
-  @Autowired ExpiryOutbox outbox;
-  @Autowired ExpiryReminderClaims claims;
-  @Autowired ExpiryReminderTiming timing;
+  @Autowired
+  JdbcTemplate jdbc;
+  @Autowired
+  ExpiryOutbox outbox;
+  @Autowired
+  ExpiryReminderClaims claims;
+  @Autowired
+  ExpiryReminderTiming timing;
 
   @Test
   void queuesDueItemsOnceAndRemovesRowsWhenTheirVaultItemIsDeleted() {
     UUID user = UUID.randomUUID();
-    jdbc.update("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
-      user, user + "@example.test", "test-hash", OLD);
+    jdbc.update(
+      "INSERT INTO users (id, email, password_hash, created_at, legacy_access_granted) VALUES (?, ?, ?, ?, TRUE)", user,
+      user + "@example.test", "test-hash", OLD);
 
     UUID due = insertItem(user, OffsetDateTime.parse("2026-11-19T12:00:00Z"), null);
     UUID fallback = insertItem(user, null, null);
@@ -40,8 +45,9 @@ class ExpiryOutboxIntegrationTest {
     assertThat(jdbc.query("SELECT vault_item_id FROM expiry_notification_outbox WHERE status = 'PENDING'",
       (rs, row) -> rs.getObject(1, UUID.class))).containsExactlyInAnyOrder(due, fallback);
     jdbc.update("DELETE FROM vault_items WHERE id = ?", due);
-    assertThat(jdbc.query("SELECT vault_item_id FROM expiry_notification_outbox",
-      (rs, row) -> rs.getObject(1, UUID.class))).containsExactly(fallback);
+    assertThat(
+      jdbc.query("SELECT vault_item_id FROM expiry_notification_outbox", (rs, row) -> rs.getObject(1, UUID.class)))
+      .containsExactly(fallback);
     jdbc.update("DELETE FROM users WHERE id = ?", user);
   }
 
@@ -93,8 +99,8 @@ class ExpiryOutboxIntegrationTest {
     var valid = pendingReminder();
     var stale = pendingReminder();
     try {
-      jdbc.update("UPDATE vault_items SET expires_at = ? WHERE id = ?",
-        OffsetDateTime.parse("2026-11-14T12:00:00Z"), stale.itemId());
+      jdbc.update("UPDATE vault_items SET expires_at = ? WHERE id = ?", OffsetDateTime.parse("2026-11-14T12:00:00Z"),
+        stale.itemId());
       UUID owner = jdbc.queryForObject("SELECT user_id FROM vault_items WHERE id = ?", UUID.class, valid.itemId());
       var delivered = new ArrayList<UUID>();
       var dispatcher = new ExpiryReminderDispatcher(jdbc, claims, timing, Clock.fixed(NOW, ZoneOffset.UTC), id -> {
@@ -115,8 +121,9 @@ class ExpiryOutboxIntegrationTest {
 
   private ExpiryReminderClaims.Key pendingReminder() {
     UUID user = UUID.randomUUID();
-    jdbc.update("INSERT INTO users (id, email, password_hash, created_at) VALUES (?, ?, ?, ?)",
-      user, user + "@example.test", "test-hash", OLD);
+    jdbc.update(
+      "INSERT INTO users (id, email, password_hash, created_at, legacy_access_granted) VALUES (?, ?, ?, ?, TRUE)", user,
+      user + "@example.test", "test-hash", OLD);
     OffsetDateTime expiry = OffsetDateTime.parse("2026-11-13T12:00:00Z");
     UUID item = insertItem(user, expiry, null);
     jdbc.update("""
@@ -127,8 +134,8 @@ class ExpiryOutboxIntegrationTest {
   }
 
   private String status(ExpiryReminderClaims.Key key) {
-    return jdbc.queryForObject("SELECT status FROM expiry_notification_outbox WHERE vault_item_id = ?",
-      String.class, key.itemId());
+    return jdbc.queryForObject("SELECT status FROM expiry_notification_outbox WHERE vault_item_id = ?", String.class,
+      key.itemId());
   }
 
   private UUID insertItem(UUID user, OffsetDateTime expiry, OffsetDateTime lastRotated) {
@@ -138,7 +145,7 @@ class ExpiryOutboxIntegrationTest {
         id, user_id, label, envelope_bytes, policy_id, expires_at, last_rotated_at,
         notify_before_days, created_at, updated_at
       ) VALUES (?, ?, 'Example', ?, 'keynest.default.v1', ?, ?, 7, ?, ?)
-      """, id, user, new byte[] { 1 }, expiry, lastRotated, OLD, OLD);
+      """, id, user, new byte[]{1}, expiry, lastRotated, OLD, OLD);
     return id;
   }
 }

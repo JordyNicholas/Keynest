@@ -1,5 +1,5 @@
 import { InlineErrorComponent } from '../inline-error.component';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -36,6 +36,9 @@ export class AccountPageComponent {
   readonly healthOpen = signal(false);
   readonly error = signal('');
   readonly loggingOut = signal(false);
+  private readonly verificationSession = this.auth.token();
+  readonly emailVerified = signal<boolean | null>(null);
+  readonly verificationPending = computed(() => this.auth.token() === this.verificationSession && this.emailVerified() === false);
   readonly aiSetupRequested = this.route.snapshot.queryParamMap.get('ai') === 'policy-explanation';
   readonly aiSetupOpen = signal(this.aiSetupRequested);
 
@@ -45,11 +48,14 @@ export class AccountPageComponent {
     });
     const token = this.auth.token();
     if (!token) return;
-    this.http.post<{ email: string }>(`${this.apiBaseUrl}/auth/me`, {}, { headers: this.auth.authHeaders() })
+    this.http.post<{ email: string; emailVerified?: boolean }>(`${this.apiBaseUrl}/auth/me`, {}, { headers: this.auth.authHeaders() })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ email }) => {
-          if (this.auth.token() === token) this.auth.email.set(email);
+        next: ({ email, emailVerified }) => {
+          if (this.auth.token() === token) {
+            this.auth.email.set(email);
+            this.emailVerified.set(typeof emailVerified === 'boolean' ? emailVerified : null);
+          }
         },
         error: (response) => {
           if (this.auth.token() !== token) return;

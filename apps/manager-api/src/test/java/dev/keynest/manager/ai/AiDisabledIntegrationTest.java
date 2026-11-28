@@ -20,14 +20,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Import(AiExplanationIntegrationTest.Config.class)
 class AiDisabledIntegrationTest {
-  @Autowired MockMvc mvc;
-  @Autowired AuthService auth;
-  @Autowired AiCoreTest.Fake fake;
+  @org.springframework.beans.factory.annotation.Autowired
+  dev.keynest.manager.testing.TestAccounts accounts;
+
+  @Autowired
+  MockMvc mvc;
+  @Autowired
+  AuthService auth;
+  @Autowired
+  AiCoreTest.Fake fake;
 
   @Test
   void defaultDisabledStateDoesNotCallProviderOrBreakCoreReadiness() throws Exception {
-    var session = auth.register("ai-off-" + UUID.randomUUID() + "@example.com", "SyntheticMaster!42");
-    mvc.perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", "Bearer " + session.token())
+    var session = accounts.register("ai-off-" + UUID.randomUUID() + "@example.com", "SyntheticMaster!42");
+    mvc
+      .perform(post(ApiPaths.AI_EXPLAIN).header("Authorization", "Bearer " + session.token())
         .header("X-Keynest-AI-Key", AiCoreTest.KEY).contentType(MediaType.APPLICATION_JSON)
         .content("{\"providerId\":\"test\",\"policyId\":\"keynest.default.v1\"}"))
       .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.error").value("AI_DISABLED"));

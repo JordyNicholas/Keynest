@@ -33,12 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PostgresMigrationIntegrationTest {
 
   @Container
-  static final PostgreSQLContainer postgres = new PostgreSQLContainer(
-    DockerImageName.parse("postgres:16-alpine")
-  )
-    .withDatabaseName("keynest_test")
-    .withUsername("keynest")
-    .withPassword("keynest_test");
+  static final PostgreSQLContainer postgres = new PostgreSQLContainer(DockerImageName.parse("postgres:16-alpine"))
+    .withDatabaseName("keynest_test").withUsername("keynest").withPassword("keynest_test");
 
   @DynamicPropertySource
   static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -61,44 +57,29 @@ class PostgresMigrationIntegrationTest {
 
   @Test
   void freshPostgresSchemaMigratesAndSupportsCoreVaultFlow() throws Exception {
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("7");
-    assertThat(jdbcTemplate.queryForObject(
-      """
-        SELECT COUNT(*) FROM flyway_schema_history
-        WHERE success = TRUE AND version IS NOT NULL
-        """,
-      Long.class
-    )).isEqualTo(7L);
-    assertThat(jdbcTemplate.queryForObject("SELECT current_database()", String.class))
-      .isEqualTo("keynest_test");
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("8");
+    assertThat(jdbcTemplate.queryForObject("""
+      SELECT COUNT(*) FROM flyway_schema_history
+      WHERE success = TRUE AND version IS NOT NULL
+      """, Long.class)).isEqualTo(8L);
+    assertThat(jdbcTemplate.queryForObject("SELECT current_database()", String.class)).isEqualTo("keynest_test");
 
-    MvcResult registration = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"postgres-%s@example.com","password":"MasterPassphrase!42"}
-          """.formatted(UUID.randomUUID())))
-      .andExpect(status().isOk())
-      .andReturn();
-    String token = JsonPath.read(registration.getResponse().getContentAsString(), "$.token");
+    String token = mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class)
+      .register("postgres-" + UUID.randomUUID() + "@example.com", "MasterPassphrase!42").token();
 
-    MvcResult creation = mockMvc.perform(post(ApiPaths.VAULT_ITEMS)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"label":"PostgreSQL item","generate":true}
-          """))
-      .andExpect(status().isOk())
-      .andReturn();
+    MvcResult creation = mockMvc.perform(post(ApiPaths.VAULT_ITEMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+      .contentType(MediaType.APPLICATION_JSON).content("""
+        {"label":"PostgreSQL item","generate":true}
+        """)).andExpect(status().isOk()).andReturn();
     String itemId = JsonPath.read(creation.getResponse().getContentAsString(), "$.id");
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId))
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.item.id").value(itemId))
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId)).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.item.id").value(itemId))
       .andExpect(jsonPath("$.password", notNullValue()));
 
-    assertThat(jdbcTemplate.queryForObject(
-      "SELECT COUNT(*) FROM vault_items WHERE id = ?", Long.class, UUID.fromString(itemId)
-    )).isEqualTo(1L);
+    assertThat(
+      jdbcTemplate.queryForObject("SELECT COUNT(*) FROM vault_items WHERE id = ?", Long.class, UUID.fromString(itemId)))
+      .isEqualTo(1L);
   }
 }

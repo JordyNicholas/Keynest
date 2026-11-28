@@ -23,23 +23,30 @@ import org.springframework.core.Ordered;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
-  "keynest.rate-limit.limit=1", "keynest.tools.demo.enabled=false", "keynest.ai.enabled=false"
-})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {"keynest.rate-limit.limit=1",
+  "keynest.tools.demo.enabled=false", "keynest.ai.enabled=false"})
 @Import(ApiResponseHeadersHttpIntegrationTest.Fixtures.class)
 class ApiResponseHeadersHttpIntegrationTest {
-  @Value("${local.server.port}") int port;
-  @Autowired AuthService auth;
-  private final HttpClient client = HttpClient.newBuilder()
-    .connectTimeout(Duration.ofSeconds(5)).followRedirects(HttpClient.Redirect.NEVER).build();
+  @org.springframework.beans.factory.annotation.Autowired
+  dev.keynest.manager.testing.TestAccounts accounts;
+
+  @Value("${local.server.port}")
+  int port;
+  @Autowired
+  AuthService auth;
+  private final HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5))
+    .followRedirects(HttpClient.Redirect.NEVER).build();
 
   private HttpResponse<String> request(String method, String path, String body, String... headers) throws Exception {
-    var builder = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path))
-      .timeout(Duration.ofSeconds(10)).header("Content-Type", "application/json");
-    if (headers.length > 0) builder.headers(headers);
-    var response = client.send(builder.method(method, body == null
-      ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body)).build(),
-      HttpResponse.BodyHandlers.ofString());
+    var builder = HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + path)).timeout(Duration.ofSeconds(10))
+      .header("Content-Type", "application/json");
+    if (headers.length > 0)
+      builder.headers(headers);
+    var response = client
+      .send(
+        builder.method(method,
+          body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body)).build(),
+        HttpResponse.BodyHandlers.ofString());
     assertThat(response.headers().allValues("X-Content-Type-Options")).containsExactly("nosniff");
     assertThat(response.headers().allValues("Referrer-Policy")).containsExactly("no-referrer");
     assertThat(response.headers().allValues("X-Frame-Options")).containsExactly("DENY");
@@ -52,30 +59,29 @@ class ApiResponseHeadersHttpIntegrationTest {
   @Test
   void realHttpSuccessAndRejectionsHaveTheSameBaseline() throws Exception {
     assertThat(request("GET", ApiPaths.TOOLS_HEALTH, null).statusCode()).isEqualTo(200);
-    assertThat(request("POST", ApiPaths.AUTH_REGISTER, "{}").statusCode()).isEqualTo(400);
+    assertThat(request("POST", ApiPaths.AUTH_REGISTER, "{}").statusCode()).isEqualTo(410);
     // H3 now refuses absent authentication before MVC argument/header binding.
     assertThat(request("GET", ApiPaths.VAULT_ITEMS, null).statusCode()).isEqualTo(401);
-    assertThat(request("GET", ApiPaths.VAULT_ITEMS, null,
-      "Authorization", "Bearer invalid-synthetic-session").statusCode()).isEqualTo(401);
+    assertThat(
+      request("GET", ApiPaths.VAULT_ITEMS, null, "Authorization", "Bearer invalid-synthetic-session").statusCode())
+      .isEqualTo(401);
     assertThat(request("GET", "/api/v1/not-a-route", null).statusCode()).isEqualTo(401);
     assertThat(request("POST", ApiPaths.TOOLS_SEAL, "{}").statusCode()).isEqualTo(403);
-    String token = auth.register("headers-" + UUID.randomUUID() + "@example.invalid",
-      "Synthetic account password!42").token();
-    assertThat(request("POST", ApiPaths.AI_EXPLAIN,
-      "{\"providerId\":\"openai\",\"policyId\":\"keynest.default.v1\"}",
+    String token = accounts
+      .register("headers-" + UUID.randomUUID() + "@example.invalid", "Synthetic account password!42").token();
+    assertThat(request("POST", ApiPaths.AI_EXPLAIN, "{\"providerId\":\"openai\",\"policyId\":\"keynest.default.v1\"}",
       "Authorization", "Bearer " + token).statusCode()).isEqualTo(503);
   }
 
   @Test
   void corsPreflightGrantsOnlyTheConfiguredOrigin() throws Exception {
-    var allowed = request("OPTIONS", ApiPaths.VAULT_ITEMS, null,
-      "Origin", "http://localhost:4200", "Access-Control-Request-Method", "POST",
-      "Access-Control-Request-Headers", "authorization,content-type");
+    var allowed = request("OPTIONS", ApiPaths.VAULT_ITEMS, null, "Origin", "http://localhost:4200",
+      "Access-Control-Request-Method", "POST", "Access-Control-Request-Headers", "authorization,content-type");
     assertThat(allowed.statusCode()).isEqualTo(200);
     assertThat(allowed.headers().firstValue("Access-Control-Allow-Origin")).contains("http://localhost:4200");
     assertThat(allowed.headers().firstValue("Access-Control-Allow-Credentials")).isEmpty();
-    var denied = request("OPTIONS", ApiPaths.VAULT_ITEMS, null,
-      "Origin", "https://unlisted.example.invalid", "Access-Control-Request-Method", "POST");
+    var denied = request("OPTIONS", ApiPaths.VAULT_ITEMS, null, "Origin", "https://unlisted.example.invalid",
+      "Access-Control-Request-Method", "POST");
     assertThat(denied.statusCode()).isEqualTo(403);
     assertThat(denied.headers().firstValue("Access-Control-Allow-Origin")).isEmpty();
   }

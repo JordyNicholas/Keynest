@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
 import { vaultLifecycle } from './csp-vault-lifecycle.mjs';
 import { sessionLifecycle } from './csp-session-lifecycle.mjs';
@@ -37,9 +39,9 @@ export async function authenticatedBrowser(url, profile, reducedMotion, apiBase 
     stage = 'SETUP_ACCOUNT';
     const email = `csp-${crypto.randomUUID()}@example.invalid`;
     const password = 'Synthetic account password!42';
-    assert.ok(await page.evaluate(async (email, password, apiBase) => (await fetch(apiBase + '/auth/register', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
-    })).ok, email, password, apiBase));
+    // Database fixture only: no registration endpoint or runtime bypass. All later sign-in is real HTTP.
+    execFileSync('python3', [fileURLToPath(new URL('../../../scripts/disposable_accounts.py', import.meta.url)),
+      '--disposable', email], { stdio: 'ignore', timeout: 20000 });
     stage = 'SIGN_IN';
     await page.locator('kn-public-header a[href*="auth=signin"]').click();
     await page.waitForSelector('#auth-email', { visible: true });

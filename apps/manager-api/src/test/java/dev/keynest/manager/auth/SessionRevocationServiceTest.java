@@ -19,7 +19,8 @@ class SessionRevocationServiceTest {
   private final AuthService auth = mock(AuthService.class);
   private final PasswordHashingService passwords = mock(PasswordHashingService.class);
   private final SessionRevocationTransactions transactions = mock(SessionRevocationTransactions.class);
-  private final UserAccount owner = new UserAccount(UUID.randomUUID(), "synthetic@example.invalid", "stored-hash", Instant.now());
+  private final UserAccount owner = dev.keynest.manager.testing.TestAccounts.account(UUID.randomUUID(),
+    "synthetic@example.invalid", "stored-hash", Instant.now());
   private final SessionRevocationService service = new SessionRevocationService(auth, passwords, transactions);
 
   @Test
@@ -49,7 +50,8 @@ class SessionRevocationServiceTest {
   void transactionFailureClearsCredentialsAndReleasesAdmission() {
     when(auth.requireUser("Bearer synthetic")).thenReturn(owner);
     when(passwords.verifyAndClear(any(), anyString())).thenReturn(true);
-    doThrow(new IllegalStateException("synthetic failure")).doNothing().when(transactions).revoke(any(), anyString(), anyString());
+    doThrow(new IllegalStateException("synthetic failure")).doNothing().when(transactions).revoke(any(), anyString(),
+      anyString());
     char[] first = "synthetic proof".toCharArray();
     assertThatThrownBy(() -> service.revokeAll("Bearer synthetic", first)).isInstanceOf(IllegalStateException.class);
     assertThat(Arrays.equals(first, new char[first.length])).isTrue();
@@ -60,9 +62,12 @@ class SessionRevocationServiceTest {
   @Test
   void competingRequestIsRejectedWithoutQueuingAndPasswordIsCleared() throws Exception {
     when(auth.requireUser("Bearer synthetic")).thenReturn(owner);
-    var entered = new CountDownLatch(1);var release = new CountDownLatch(1);
+    var entered = new CountDownLatch(1);
+    var release = new CountDownLatch(1);
     when(passwords.verifyAndClear(any(), anyString())).thenAnswer(call -> {
-      entered.countDown();assertThat(release.await(10, TimeUnit.SECONDS)).isTrue();return true;
+      entered.countDown();
+      assertThat(release.await(10, TimeUnit.SECONDS)).isTrue();
+      return true;
     });
     try (var pool = Executors.newSingleThreadExecutor()) {
       var first = pool.submit(() -> service.revokeAll("Bearer synthetic", "synthetic proof".toCharArray()));
@@ -71,7 +76,9 @@ class SessionRevocationServiceTest {
         char[] second = "another proof".toCharArray();
         status(() -> service.revokeAll("Bearer synthetic", second), HttpStatus.TOO_MANY_REQUESTS);
         assertThat(Arrays.equals(second, new char[second.length])).isTrue();
-      } finally { release.countDown(); }
+      } finally {
+        release.countDown();
+      }
       first.get(10, TimeUnit.SECONDS);
     }
     verify(passwords).verifyAndClear(any(), anyString());

@@ -34,14 +34,10 @@ class VaultRevealSecurityIntegrationTest {
     String token = register("reveal-owner");
     String itemId = createItem(token);
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId))
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-      .andExpect(status().isOk())
-      .andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
-      .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache"))
-      .andExpect(header().string(HttpHeaders.EXPIRES, "0"))
-      .andExpect(jsonPath("$.item.id", is(itemId)))
-      .andExpect(jsonPath("$.password", notNullValue()));
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId)).header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+      .andExpect(status().isOk()).andExpect(header().string(HttpHeaders.CACHE_CONTROL, containsString("no-store")))
+      .andExpect(header().string(HttpHeaders.PRAGMA, "no-cache")).andExpect(header().string(HttpHeaders.EXPIRES, "0"))
+      .andExpect(jsonPath("$.item.id", is(itemId))).andExpect(jsonPath("$.password", notNullValue()));
   }
 
   @Test
@@ -49,13 +45,11 @@ class VaultRevealSecurityIntegrationTest {
     String token = register("metadata-owner");
     String itemId = createItem(token);
 
-    mockMvc.perform(get(ApiPaths.vaultItem(itemId))
-        .param("reveal", "true")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id", is(itemId)))
-      .andExpect(jsonPath("$.password").doesNotExist())
-      .andExpect(jsonPath("$.item").doesNotExist());
+    mockMvc
+      .perform(
+        get(ApiPaths.vaultItem(itemId)).param("reveal", "true").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+      .andExpect(status().isOk()).andExpect(jsonPath("$.id", is(itemId)))
+      .andExpect(jsonPath("$.password").doesNotExist()).andExpect(jsonPath("$.item").doesNotExist());
   }
 
   @Test
@@ -64,39 +58,27 @@ class VaultRevealSecurityIntegrationTest {
     String otherToken = register("isolation-other");
     String itemId = createItem(ownerToken);
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId)))
-      .andExpect(status().isUnauthorized());
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId))).andExpect(status().isUnauthorized());
 
-    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId))
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + otherToken))
-      .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.password").doesNotExist());
+    mockMvc.perform(post(ApiPaths.vaultItemReveal(itemId)).header(HttpHeaders.AUTHORIZATION, "Bearer " + otherToken))
+      .andExpect(status().isNotFound()).andExpect(jsonPath("$.password").doesNotExist());
   }
 
   private String register(String prefix) throws Exception {
-    MvcResult result = mockMvc.perform(post(ApiPaths.AUTH_REGISTER)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {"email":"%s-%s@example.com","password":"MasterPassphrase!42"}
-          """.formatted(prefix, UUID.randomUUID())))
-      .andExpect(status().isOk())
-      .andReturn();
-    return JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+    return mockMvc.getDispatcherServlet().getWebApplicationContext()
+      .getBean(dev.keynest.manager.testing.TestAccounts.class)
+      .register(prefix + "-" + UUID.randomUUID() + "@example.com", "MasterPassphrase!42").token();
   }
 
   private String createItem(String token) throws Exception {
-    MvcResult result = mockMvc.perform(post(ApiPaths.VAULT_ITEMS)
-        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content("""
-          {
-            "label":"Reveal target",
-            "username":"owner@example.com",
-            "generate":true
-          }
-          """))
-      .andExpect(status().isOk())
-      .andReturn();
+    MvcResult result = mockMvc.perform(post(ApiPaths.VAULT_ITEMS).header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+      .contentType(MediaType.APPLICATION_JSON).content("""
+        {
+          "label":"Reveal target",
+          "username":"owner@example.com",
+          "generate":true
+        }
+        """)).andExpect(status().isOk()).andReturn();
     return JsonPath.read(result.getResponse().getContentAsString(), "$.id");
   }
 }
