@@ -1,6 +1,6 @@
 # Verification state and delivery claims
 
-Implementation foundation #339 under [accepted ADR-0021](decisions/ADR-0021-verified-email-activation.md) and remaining mail work #338. This adds internal database state and maintenance, not an email service, activation endpoint, or authentication method. Direct signup remains HTTP 410; existing owners retain access under the V8 eligibility migration.
+Implementation foundation merged through #339/#340 under [accepted ADR-0021](decisions/ADR-0021-verified-email-activation.md) and remaining mail work #338. This adds internal database state and maintenance, not an email service, activation endpoint, or authentication method. Direct signup remains HTTP 410; existing owners retain access under the V8 eligibility migration.
 
 ## Authority and transaction boundaries
 
@@ -50,4 +50,4 @@ Maintenance runs one bounded pass each minute and on admission/claim. Each delet
 
 A database rollback can revive pending/consumed/claimed state. This schema is not an external anti-rollback ledger. **Before any future activation/delivery enablement after restore**, the reviewed recovery runbook must invalidate all pending generations/jobs and revoke restored sessions, with a real retained-key restore rehearsal. The current signup pause and absence of a sender prevent public use of these tables during the staged implementation; do not wire public endpoints or delivery around that recovery requirement.
 
-SMTP TLS/credentials/origin custody, actual connection deadlines, mailbox parsing, strict bounded public DTOs, route inventory/CORS/CSRF behavior, ordinary post-activation sign-in, same-session legacy confirmation, browser fragment custody and real disposable-mailbox delivery evidence remain #338 work. Action codes and optional OIDC remain #302 and #301. This foundation does not close H1, T01 or M1, certify deployment, or publish a release.
+The [internal SMTP/mailbox candidate](../operators/verification-mail.md) under #341 addresses TLS/credentials/origin custody, actual connection deadlines and mailbox parsing without automatic claims or public enablement. Strict bounded public DTOs, route inventory/CORS/CSRF behavior, ordinary post-activation sign-in, same-session legacy confirmation, browser fragment custody and real disposable-mailbox delivery evidence remain #338 work. Action codes and optional OIDC remain #302 and #301. This foundation does not close H1, T01 or M1, certify deployment, or publish a release.

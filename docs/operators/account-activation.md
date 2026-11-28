@@ -10,9 +10,9 @@ V8 adds nullable verification timestamp/delivery-address metadata and a false-by
 
 Before applying V8, take and retain the normal database backup and matching installation key. Pause registration and stop old application writers during migration; never load-balance old/new signup handlers during the transition. Deploy matching API/Web, verify old signup refusal, an existing owner's password/session/Vault access and `emailVerified: false`, then retain the signup pause until reviewed activation is ready. Do not hand-edit existing owners' verification timestamps to bypass the later flow or delete data to repair startup.
 
-## Internal verification state candidate
+## Internal verification state
 
-V9 under #339 adds empty internal challenge, quota and reference-only delivery-job tables. It changes no existing owner/session/Vault data and adds no public endpoint, sender or activation method. The [state contract](../architecture/verification-state.md) documents shared database limits, one committed claim per generation, ten-minute digest-only tokens and bounded scheduled cleanup. No worker sends mail in this slice; SMTP is not configurable yet.
+V9 merged through #339/#340 adds empty internal challenge, quota and reference-only delivery-job tables. It changes no existing owner/session/Vault data and adds no public endpoint, sender or activation method. The [state contract](../architecture/verification-state.md) documents shared database limits, one committed claim per generation, ten-minute digest-only tokens and bounded scheduled cleanup. No worker sends mail automatically. The [internal SMTP/mailbox adapter candidate](verification-mail.md) under #341 adds optional installation settings and isolated TLS tests; public activation is still unavailable.
 
 Keep SQL/bind-parameter tracing off: recipient/session metadata is sensitive even without raw tokens. Healthy running maintenance removes expired state in bounded passes; offline databases, failed maintenance and backups require operator retention controls. Do not treat restoring this database as token revocation: restoration can revive consumed state. Before future mail/activation enablement after recovery, pending generations/jobs must be invalidated and restored sessions revoked through a reviewed, rehearsed runbook. That enablement remains #338 work.
 
