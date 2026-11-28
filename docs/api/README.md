@@ -43,3 +43,7 @@ See [expiry inputs](../manager/vault.md#additive-api-contract), [native backup a
 | POST | `/ai/policy/explain` | [Optional authenticated built-in-policy explanation](policy-explanations.md) |
 
 HTTP verification accepts Argon2id hashes within 64 MiB, three iterations, and one lane. Unsupported hashes return `valid: false`. Use the [Java library](../libraries/README.md) for hashes requiring different work factors. The standalone local API enables the documented seal/open demo. Docker disables it by default. See the [runtime guide](../operators/runtime.md) and [admission controls](../security/controls/availability.md) for hashing capacity, 429/503 behavior, and deployment limits.
+
+## Duplicate creation
+
+Vault creation returns HTTP 409 with `code: VAULT_ITEM_DUPLICATE` and `Cache-Control: no-store` when the signed-in owner already holds the same stored username, password and website URL. The label is not part of the match. Blank and omitted URLs both count as missing. Other owners are not candidates. This guard applies to creation; explicit restore choices remain governed by the restore contract.

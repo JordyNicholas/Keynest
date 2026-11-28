@@ -122,7 +122,9 @@ export class VaultCreatePageComponent {
         },
         error: ({ error, status }) => {
           if (this.auth.token() !== this.session) return;
-          if (error?.code === 'VAULT_PASSWORD_POLICY') {
+          if (status === 409 && error?.code === 'VAULT_ITEM_DUPLICATE') {
+            this.error.set('This login is already saved in your Vault.');
+          } else if (error?.code === 'VAULT_PASSWORD_POLICY') {
             this.details.set(passwordViolationMessages(error.violations));
             this.error.set('The password does not meet the vault policy.');
           } else {

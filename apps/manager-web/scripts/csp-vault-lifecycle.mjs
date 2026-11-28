@@ -22,10 +22,55 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
     await page.waitForSelector(`${card} a.rotate-action`, { visible: true });
   };
   const reveal = async (expected, prefix) => {
-    if (prefix) stage(prefix + '_CLICK');
-    await page.locator(`${card} .reveal-action`).click();
-    if (prefix) stage(prefix + '_VALUE');
-    await page.waitForFunction(expected => document.querySelector('.vault-card output.secret')?.textContent === expected, {}, expected);
+    // Observe only this synthetic reveal. Retain fixed categories/booleans, never
+    // response bodies, credentials or DOM. No additional request or retry occurs.
+    const path = prefix ? `/api/v1/vault/items/${await itemId()}/reveal` : undefined;
+    let requested = false;
+    let requestFailed = false;
+    let status;
+    let matches;
+    let invalidBody = false;
+    const isReveal = request => request.method() === 'POST' && new URL(request.url()).pathname === path;
+    const onRequest = request => { if (isReveal(request)) requested = true; };
+    const onFailed = request => { if (isReveal(request)) requestFailed = true; };
+    const onResponse = reply => {
+      if (!isReveal(reply.request())) return;
+      status = reply.status();
+      if (status === 200) void reply.json().then(body => { matches = body?.password === expected; }, () => { invalidBody = true; });
+    };
+    if (prefix) { page.on('request', onRequest);page.on('requestfailed', onFailed);page.on('response', onResponse); }
+    try {
+      if (prefix) stage(prefix + '_CLICK');
+      await page.locator(`${card} .reveal-action`).click();
+      if (prefix) stage(prefix + '_VALUE');
+      try {
+        await page.waitForFunction(expected => document.querySelector('.vault-card output.secret')?.textContent === expected, {}, expected);
+      } catch (error) {
+        if (prefix) {
+          let outcome = !requested ? 'NO_REQUEST' : requestFailed ? 'REQUEST_FAILED' : status === undefined ? 'PENDING_RESPONSE'
+            : status === 429 ? 'RATE_LIMIT' : status === 401 ? 'UNAUTHORIZED' : status === 403 ? 'FORBIDDEN'
+            : status >= 500 ? 'SERVER_FAILURE' : status >= 400 ? 'CLIENT_FAILURE' : status !== 200 ? 'HTTP_FAILURE'
+            : invalidBody ? 'INVALID_BODY' : matches === undefined ? 'PENDING_BODY' : !matches ? 'RESPONSE_MISMATCH' : 'RESPONSE_MATCH';
+          if (outcome === 'RESPONSE_MATCH') {
+            // Fixed state flags distinguish concealment/rendering from a data mismatch.
+            try {
+              const flags = await page.evaluate(expected => ({
+                hidden: document.hidden,
+                expanded: document.querySelector('.vault-card mat-expansion-panel-header')?.getAttribute('aria-expanded') === 'true',
+                output: !!document.querySelector('.vault-card output.secret'),
+                matched: document.querySelector('.vault-card output.secret')?.textContent === expected,
+              }), expected);
+              outcome += flags.hidden ? '_PAGE_HIDDEN' : !flags.expanded ? '_PANEL_CLOSED'
+                : !flags.output ? '_OUTPUT_MISSING' : !flags.matched ? '_OUTPUT_MISMATCH' : '_OBSERVED_AFTER_TIMEOUT';
+            } catch { outcome += '_STATE_UNAVAILABLE'; }
+          }
+          stage(prefix + '_VALUE_' + outcome);
+        }
+        throw error;
+      }
+    } finally {
+      if (prefix) { page.off('request', onRequest);page.off('requestfailed', onFailed);page.off('response', onResponse); }
+    }
     if (prefix) stage(prefix + '_CONCEAL');
     await page.locator(`${card} .reveal-action`).click();
     if (prefix) stage(prefix + '_HIDDEN');
@@ -69,8 +114,30 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   await page.locator(`${card} a.rotate-action`).click();
   stage('ROTATION_OPTIONS');
   await page.locator('details.rotation-generator summary').click();
-  stage('ROTATION_GENERATE');
-  await page.locator(button('Generate replacement')).click();
+  stage('ROTATION_GENERATE_CLICK');
+  try {
+    await page.locator(button('Generate replacement')).click();
+  } catch (error) {
+    // Fixed geometry flags only: never return DOM, generated values or errors.
+    try {
+      const state = await page.evaluate(() => {
+        const details = document.querySelector('details.rotation-generator');
+        const action = details?.querySelector('.row button');
+        const bounds = action?.getBoundingClientRect();
+        return {
+          open: !!details?.open,
+          action: !!action,
+          disabled: !!action?.disabled,
+          clipped: !!details && getComputedStyle(details, '::details-content').overflowY === 'clip',
+          onscreen: !!bounds && bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth,
+        };
+      });
+      stage('ROTATION_GENERATE_CLICK_' + (!state.open ? 'CLOSED' : !state.action ? 'MISSING_ACTION'
+        : state.disabled ? 'DISABLED' : state.onscreen ? 'ONSCREEN' : state.clipped ? 'OFFSCREEN_CLIPPED' : 'OFFSCREEN'));
+    } catch { stage('ROTATION_GENERATE_CLICK_STATE_UNAVAILABLE'); }
+    throw error;
+  }
+  stage('ROTATION_GENERATE_VALUE');
   await page.waitForFunction(() => document.querySelector('#rotation-password')?.value.length === 20);
   const replacement = await page.$eval('#rotation-password', input => input.value);
   stage('ROTATION_MASK');
