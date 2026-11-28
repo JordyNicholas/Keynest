@@ -53,6 +53,27 @@ abstract class VerificationStoreContract {
   }
 
   @Test
+  void supportedMailboxKeysAgreeWithDatabaseComparisonAndCanonicalUniqueness() {
+    for (String input : new String[]{"Owner.Name+Tag@Example.Invalid", "\"Local Part\"@Example.Invalid",
+      "\"Quoted@Part\"@Example.Invalid", "I.i@Example.Invalid"}) {
+      var address = VerificationMailbox.parse(input);
+      assertThat(jdbc.queryForObject("SELECT LOWER(CAST(? AS VARCHAR))", String.class, address.delivery()))
+        .isEqualTo(address.identity());
+      UUID id = UUID.randomUUID();
+      users.saveAndFlush(
+        UserAccount.verified(id, address.identity(), address.delivery(), "synthetic-test-hash", clock.instant()));
+      try {
+        assertThat(users.findByEmailIgnoreCase(address.delivery()).map(UserAccount::getId)).contains(id);
+        assertThatThrownBy(() -> users.saveAndFlush(UserAccount.verified(UUID.randomUUID(), address.identity(),
+          address.delivery(), "synthetic-test-hash", clock.instant())))
+          .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+      } finally {
+        users.deleteById(id);
+      }
+    }
+  }
+
+  @Test
   void recipientSlidingWindowsAreSharedAndRejectedResendsDoNotReplaceOrExtend() {
     var request = signup();
     assertThat(store.admit(request, "client-a")).isEqualTo(Admission.ACCEPTED);
