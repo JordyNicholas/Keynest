@@ -114,8 +114,9 @@ def load_policy(directory, api_url, web_url):
     or configured == api_url, 'BUILD_DESTINATION')
   require(all(policy['responseHeaders'].get(name) == value for name, value in BASE_HEADERS.items()), 'BUILD_POLICY')
   require(policy['responseHeaders'].get('Content-Security-Policy') == policy['document'] + "; frame-ancestors 'none'", 'BUILD_POLICY')
-  document_policy(read_local(directory / 'index.html', MAX_HTML), policy['document'])
-  return policy
+  document = read_local(directory / 'index.html', MAX_HTML)
+  document_policy(document, policy['document'])
+  return policy, document
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -193,7 +194,7 @@ def run_checks(args):
     require(urlsplit(web_http).hostname == urlsplit(web).hostname, 'REDIRECT_TARGET')
   if api_http:
     require(urlsplit(api_http).hostname == urlsplit(api).hostname, 'REDIRECT_TARGET')
-  policy = load_policy(Path(args.web_build), api, web)
+  policy, expected_document = load_policy(Path(args.web_build), api, web)
   opener = connection(args.ca_file)
   results = []
 
@@ -212,6 +213,7 @@ def run_checks(args):
     baseline(headers)
     require(single(headers, 'Content-Type').split(';', 1)[0].lower() == 'text/html', 'CONTENT_TYPE')
     require(single(headers, 'Content-Security-Policy') in (WEB_CSP, policy['responseHeaders']['Content-Security-Policy']), 'RESPONSE_POLICY')
+    require(body == expected_document, 'DOCUMENT_ARTIFACT')
     document_policy(body, policy['document'])
 
   def api_response(path, expected):

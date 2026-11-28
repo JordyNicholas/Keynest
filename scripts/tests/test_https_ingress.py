@@ -191,6 +191,10 @@ class IngressTest(unittest.TestCase):
     self.state['cache'] = 'public, max-age=3600'
     self.assertEqual(self.execute()[1]['checks'][-1]['category'], 'CACHE_POLICY')
 
+  def test_served_html_must_match_the_trusted_artifact_beyond_its_policy_text(self):
+    self.state['html'] = self.html.replace(b'Disposable fixture', b'Different document')
+    self.assertEqual(self.execute()[1]['checks'][0]['category'], 'DOCUMENT_ARTIFACT')
+
   def test_html_body_and_network_wait_are_bounded(self):
     self.state['large'] = True
     self.assertEqual(self.execute()[1]['checks'][0]['category'], 'BODY_LIMIT')
@@ -261,7 +265,7 @@ class IngressTest(unittest.TestCase):
           connect.assert_not_called()
         (self.directory / 'index.html').write_bytes(self.html)
         self.state['html'] = body
-        self.assertEqual(self.execute()[1]['checks'][0]['category'], 'DOCUMENT_POLICY')
+        self.assertEqual(self.execute()[1]['checks'][0]['category'], 'DOCUMENT_ARTIFACT')
 
 
 if __name__ == '__main__':

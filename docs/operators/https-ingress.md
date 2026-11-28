@@ -51,7 +51,7 @@ check, with no retries. Do not put secrets in its arguments.
 
 | Check | Expected response |
 | --- | --- |
-| `WEB_ROOT` | HTTPS `/`, HTTP 200, HTML, one reviewed response CSP and the matching generated document meta policy before resources |
+| `WEB_ROOT` | HTTPS `/`, HTTP 200, HTML matching the trusted local index byte-for-byte, one reviewed response CSP and the matching generated document meta policy before resources |
 | `WEB_DEEP_LINK` | HTTPS `/vault` serves the same policy contract as the root, without requiring an authenticated API call |
 | `API_HEALTH` | HTTPS `/api/v1/tools/health`, HTTP 200, JSON content type and exact API baseline headers |
 | `API_UNAUTHENTICATED` | HTTPS `/api/v1/vault/items`, HTTP 401, JSON content type, no-store and exact API baseline headers |
@@ -62,8 +62,12 @@ All four HTTPS checks require exactly one `nosniff`, `no-referrer`, `DENY` and
 positive `max-age` HSTS header. Duplicate baseline/CSP/HSTS headers fail. The Web
 response CSP must be either the reviewed framing policy or the complete response
 policy generated in the trusted local artifact. Meta policy placement/content and
-the configured API destination must match. These are conservative, exact-contract
-comparisons: an intentionally different policy requires review, not a bypass flag.
+the configured API destination must match. Root and deep-link HTML must match the
+trusted local index byte-for-byte; proxy HTML rewriting/minification or injected
+preview scripts are outside this first exact-artifact check. These are conservative,
+exact-contract comparisons: an intentionally different delivery contract requires
+review, not a bypass flag. The metadata parser is not a full HTML5/browser validator;
+the trusted local artifact and real browser evidence remain prerequisites.
 
 Exit code 0 means all requested checks passed; exit code 1 means a failure. Output
 is one JSON object with a timestamp, declared candidate SHA and fixed check/result
