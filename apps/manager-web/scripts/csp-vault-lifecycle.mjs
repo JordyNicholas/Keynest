@@ -114,8 +114,30 @@ export async function vaultLifecycle(page, browser, profile, accountPassword, st
   await page.locator(`${card} a.rotate-action`).click();
   stage('ROTATION_OPTIONS');
   await page.locator('details.rotation-generator summary').click();
-  stage('ROTATION_GENERATE');
-  await page.locator(button('Generate replacement')).click();
+  stage('ROTATION_GENERATE_CLICK');
+  try {
+    await page.locator(button('Generate replacement')).click();
+  } catch (error) {
+    // Fixed geometry flags only: never return DOM, generated values or errors.
+    try {
+      const state = await page.evaluate(() => {
+        const details = document.querySelector('details.rotation-generator');
+        const action = details?.querySelector('.row button');
+        const bounds = action?.getBoundingClientRect();
+        return {
+          open: !!details?.open,
+          action: !!action,
+          disabled: !!action?.disabled,
+          clipped: !!details && getComputedStyle(details, '::details-content').overflowY === 'clip',
+          onscreen: !!bounds && bounds.top >= 0 && bounds.bottom <= innerHeight && bounds.left >= 0 && bounds.right <= innerWidth,
+        };
+      });
+      stage('ROTATION_GENERATE_CLICK_' + (!state.open ? 'CLOSED' : !state.action ? 'MISSING_ACTION'
+        : state.disabled ? 'DISABLED' : state.onscreen ? 'ONSCREEN' : state.clipped ? 'OFFSCREEN_CLIPPED' : 'OFFSCREEN'));
+    } catch { stage('ROTATION_GENERATE_CLICK_STATE_UNAVAILABLE'); }
+    throw error;
+  }
+  stage('ROTATION_GENERATE_VALUE');
   await page.waitForFunction(() => document.querySelector('#rotation-password')?.value.length === 20);
   const replacement = await page.$eval('#rotation-password', input => input.value);
   stage('ROTATION_MASK');
