@@ -58,11 +58,18 @@ class DocumentPolicy(HTMLParser):
     self.heads = 0
     self.resources = False
     self.policies = []
+    self.inert = []
 
   def handle_starttag(self, tag, attrs):
     if tag == 'head':
       self.heads += 1
       self.in_head = True
+    if self.in_head and not self.inert and tag not in ('head', 'base', 'link', 'meta', 'title',
+      'noscript', 'style', 'template', 'script'):
+      # HTML body content implicitly ends the head, even without </head>.
+      self.in_head = False
+    if tag in ('template', 'noscript'):
+      self.inert.append(tag)
     if tag in ('script', 'link', 'base'):
       self.resources = True
     if tag == 'meta':
@@ -70,10 +77,13 @@ class DocumentPolicy(HTMLParser):
       require(len(names) == len(set(names)), 'DOCUMENT_POLICY')
       values = dict(attrs)
       if (values.get('http-equiv') or '').lower() == 'content-security-policy':
-        require(self.in_head and not self.resources, 'DOCUMENT_POLICY')
+        require(self.in_head and not self.resources and not self.inert, 'DOCUMENT_POLICY')
         self.policies.append(values.get('content'))
 
   def handle_endtag(self, tag):
+    if tag in ('template', 'noscript'):
+      require(self.inert and self.inert[-1] == tag, 'DOCUMENT_POLICY')
+      self.inert.pop()
     if tag == 'head':
       self.in_head = False
 

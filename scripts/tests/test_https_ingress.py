@@ -250,6 +250,19 @@ class IngressTest(unittest.TestCase):
       self.assertEqual(self.execute()[1]['category'], 'BUILD_DESTINATION')
       connect.assert_not_called()
 
+  def test_meta_in_body_or_inert_content_cannot_supply_the_document_policy(self):
+    for opening, closing in ((b'<body>', b'</body>'), (b'<div>', b'</div>'),
+      (b'<template>', b'</template>'), (b'<noscript>', b'</noscript>')):
+      with self.subTest(opening=opening):
+        body = self.html.replace(b'<head>', b'<head>' + opening).replace(b'</head>', closing + b'</head>')
+        (self.directory / 'index.html').write_bytes(body)
+        with patch.object(ingress, 'connection') as connect:
+          self.assertEqual(self.execute()[1]['category'], 'DOCUMENT_POLICY')
+          connect.assert_not_called()
+        (self.directory / 'index.html').write_bytes(self.html)
+        self.state['html'] = body
+        self.assertEqual(self.execute()[1]['checks'][0]['category'], 'DOCUMENT_POLICY')
+
 
 if __name__ == '__main__':
   unittest.main()
