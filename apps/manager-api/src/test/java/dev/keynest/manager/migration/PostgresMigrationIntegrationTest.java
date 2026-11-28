@@ -57,11 +57,11 @@ class PostgresMigrationIntegrationTest {
 
   @Test
   void freshPostgresSchemaMigratesAndSupportsCoreVaultFlow() throws Exception {
-    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("8");
+    assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
     assertThat(jdbcTemplate.queryForObject("""
       SELECT COUNT(*) FROM flyway_schema_history
       WHERE success = TRUE AND version IS NOT NULL
-      """, Long.class)).isEqualTo(8L);
+      """, Long.class)).isEqualTo(9L);
     assertThat(jdbcTemplate.queryForObject("SELECT current_database()", String.class)).isEqualTo("keynest_test");
 
     String token = mockMvc.getDispatcherServlet().getWebApplicationContext()

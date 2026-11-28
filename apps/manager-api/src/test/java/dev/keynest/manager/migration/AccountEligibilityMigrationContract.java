@@ -80,7 +80,7 @@ abstract class AccountEligibilityMigrationContract {
         sql.setObject(7, now);
         sql.executeUpdate();
       }
-      assertThat(latest.migrate().migrationsExecuted).isEqualTo(1);
+      assertThat(latest.migrate().migrationsExecuted).isEqualTo(2);
       latest.validate();
       try (var sql = db.createStatement(); var rows = sql.executeQuery("SELECT * FROM users")) {
         assertThat(rows.next()).isTrue();

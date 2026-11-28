@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Add internal verification-state tables, shared bounded admission and single-claim delivery jobs with digest-only tokens and scheduled cleanup. No mail sender or activation endpoint is enabled; see [the state contract](docs/architecture/verification-state.md).
+
 - Account activation foundation: direct signup returns HTTP 410 while mandatory email activation is implemented. The V8 migration preserves existing owners' password/session/Vault access without claiming verified email; fresh installs cannot onboard new accounts yet. See [transition and rollback](docs/operators/account-activation.md). This is an unreleased signup API compatibility change.
 
 - Randomize Java-generated password category positions with Fisher–Yates before policy validation, preserving requirements, exclusions and bounded retries.
